@@ -1,0 +1,84 @@
+<?php
+
+namespace App\Models;
+
+use CodeIgniter\Model;
+
+class UserProdukModel extends Model
+{
+    protected $table            = 'user_produk';
+    protected $primaryKey       = 'id';
+    protected $useAutoIncrement = true;
+    protected $returnType       = 'array';
+    protected $useSoftDeletes   = false;
+    protected $protectFields    = true;
+
+    protected $allowedFields = [
+        'user_id',
+        'produk_id',
+        'transaksi_id',
+        'expired_at',
+    ];
+
+    protected $useTimestamps = false;
+    protected $createdField  = 'created_at';
+
+    /**
+     * Periksa apakah user memiliki akses aktif ke produk tertentu.
+     * Akses aktif: expired_at IS NULL atau expired_at > sekarang.
+     */
+    public function hasAccess(int $userId, int $produkId): bool
+    {
+        $count = $this->db->table('user_produk')
+            ->where('user_id', $userId)
+            ->where('produk_id', $produkId)
+            ->groupStart()
+                ->where('expired_at IS NULL', null, false)
+                ->orWhere('expired_at >', date('Y-m-d H:i:s'))
+            ->groupEnd()
+            ->countAllResults();
+
+        return $count > 0;
+    }
+
+    /**
+     * Aktifkan atau perbarui akses user ke produk.
+     * Jika sudah ada, update; jika belum, insert.
+     */
+    public function aktivasiAkses(int $userId, int $produkId, int $transaksiId, ?string $expiredAt = null): void
+    {
+        $existing = $this->where('user_id', $userId)
+            ->where('produk_id', $produkId)
+            ->first();
+
+        $data = [
+            'user_id'      => $userId,
+            'produk_id'    => $produkId,
+            'transaksi_id' => $transaksiId,
+            'expired_at'   => $expiredAt,
+        ];
+
+        if ($existing) {
+            $this->update($existing['id'], [
+                'transaksi_id' => $transaksiId,
+                'expired_at'   => $expiredAt,
+            ]);
+        } else {
+            $data['created_at'] = date('Y-m-d H:i:s');
+            $this->db->table('user_produk')->insert($data);
+        }
+    }
+
+    /**
+     * Ambil semua produk yang dimiliki user beserta data produk.
+     */
+    public function getByUser(int $userId): array
+    {
+        return $this->db->table('user_produk up')
+            ->select('up.*, p.nama as produk_nama, p.deskripsi, p.harga, up.expired_at, up.created_at')
+            ->join('produk p', 'p.id = up.produk_id')
+            ->where('up.user_id', $userId)
+            ->get()
+            ->getResultArray();
+    }
+}
