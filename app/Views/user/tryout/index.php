@@ -63,7 +63,30 @@
         </div>
     </div>
 <?php else: ?>
-    <div class="row g-3 mt-1">
+    <!-- Filter Pencarian -->
+    <div class="mb-3 mt-2">
+        <div class="input-group" style="max-width:360px">
+            <span class="input-group-text bg-white border-end-0">
+                <i class="bi bi-search text-muted"></i>
+            </span>
+            <input type="text" id="filterTryout" class="form-control border-start-0 ps-0"
+                   placeholder="Cari nama paket..." autocomplete="off">
+            <button type="button" id="clearFilterTryout" class="btn btn-outline-secondary d-none" title="Hapus filter">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+    </div>
+
+    <div id="emptyFilterTryout" class="d-none">
+        <div class="card border-0 shadow-sm rounded-3">
+            <div class="card-body text-center py-5 text-muted">
+                <i class="bi bi-search fs-1 d-block mb-3"></i>
+                <p class="mb-0">Tidak ada paket yang cocok dengan pencarian Anda.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mt-1" id="tryoutGrid">
         <?php foreach ($paketList as $idx => $item):
             $produk  = $item['produk'];
             $tryouts = $item['tryouts'];
@@ -74,9 +97,11 @@
             $progress  = $item['jumlah_tryout'] > 0
                 ? round(($item['jumlah_selesai'] / $item['jumlah_tryout']) * 100)
                 : 0;
-            $modalId   = 'modalSesi' . $idx;
+            $modalId        = 'modalSesi' . $idx;
+            // ID tryout pertama untuk link "Lihat Sesi" di card
+            $tryout_id_item = ! empty($tryouts) ? $tryouts[0]['id'] : 0;
         ?>
-            <div class="col-6 col-md-4 col-lg-3">
+            <div class="col-6 col-md-4 col-lg-3 tryout-item" data-nama="<?= strtolower(esc($produk['nama'])) ?>">
                 <div class="card border-0 shadow-sm h-100 tryout-card position-relative">
 
                     <!-- Badge progress -->
@@ -126,14 +151,12 @@
 
                         <!-- Tombol Aksi -->
                         <div class="d-flex flex-column gap-2 mt-auto">
-                            <!-- Lihat Sesi -->
-                            <button type="button"
-                                    class="btn btn-outline-primary btn-sm"
-                                    style="border-radius:.5rem;font-weight:600;font-size:.8rem"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#<?= $modalId ?>">
+                            <!-- Lihat Sesi → halaman baru -->
+                            <a href="<?= base_url('user/tryout/' . $tryout_id_item . '/sesi') ?>"
+                               class="btn btn-outline-primary btn-sm"
+                               style="border-radius:.5rem;font-weight:600;font-size:.8rem">
                                 <i class="bi bi-list-ul me-1"></i>Lihat Sesi (<?= $item['jumlah_tryout'] ?>)
-                            </button>
+                            </a>
 
                             <!-- Detail Produk -->
                             <a href="<?= base_url('user/produk/' . $produk['id']) ?>"
@@ -190,24 +213,67 @@
 
                                                 <!-- Tombol -->
                                                 <div class="flex-shrink-0">
-                                                    <?php if ($t['sudah_selesai']): ?>
-                                                        <span class="badge bg-success-subtle text-success border border-success-subtle" style="font-size:.68rem">
-                                                            <i class="bi bi-check-circle me-1"></i>Selesai
-                                                        </span>
-                                                    <?php elseif ($t['sesi_aktif_id']): ?>
+                                                    <?php if ($t['sesi_aktif_id']): ?>
                                                         <a href="<?= base_url('user/tryout/sesi/' . $t['sesi_aktif_id'] . '/soal/1') ?>"
                                                            class="btn btn-warning btn-sm py-1 px-2 fw-semibold" style="font-size:.75rem">
                                                             <i class="bi bi-play-circle me-1"></i>Lanjut
                                                         </a>
                                                     <?php else: ?>
-                                                        <a href="<?= base_url('user/tryout/' . $t['id'] . '/mulai') ?>"
-                                                           class="btn btn-primary btn-sm py-1 px-2 fw-semibold" style="font-size:.75rem">
-                                                            <i class="bi bi-play-fill me-1"></i>Mulai
-                                                        </a>
+                                                        <div class="d-flex gap-1">
+                                                            <a href="<?= base_url('user/tryout/' . $t['id'] . '/sesi') ?>"
+                                                               class="btn btn-outline-primary btn-sm py-1 px-2" style="font-size:.72rem">
+                                                                <i class="bi bi-clock-history me-1"></i>Riwayat
+                                                            </a>
+                                                            <a href="<?= base_url('user/tryout/' . $t['id'] . '/mulai') ?>"
+                                                               class="btn btn-primary btn-sm py-1 px-2 fw-semibold" style="font-size:.75rem">
+                                                                <i class="bi bi-play-fill me-1"></i>Mulai
+                                                            </a>
+                                                        </div>
                                                     <?php endif; ?>
                                                 </div>
                                             </div>
                                         </div>
+
+                                        <!-- Riwayat sesi selesai -->
+                                        <?php if (! empty($t['riwayat'])): ?>
+                                            <div class="mt-2 ms-5 ps-1">
+                                                <div class="text-muted mb-1" style="font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em">
+                                                    Riwayat (<?= count($t['riwayat']) ?> sesi)
+                                                </div>
+                                                <?php foreach ($t['riwayat'] as $ri => $riwayat): ?>
+                                                    <div class="d-flex align-items-center justify-content-between py-1 px-2 rounded mb-1"
+                                                         style="background:#f8f9fa;font-size:.75rem">
+                                                        <div>
+                                                            <span class="text-muted me-2">#<?= $ri + 1 ?></span>
+                                                            <?= date('d M Y H:i', strtotime($riwayat['mulai_at'])) ?>
+                                                            <?php if ($riwayat['skor_total'] !== null): ?>
+                                                                &bull;
+                                                                <span class="fw-semibold <?= $riwayat['skor_total'] >= 70 ? 'text-success' : ($riwayat['skor_total'] >= 50 ? 'text-warning' : 'text-danger') ?>">
+                                                                    <?= number_format($riwayat['skor_total'], 1) ?>%
+                                                                </span>
+                                                                <?php if ($riwayat['status_lulus'] === 'lulus'): ?>
+                                                                    <span class="badge bg-success-subtle text-success border border-success-subtle ms-1" style="font-size:.62rem">Lulus</span>
+                                                                <?php elseif ($riwayat['status_lulus'] === 'tidak_lulus'): ?>
+                                                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle ms-1" style="font-size:.62rem">Tidak Lulus</span>
+                                                                <?php endif; ?>
+                                                            <?php endif; ?>
+                                                        </div>
+                                                        <div class="d-flex gap-1">
+                                                            <?php if ($riwayat['skor_total'] !== null): ?>
+                                                                <a href="<?= base_url('user/tryout/hasil/' . $riwayat['sesi_id']) ?>"
+                                                                   class="btn btn-outline-primary py-0 px-2" style="font-size:.7rem">
+                                                                    <i class="bi bi-bar-chart me-1"></i>Hasil
+                                                                </a>
+                                                                <a href="<?= base_url('user/tryout/pembahasan/' . $riwayat['sesi_id']) ?>"
+                                                                   class="btn btn-outline-secondary py-0 px-2" style="font-size:.7rem">
+                                                                    <i class="bi bi-book me-1"></i>Bahas
+                                                                </a>
+                                                            <?php endif; ?>
+                                                        </div>
+                                                    </div>
+                                                <?php endforeach; ?>
+                                            </div>
+                                        <?php endif; ?>
                                     <?php endforeach; ?>
                                 </div>
                             <?php endif; ?>
@@ -219,5 +285,40 @@
         <?php endforeach; ?>
     </div>
 <?php endif; ?>
+
+<script>
+(function () {
+    const input    = document.getElementById('filterTryout');
+    const clearBtn = document.getElementById('clearFilterTryout');
+    const empty    = document.getElementById('emptyFilterTryout');
+    const grid     = document.getElementById('tryoutGrid');
+
+    if (!input || !grid) return;
+
+    function doFilter() {
+        const q     = input.value.trim().toLowerCase();
+        const items = grid.querySelectorAll('.tryout-item');
+        let visible = 0;
+
+        items.forEach(function (el) {
+            const nama = el.dataset.nama || '';
+            const show = !q || nama.includes(q);
+            el.style.display = show ? '' : 'none';
+            if (show) visible++;
+        });
+
+        clearBtn.classList.toggle('d-none', !q);
+        empty.classList.toggle('d-none', visible > 0);
+        grid.classList.toggle('d-none', visible === 0);
+    }
+
+    input.addEventListener('input', doFilter);
+    clearBtn.addEventListener('click', function () {
+        input.value = '';
+        doFilter();
+        input.focus();
+    });
+}());
+</script>
 
 <?= $this->endSection() ?>

@@ -1,171 +1,314 @@
 <?= $this->extend('layouts/main') ?>
+
+<?= $this->section('page_header') ?>
+<div class="d-flex align-items-center justify-content-between w-100">
+    <div>
+        <div class="ph-title"><?= esc($tryout['nama']) ?></div>
+        <div class="ph-subtitle">Soal <?= $soalIndex ?> dari <?= $totalSoal ?></div>
+        <div class="ph-accent-line"></div>
+    </div>
+    <!-- Timer -->
+    <div id="timer-box"
+         class="d-flex align-items-center gap-2 px-4 py-2 rounded-pill fw-bold"
+         style="background:#d70e0e;border:2px solid rgba(220,53,69,.4);color:#fff;font-size:1.1rem;min-width:110px;justify-content:center"
+         data-selesai-at="<?= $selesaiAt ?>"
+         data-sesi-id="<?= (int) $sesi['id'] ?>">
+        <i class="bi bi-clock"></i>
+        <span id="timer-display">--:--</span>
+    </div>
+</div>
+<?= $this->endSection() ?>
 <?= $this->section('content') ?>
 
 <?php
-    $tryoutDurasi  = (int) $tryout['durasi'];
-    $sesiMulaiAt   = $sesi['mulai_at'];
-    $sesiId        = (int) $sesi['id'];
-    $tryoutId      = (int) $sesi['tryout_id'];
-    $jawabanPilih  = $jawabanUser ? $jawabanUser['jawaban'] : null;
-    $csrfName      = csrf_token();
-    $csrfHash      = csrf_hash();
+$sesiId       = (int) $sesi['id'];
+$jawabanPilih = $jawabanUser ? $jawabanUser['jawaban'] : null;
+$csrfName     = csrf_token();
+$csrfHash     = csrf_hash();
 ?>
 
-<!-- Timer bar (sticky top) -->
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h5 class="mb-0">
-        <i class="bi bi-journal-text me-2"></i><?= esc($tryout['nama']) ?>
-    </h5>
-    <div class="d-flex align-items-center gap-3">
-        <div id="timer-box"
-             class="badge bg-danger fs-6 px-3 py-2"
-             data-selesai-at="<?= $selesaiAt ?>"
-             data-sesi-id="<?= $sesiId ?>">
-            <i class="bi bi-clock me-1"></i>
-            <span id="timer-display">--:--</span>
-        </div>
-    </div>
-</div>
+<style>
+/* ── Layout ── */
+.jawab-wrap {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 1rem;
+    align-items: start;
+}
+@media (max-width: 768px) {
+    .jawab-wrap { grid-template-columns: 1fr; }
+    .nav-panel  { order: 2; }
+    .soal-panel { order: 1; }
+}
 
-<div class="row g-3">
+/* ── Navigasi soal ── */
+.nav-panel .nav-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 5px;
+}
+.nav-btn {
+    aspect-ratio: 1;
+    border-radius: .45rem;
+    font-size: .78rem;
+    font-weight: 600;
+    border: 2px solid #dee2e6;
+    background: #fff;
+    color: #495057;
+    cursor: pointer;
+    transition: all .15s;
+    display: flex; align-items: center; justify-content: center;
+    text-decoration: none;
+}
+.nav-btn:hover   { border-color: #1a3a5c; color: #1a3a5c; }
+.nav-btn.aktif   { background: #1a3a5c; border-color: #1a3a5c; color: #fff; }
+.nav-btn.dijawab { background: #198754; border-color: #198754; color: #fff; }
 
-    <!-- Navigasi soal (kiri) -->
-    <div class="col-md-3 col-lg-2">
+/* ── Pilihan jawaban ── */
+.pilihan-item {
+    display: flex;
+    align-items: center;
+    gap: .85rem;
+    padding: .85rem 1rem;
+    border: 2px solid #e9ecef;
+    border-radius: .65rem;
+    cursor: pointer;
+    transition: border-color .15s, background .15s, transform .1s;
+    user-select: none;
+    margin-bottom: .6rem;
+}
+.pilihan-item:hover {
+    border-color: #1a3a5c;
+    background: #f0f5ff;
+    transform: translateX(3px);
+}
+.pilihan-item.selected {
+    border-color: #1a3a5c;
+    background: #e8f0fe;
+}
+.pilihan-item input[type="radio"] {
+    display: none; /* sembunyikan radio asli */
+}
+.pilihan-circle {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    border: 2px solid #adb5bd;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: .85rem;
+    flex-shrink: 0;
+    transition: all .15s;
+    color: #6c757d;
+}
+.pilihan-item.selected .pilihan-circle {
+    background: #1a3a5c;
+    border-color: #1a3a5c;
+    color: #fff;
+}
+.pilihan-teks {
+    flex-grow: 1;
+    font-size: .95rem;
+    line-height: 1.5;
+    color: #212529;
+}
+
+/* ── Pertanyaan ── */
+.pertanyaan-box {
+    background: #fff;
+    border-radius: .75rem;
+    padding: 1.5rem;
+    border: 1px solid #e9ecef;
+    margin-bottom: 1.25rem;
+    font-size: 1rem;
+    line-height: 1.7;
+    color: #212529;
+}
+
+/* ── Progress bar soal ── */
+.soal-progress {
+    height: 4px;
+    border-radius: 2px;
+    background: #e9ecef;
+    margin-bottom: 1.25rem;
+    overflow: hidden;
+}
+.soal-progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #1a3a5c, #2d6a9f);
+    border-radius: 2px;
+    transition: width .3s ease;
+}
+
+/* ── Save indicator ── */
+#save-indicator {
+    font-size: .78rem;
+    color: #198754;
+    opacity: 0;
+    transition: opacity .3s;
+}
+#save-indicator.show { opacity: 1; }
+</style>
+
+<div class="jawab-wrap">
+
+    <!-- ── Panel Navigasi ── -->
+    <div class="nav-panel">
         <div class="card border-0 shadow-sm">
-            <div class="card-header bg-light py-2">
-                <small class="fw-semibold text-muted">Navigasi Soal</small>
+            <div class="card-header bg-white border-bottom py-2">
+                <small class="fw-semibold text-muted text-uppercase" style="font-size:.7rem;letter-spacing:.05em">
+                    Navigasi Soal
+                </small>
             </div>
             <div class="card-body p-2">
-                <div class="d-flex flex-wrap gap-1">
-                    <?php foreach ($soalList as $idx => $s): ?>
-                        <?php
-                            $nomor    = $idx + 1;
-                            $soalIdNv = $s['soal_id'];
-                            $dijawab  = isset($soalDijawab[$soalIdNv]) && $soalDijawab[$soalIdNv] !== null;
-                            $aktif    = ($nomor === $soalIndex);
-                            $btnClass = $aktif ? 'btn-primary' : ($dijawab ? 'btn-success' : 'btn-outline-secondary');
-                        ?>
+                <div class="nav-grid">
+                    <?php foreach ($soalList as $idx => $s):
+                        $nomor   = $idx + 1;
+                        $dijawab = isset($soalDijawab[$s['soal_id']]) && $soalDijawab[$s['soal_id']] !== null;
+                        $aktif   = ($nomor === $soalIndex);
+                        $cls     = $aktif ? 'aktif' : ($dijawab ? 'dijawab' : '');
+                    ?>
                         <a href="<?= base_url('user/tryout/jawab/' . $sesiId . '?soal_index=' . $nomor) ?>"
-                           class="btn btn-sm <?= $btnClass ?> nav-soal-btn"
-                           data-nomor="<?= $nomor ?>"
-                           style="width:36px;height:36px;padding:0;line-height:36px;text-align:center;">
+                           class="nav-btn <?= $cls ?>" title="Soal <?= $nomor ?>">
                             <?= $nomor ?>
                         </a>
                     <?php endforeach; ?>
                 </div>
-                <div class="mt-2 small text-muted">
-                    <span class="badge bg-success me-1">&nbsp;</span>Dijawab
-                    <span class="badge bg-outline-secondary border me-1 ms-2">&nbsp;</span>Belum
+
+                <div class="mt-3 d-flex flex-column gap-1" style="font-size:.72rem">
+                    <div class="d-flex align-items-center gap-2">
+                        <span style="width:14px;height:14px;border-radius:3px;background:#198754;display:inline-block"></span>
+                        <span class="text-muted">Dijawab</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span style="width:14px;height:14px;border-radius:3px;background:#1a3a5c;display:inline-block"></span>
+                        <span class="text-muted">Soal ini</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span style="width:14px;height:14px;border-radius:3px;background:#fff;border:2px solid #dee2e6;display:inline-block"></span>
+                        <span class="text-muted">Belum</span>
+                    </div>
+                </div>
+
+                <!-- Ringkasan -->
+                <?php
+                $totalDijawab = count(array_filter($soalDijawab, fn($v) => $v !== null));
+                ?>
+                <div class="mt-3 pt-2 border-top text-center" style="font-size:.75rem">
+                    <div class="fw-bold text-success"><?= $totalDijawab ?> / <?= $totalSoal ?></div>
+                    <div class="text-muted">soal dijawab</div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Area soal (kanan) -->
-    <div class="col-md-9 col-lg-10">
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-light d-flex justify-content-between align-items-center py-2">
-                <span class="fw-semibold">Soal <?= $soalIndex ?> / <?= $totalSoal ?></span>
-                <span id="save-indicator" class="text-success small" style="display:none;">
-                    <i class="bi bi-check-circle me-1"></i>Tersimpan
+    <!-- ── Panel Soal ── -->
+    <div class="soal-panel">
+
+        <!-- Progress bar -->
+        <div class="soal-progress">
+            <div class="soal-progress-bar" style="width:<?= round(($soalIndex / $totalSoal) * 100) ?>%"></div>
+        </div>
+
+        <!-- Pertanyaan -->
+        <div class="pertanyaan-box shadow-sm">
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <span class="badge px-3 py-2 fw-semibold" style="background:#1a3a5c;font-size:.8rem">
+                    Soal <?= $soalIndex ?>
+                </span>
+                <span id="save-indicator">
+                    <i class="bi bi-check-circle-fill me-1"></i>Tersimpan
                 </span>
             </div>
-            <div class="card-body">
-
-                <!-- Pertanyaan -->
-                <div class="mb-4">
-                    <p class="fs-6"><?= nl2br(esc($soalSaatIni['pertanyaan'])) ?></p>
-                </div>
-
-                <!-- Pilihan jawaban -->
-                <form id="form-jawab">
-                    <input type="hidden" id="sesi_id" value="<?= $sesiId ?>">
-                    <input type="hidden" id="soal_id" value="<?= (int) $soalSaatIni['soal_id'] ?>">
-                    <input type="hidden" id="csrf_name" value="<?= $csrfName ?>">
-                    <input type="hidden" id="csrf_hash" value="<?= $csrfHash ?>">
-
-                    <?php
-                        $pilihan = [
-                            'a' => $soalSaatIni['pilihan_a'],
-                            'b' => $soalSaatIni['pilihan_b'],
-                            'c' => $soalSaatIni['pilihan_c'],
-                            'd' => $soalSaatIni['pilihan_d'],
-                            'e' => $soalSaatIni['pilihan_e'],
-                        ];
-                    ?>
-
-                    <?php foreach ($pilihan as $key => $teks): ?>
-                        <?php if (!empty($teks)): ?>
-                            <div class="form-check mb-3 p-3 border rounded <?= ($jawabanPilih === $key) ? 'border-primary bg-primary bg-opacity-10' : '' ?>">
-                                <input class="form-check-input pilihan-radio"
-                                       type="radio"
-                                       name="jawaban"
-                                       id="pilihan_<?= $key ?>"
-                                       value="<?= $key ?>"
-                                       <?= ($jawabanPilih === $key) ? 'checked' : '' ?>>
-                                <label class="form-check-label w-100" for="pilihan_<?= $key ?>">
-                                    <strong><?= strtoupper($key) ?>.</strong> <?= esc($teks) ?>
-                                </label>
-                            </div>
-                        <?php endif; ?>
-                    <?php endforeach; ?>
-                </form>
-
-            </div>
-            <div class="card-footer bg-white d-flex justify-content-between align-items-center">
-
-                <!-- Navigasi prev/next -->
-                <div class="d-flex gap-2">
-                    <?php if ($soalIndex > 1): ?>
-                        <a href="<?= base_url('user/tryout/jawab/' . $sesiId . '?soal_index=' . ($soalIndex - 1)) ?>"
-                           class="btn btn-outline-secondary btn-sm">
-                            <i class="bi bi-chevron-left me-1"></i>Sebelumnya
-                        </a>
-                    <?php endif; ?>
-
-                    <?php if ($soalIndex < $totalSoal): ?>
-                        <a href="<?= base_url('user/tryout/jawab/' . $sesiId . '?soal_index=' . ($soalIndex + 1)) ?>"
-                           class="btn btn-outline-primary btn-sm">
-                            Selanjutnya<i class="bi bi-chevron-right ms-1"></i>
-                        </a>
-                    <?php endif; ?>
-                </div>
-
-                <!-- Tombol selesai -->
-                <form id="form-selesai"
-                      method="post"
-                      action="<?= base_url('user/tryout/selesai/' . $sesiId) ?>">
-                    <?= csrf_field() ?>
-                    <button type="button"
-                            class="btn btn-danger btn-sm"
-                            onclick="konfirmasiSelesai()">
-                        <i class="bi bi-flag-fill me-1"></i>Selesai
-                    </button>
-                </form>
-
+            <div style="font-size:1rem;line-height:1.75">
+                <?= $soalSaatIni['pertanyaan'] ?>
             </div>
         </div>
-    </div>
 
+        <!-- Pilihan Jawaban -->
+        <form id="form-jawab">
+            <input type="hidden" id="sesi_id"   value="<?= $sesiId ?>">
+            <input type="hidden" id="soal_id"   value="<?= (int) $soalSaatIni['soal_id'] ?>">
+            <input type="hidden" id="csrf_name" value="<?= $csrfName ?>">
+            <input type="hidden" id="csrf_hash" value="<?= $csrfHash ?>">
+
+            <?php
+            $pilihan = [
+                'a' => $soalSaatIni['pilihan_a'],
+                'b' => $soalSaatIni['pilihan_b'],
+                'c' => $soalSaatIni['pilihan_c'],
+                'd' => $soalSaatIni['pilihan_d'],
+                'e' => $soalSaatIni['pilihan_e'],
+            ];
+            ?>
+
+            <?php foreach ($pilihan as $key => $teks): ?>
+                <?php if (! empty($teks)): ?>
+                    <label class="pilihan-item <?= ($jawabanPilih === $key) ? 'selected' : '' ?>"
+                           for="pilihan_<?= $key ?>">
+                        <input class="pilihan-radio"
+                               type="radio"
+                               name="jawaban"
+                               id="pilihan_<?= $key ?>"
+                               value="<?= $key ?>"
+                               <?= ($jawabanPilih === $key) ? 'checked' : '' ?>>
+                        <div class="pilihan-circle"><?= strtoupper($key) ?></div>
+                        <div class="pilihan-teks"><?= $teks ?></div>
+                    </label>
+                <?php endif; ?>
+            <?php endforeach; ?>
+        </form>
+
+        <!-- Navigasi prev/next + Selesai -->
+        <div class="d-flex justify-content-between align-items-center mt-4">
+            <div class="d-flex gap-2">
+                <?php if ($soalIndex > 1): ?>
+                    <a href="<?= base_url('user/tryout/jawab/' . $sesiId . '?soal_index=' . ($soalIndex - 1)) ?>"
+                       class="btn btn-outline-secondary">
+                        <i class="bi bi-chevron-left me-1"></i>Sebelumnya
+                    </a>
+                <?php endif; ?>
+                <?php if ($soalIndex < $totalSoal): ?>
+                    <a href="<?= base_url('user/tryout/jawab/' . $sesiId . '?soal_index=' . ($soalIndex + 1)) ?>"
+                       class="btn btn-primary">
+                        Selanjutnya<i class="bi bi-chevron-right ms-1"></i>
+                    </a>
+                <?php endif; ?>
+            </div>
+
+            <form id="form-selesai" method="post"
+                  action="<?= base_url('user/tryout/selesai/' . $sesiId) ?>">
+                <?= csrf_field() ?>
+                <button type="button" class="btn btn-danger fw-semibold"
+                        onclick="konfirmasiSelesai()">
+                    <i class="bi bi-flag-fill me-1"></i>Selesai
+                </button>
+            </form>
+        </div>
+
+    </div>
 </div>
 
-<!-- Modal konfirmasi selesai -->
-<div class="modal fade" id="modalSelesai" tabindex="-1" aria-labelledby="modalSelesaiLabel" aria-hidden="true">
+<!-- Modal Konfirmasi Selesai -->
+<div class="modal fade" id="modalSelesai" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="modalSelesaiLabel">
-                    <i class="bi bi-flag-fill me-2 text-danger"></i>Konfirmasi Selesai
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold">
+                    <i class="bi bi-flag-fill me-2 text-danger"></i>Akhiri Tryout?
                 </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p>Apakah Anda yakin ingin mengakhiri tryout ini?</p>
-                <p class="text-muted small mb-0">Setelah dikonfirmasi, sesi tidak dapat dilanjutkan kembali.</p>
+                <div class="alert alert-warning py-2 mb-3">
+                    <i class="bi bi-exclamation-triangle me-1"></i>
+                    <strong><?= $totalDijawab ?></strong> dari <strong><?= $totalSoal ?></strong> soal telah dijawab.
+                </div>
+                <p class="text-muted mb-0">Setelah dikonfirmasi, Anda akan diarahkan ke halaman hasil.</p>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                <button type="button" class="btn btn-danger" onclick="submitSelesai()">
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-arrow-left me-1"></i>Lanjut Kerjakan
+                </button>
+                <button type="button" class="btn btn-danger fw-semibold" onclick="submitSelesai()">
                     <i class="bi bi-flag-fill me-1"></i>Ya, Selesaikan
                 </button>
             </div>
@@ -174,119 +317,87 @@
 </div>
 
 <script>
-// ============================================================
-// Auto-save jawaban via AJAX
-// ============================================================
+// ── Auto-save jawaban ─────────────────────────────────────────────────────────
 (function () {
-    const radioButtons = document.querySelectorAll('.pilihan-radio');
     const saveIndicator = document.getElementById('save-indicator');
 
-    function simpanJawaban(jawaban) {
-        const sesiId   = document.getElementById('sesi_id').value;
-        const soalId   = document.getElementById('soal_id').value;
-        const csrfName = document.getElementById('csrf_name').value;
-        const csrfHash = document.getElementById('csrf_hash').value;
+    function showSaved() {
+        saveIndicator.classList.add('show');
+        setTimeout(() => saveIndicator.classList.remove('show'), 2000);
+    }
 
-        const formData = new FormData();
-        formData.append('sesi_id', sesiId);
-        formData.append('soal_id', soalId);
-        formData.append('jawaban', jawaban);
-        formData.append(csrfName, csrfHash);
+    function simpanJawaban(jawaban) {
+        const fd = new FormData();
+        fd.append('sesi_id', document.getElementById('sesi_id').value);
+        fd.append('soal_id', document.getElementById('soal_id').value);
+        fd.append('jawaban', jawaban);
+        fd.append(document.getElementById('csrf_name').value,
+                  document.getElementById('csrf_hash').value);
 
         fetch('<?= base_url('user/tryout/simpan-jawaban') ?>', {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest'
-            }
+            method: 'POST', body: fd,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
         })
-        .then(function (res) { return res.json(); })
-        .then(function (data) {
-            if (data.status === true) {
-                // Tampilkan indikator "Tersimpan"
-                if (saveIndicator) {
-                    saveIndicator.style.display = 'inline';
-                    setTimeout(function () {
-                        saveIndicator.style.display = 'none';
-                    }, 2000);
-                }
-            }
-        })
-        .catch(function (err) {
-            console.error('Gagal menyimpan jawaban:', err);
-        });
+        .then(r => r.json())
+        .then(d => { if (d.status) showSaved(); })
+        .catch(console.error);
     }
 
-    radioButtons.forEach(function (radio) {
-        radio.addEventListener('change', function () {
-            simpanJawaban(this.value);
+    // Klik seluruh baris pilihan
+    document.querySelectorAll('.pilihan-item').forEach(function (item) {
+        item.addEventListener('click', function () {
+            // Hapus selected dari semua
+            document.querySelectorAll('.pilihan-item').forEach(i => i.classList.remove('selected'));
+            // Set selected pada yang diklik
+            this.classList.add('selected');
+            // Check radio di dalamnya
+            const radio = this.querySelector('input[type="radio"]');
+            if (radio) {
+                radio.checked = true;
+                simpanJawaban(radio.value);
+            }
         });
     });
-})();
+}());
 
-// ============================================================
-// Countdown timer dengan auto-submit saat waktu habis
-// ============================================================
+// ── Countdown timer ───────────────────────────────────────────────────────────
 (function () {
-    const timerBox     = document.getElementById('timer-box');
-    const timerDisplay = document.getElementById('timer-display');
+    const box     = document.getElementById('timer-box');
+    const display = document.getElementById('timer-display');
+    if (! box || ! display) return;
 
-    if (!timerBox || !timerDisplay) return;
+    const selesaiAt = parseInt(box.getAttribute('data-selesai-at'), 10) * 1000;
 
-    const selesaiAt = parseInt(timerBox.getAttribute('data-selesai-at'), 10) * 1000; // ms
-
-    function updateTimer() {
-        const now      = Date.now();
-        const sisaMs   = selesaiAt - now;
-
-        if (sisaMs <= 0) {
-            timerDisplay.textContent = '00:00';
-            timerBox.classList.remove('bg-danger', 'bg-warning');
-            timerBox.classList.add('bg-secondary');
-            // Auto-submit form selesai
-            autoSubmitSelesai();
+    function tick() {
+        const sisa = selesaiAt - Date.now();
+        if (sisa <= 0) {
+            display.textContent = '00:00';
+            document.getElementById('form-selesai').submit();
             return;
         }
+        const m = Math.floor(sisa / 60000);
+        const s = Math.floor((sisa % 60000) / 1000);
+        display.textContent = String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
 
-        const totalDetik = Math.floor(sisaMs / 1000);
-        const menit      = Math.floor(totalDetik / 60);
-        const detik      = totalDetik % 60;
-
-        timerDisplay.textContent =
-            String(menit).padStart(2, '0') + ':' + String(detik).padStart(2, '0');
-
-        // Ubah warna saat sisa < 5 menit
-        if (totalDetik < 300) {
-            timerBox.classList.remove('bg-danger');
-            timerBox.classList.add('bg-warning', 'text-dark');
+        // Warna timer
+        const detik = Math.floor(sisa / 1000);
+        if (detik < 60) {
+            box.style.background = 'rgba(220,53,69,.3)';
+            box.style.borderColor = 'rgba(220,53,69,.8)';
+        } else if (detik < 300) {
+            box.style.background = 'rgba(255,193,7,.2)';
+            box.style.borderColor = 'rgba(255,193,7,.6)';
+            box.style.color = '#fff';
         }
-        // Ubah warna saat sisa < 1 menit
-        if (totalDetik < 60) {
-            timerBox.classList.remove('bg-warning', 'text-dark');
-            timerBox.classList.add('bg-danger', 'text-white');
-        }
-
-        setTimeout(updateTimer, 1000);
+        setTimeout(tick, 1000);
     }
+    tick();
+}());
 
-    function autoSubmitSelesai() {
-        const formSelesai = document.getElementById('form-selesai');
-        if (formSelesai) {
-            formSelesai.submit();
-        }
-    }
-
-    updateTimer();
-})();
-
-// ============================================================
-// Konfirmasi selesai
-// ============================================================
+// ── Konfirmasi selesai ────────────────────────────────────────────────────────
 function konfirmasiSelesai() {
-    const modal = new bootstrap.Modal(document.getElementById('modalSelesai'));
-    modal.show();
+    new bootstrap.Modal(document.getElementById('modalSelesai')).show();
 }
-
 function submitSelesai() {
     document.getElementById('form-selesai').submit();
 }

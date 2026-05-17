@@ -43,6 +43,17 @@ class ProdukController extends BaseController
                 ->where('produk_id', $p['id'])
                 ->countAllResults();
 
+            // Ambil tryout_id pertama untuk link "Lihat Sesi"
+            $firstTryout = $db->table('mapping_tryout mt')
+                ->select('mt.tryout_id')
+                ->join('tryout t', 't.id = mt.tryout_id')
+                ->where('mt.produk_id', $p['id'])
+                ->where('t.is_active', 1)
+                ->orderBy('mt.urutan', 'ASC')
+                ->limit(1)
+                ->get()->getRowArray();
+            $p['first_tryout_id'] = $firstTryout ? $firstTryout['tryout_id'] : 0;
+
             // Sudah beli — cek dulu sebelum fetch promosi
             $p['sudah_beli'] = $this->userProdukModel->hasAccess($userId, $p['id']);
 

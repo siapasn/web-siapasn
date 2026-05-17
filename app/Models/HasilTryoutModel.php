@@ -18,6 +18,8 @@ class HasilTryoutModel extends Model
         'user_id',
         'tryout_id',
         'skor_total',
+        'total_nilai',
+        'max_nilai',
         'jumlah_benar',
         'jumlah_salah',
         'jumlah_kosong',

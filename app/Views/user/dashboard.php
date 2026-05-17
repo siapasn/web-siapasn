@@ -22,8 +22,8 @@
                     <i class="bi bi-box-seam fs-4 text-primary"></i>
                 </div>
                 <div>
-                    <div class="text-muted small">Paket Aktif</div>
-                    <div class="fs-4 fw-bold"><?= count($paketAktif) ?></div>
+                    <div class="text-muted small">Produk Tersedia</div>
+                    <div class="fs-4 fw-bold"><?= count($produkTerbaru) ?></div>
                 </div>
             </div>
         </div>
@@ -56,67 +56,77 @@
     </div>
 </div>
 
-<!-- Paket Aktif -->
+<!-- Produk Terbaru (belum dibeli) -->
 <div class="card border-0 shadow-sm mb-4">
-    <div class="card-header bg-white border-bottom">
-        <h6 class="mb-0"><i class="bi bi-box me-2"></i>Paket Aktif Saya</h6>
+    <div class="card-header bg-white border-bottom d-flex align-items-center justify-content-between">
+        <h6 class="mb-0"><i class="bi bi-shop me-2 text-primary"></i>Produk Terbaru</h6>
+        <a href="<?= base_url('user/produk') ?>" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-grid me-1"></i>Lihat Semua
+        </a>
     </div>
     <div class="card-body">
-        <?php if (empty($paketAktif)): ?>
+        <?php if (empty($produkTerbaru)): ?>
             <div class="text-center py-4 text-muted">
-                <i class="bi bi-inbox fs-2 d-block mb-2"></i>
-                Anda belum memiliki paket aktif.
-                <a href="<?= base_url('user/produk') ?>" class="btn btn-primary btn-sm ms-2">Beli Paket</a>
+                <i class="bi bi-check-circle fs-2 d-block mb-2 text-success"></i>
+                Anda sudah memiliki semua paket yang tersedia.
+                <a href="<?= base_url('user/tryout') ?>" class="btn btn-success btn-sm ms-2">Mulai Tryout</a>
             </div>
         <?php else: ?>
             <div class="row g-3">
-                <?php foreach ($paketAktif as $paket):
-                    $thumb = ! empty($paket['thumbnail'])
-                        ? base_url('uploads/produk/' . $paket['thumbnail'])
+                <?php foreach ($produkTerbaru as $p):
+                    $thumb = ! empty($p['thumbnail'])
+                        ? base_url('uploads/produk/' . $p['thumbnail'])
                         : base_url('assets/images/thumbnail/product-default.png');
                 ?>
-                    <div class="col-md-6 col-lg-4">
-                        <div class="card border-0 shadow-sm h-100" style="border-radius:.75rem;overflow:hidden">
+                    <div class="col-md-6 col-lg-3">
+                        <div class="card border-0 shadow-sm h-100" style="border-radius:.75rem;overflow:hidden;transition:transform .18s,box-shadow .18s">
                             <!-- Thumbnail -->
-                            <div style="aspect-ratio:16/9;overflow:hidden;background:#e8f0fe">
-                                <img src="<?= $thumb ?>" alt="<?= esc($paket['produk_nama']) ?>"
+                            <div style="aspect-ratio:1/1;overflow:hidden;background:#e8f0fe">
+                                <img src="<?= $thumb ?>" alt="<?= esc($p['nama']) ?>"
                                      class="w-100 h-100" style="object-fit:cover;object-position:center">
                             </div>
 
-                            <div class="card-body p-3">
-                                <!-- Nama Produk -->
-                                <h6 class="fw-bold mb-2" style="color:#1a3a5c;line-height:1.3">
-                                    <?= esc($paket['produk_nama']) ?>
+                            <div class="card-body p-3 d-flex flex-column">
+                                <h6 class="fw-bold mb-2" style="color:#1a3a5c;font-size:.95rem;line-height:1.3">
+                                    <?= esc($p['nama']) ?>
                                 </h6>
 
-                                <!-- Info Tryout -->
-                                <div class="d-flex flex-wrap gap-2 mb-3">
-                                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle px-2 py-1" style="font-size:.75rem">
-                                        <i class="bi bi-journal-text me-1"></i><?= $paket['jumlah_tryout'] ?> Sesi Tryout
-                                    </span>
-                                    <span class="badge bg-warning bg-opacity-10 text-warning border border-warning-subtle px-2 py-1" style="font-size:.75rem">
-                                        <i class="bi bi-clock me-1"></i><?= $paket['total_durasi'] ?> Menit
-                                    </span>
-                                    <span class="badge bg-success bg-opacity-10 text-success border border-success-subtle px-2 py-1" style="font-size:.75rem">
-                                        <i class="bi bi-question-circle me-1"></i><?= $paket['total_soal'] ?> Soal
-                                    </span>
+                                <div class="d-flex align-items-center gap-1 mb-2 text-muted" style="font-size:.78rem">
+                                    <i class="bi bi-journal-text"></i>
+                                    <span><?= $p['jumlah_tryout'] ?> sesi tryout</span>
                                 </div>
 
-                                <!-- Masa Berlaku -->
-                                <div class="text-muted small mb-3">
-                                    <?php if ($paket['expired_at']): ?>
-                                        <i class="bi bi-calendar-check me-1"></i>
-                                        Berlaku hingga: <strong><?= date('d M Y', strtotime($paket['expired_at'])) ?></strong>
+                                <!-- Harga -->
+                                <div class="mb-3 mt-auto">
+                                    <?php if ($p['harga_promo'] !== null): ?>
+                                        <div class="text-decoration-line-through text-muted" style="font-size:.78rem">
+                                            Rp <?= number_format($p['harga'], 0, ',', '.') ?>
+                                        </div>
+                                        <div class="fw-bold text-danger" style="font-size:1.05rem">
+                                            Rp <?= number_format($p['harga_promo'], 0, ',', '.') ?>
+                                        </div>
+                                        <?php foreach ($p['promosi'] as $pr): ?>
+                                            <span class="badge bg-danger bg-opacity-10 text-danger border border-danger-subtle" style="font-size:.65rem">
+                                                <i class="bi bi-tag me-1"></i><?= esc($pr['nama']) ?>
+                                            </span>
+                                        <?php endforeach; ?>
                                     <?php else: ?>
-                                        <i class="bi bi-infinity me-1 text-success"></i>
-                                        <span class="text-success fw-semibold">Akses Selamanya</span>
+                                        <div class="fw-bold text-primary" style="font-size:1.05rem">
+                                            Rp <?= number_format($p['harga'], 0, ',', '.') ?>
+                                        </div>
                                     <?php endif; ?>
                                 </div>
 
-                                <a href="<?= base_url('user/tryout') ?>"
-                                   class="btn btn-primary btn-sm w-100 fw-semibold">
-                                    <i class="bi bi-play-circle me-1"></i>Mulai Tryout
-                                </a>
+                                <div class="d-flex flex-column gap-2">
+                                    <a href="<?= base_url('user/produk/' . $p['id']) ?>"
+                                       class="btn btn-outline-primary btn-sm fw-semibold">
+                                        <i class="bi bi-eye me-1"></i>Detail
+                                    </a>
+                                    <a href="<?= base_url('user/transaksi/pilih-metode/' . $p['id']) ?>"
+                                       class="btn btn-primary btn-sm fw-semibold">
+                                        <i class="bi bi-credit-card me-1"></i>Beli Sekarang
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>

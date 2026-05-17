@@ -26,6 +26,7 @@
         body {
             background-color: var(--sa-body-bg);
             font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            font-size: 15px;
         }
 
         /* Sidebar */
@@ -115,7 +116,7 @@
             box-shadow: 0 3px 12px rgba(15,39,68,.18);
         }
         /* Dekorasi lingkaran di background */
-        .page-header-banner::before {
+        /* .page-header-banner::before {
             content: '';
             position: absolute;
             top: -40px; right: -40px;
@@ -132,7 +133,7 @@
             border-radius: 50%;
             background: rgba(245,166,35,.07);
             pointer-events: none;
-        }
+        } */
         .page-header-banner .ph-icon {
             width: 42px; height: 42px;
             background: rgba(245,166,35,.18);
@@ -272,6 +273,12 @@
                             <span class="dropdown-item-text text-muted small">
                                 <?= esc(session('email') ?? '') ?>
                             </span>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item" href="<?= base_url('user/profil') ?>">
+                                <i class="bi bi-person-gear me-1"></i> Profil Saya
+                            </a>
                         </li>
                         <li><hr class="dropdown-divider"></li>
                         <li>

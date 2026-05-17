@@ -196,7 +196,7 @@ class AkunController extends BaseController
             'email'     => $this->request->getPost('email'),
             'telepon'   => $this->request->getPost('telepon') ?? '',
             'role'      => $this->request->getPost('role'),
-            'is_active' => $this->request->getPost('is_active') !== null ? 1 : 0,
+            'is_active' => (int) $this->request->getPost('is_active'),
         ];
 
         if ($password !== '' && $password !== null) {

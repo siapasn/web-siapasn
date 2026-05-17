@@ -240,6 +240,17 @@ class MenuMappingSeeder extends Seeder
                 'is_visible' => 1,
                 'updated_at' => $now,
             ],
+            [
+                'role'       => 'admin',
+                'menu_key'   => 'web_content',
+                'label'      => 'Web Content',
+                'icon'       => 'bi-file-richtext',
+                'url'        => '/admin/konten',
+                'parent_key' => null,
+                'urutan'     => 8,
+                'is_visible' => 1,
+                'updated_at' => $now,
+            ],
         ];
 
         // -------------------------------------------------------

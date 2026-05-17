@@ -6,8 +6,13 @@ use CodeIgniter\Router\RouteCollection;
  * @var RouteCollection $routes
  */
 
-// Halaman utama — arahkan ke login
-$routes->get('/', 'Auth\AuthController::index');
+// Halaman utama — landing page
+$routes->get('/', 'HomeController::index');
+
+// Halaman publik (sebelum login)
+$routes->get('/syarat-ketentuan', 'HomeController::syarat');
+$routes->get('/kebijakan-privasi', 'HomeController::privasi');
+$routes->get('/hubungi-kami', 'HomeController::kontak');
 
 // Route autentikasi (publik)
 $routes->get('/login', 'Auth\AuthController::login');
@@ -49,11 +54,19 @@ $routes->group('user', ['filter' => 'auth'], function ($routes) {
     // Backward-compat alias
     $routes->get('tryout/sesi/(:num)/soal/(:num)', 'User\TryoutController::soal/$1/$2');
 
+    // Profil User
+    $routes->get('profil', 'User\ProfilController::index');
+    $routes->post('profil/update', 'User\ProfilController::updateProfil');
+    $routes->post('profil/update-password', 'User\ProfilController::updatePassword');
+
     // Keranjang Belanja
     $routes->get('cart', 'User\CartController::index');
     $routes->post('cart/add', 'User\CartController::add');
     $routes->post('cart/remove', 'User\CartController::remove');
     $routes->post('cart/checkout', 'User\CartController::checkout');
+
+    // Detail sesi tryout (riwayat + chart)
+    $routes->get('tryout/(:num)/sesi', 'User\TryoutController::detailSesi/$1');
 });
 
 // Webhook Midtrans — publik, tidak memerlukan autentikasi
@@ -164,6 +177,14 @@ $routes->group('admin', ['filter' => ['auth', 'admin_only']], function ($routes)
     $routes->get('menu-mapping', 'Admin\MenuMappingController::index');
     $routes->post('menu-mapping/save', 'Admin\MenuMappingController::save');
     $routes->get('menu-mapping/preview', 'Admin\MenuMappingController::preview');
+
+    // Web Content (Konten)
+    $routes->get('konten', 'Admin\KontenController::index');
+    $routes->get('konten/create', 'Admin\KontenController::create');
+    $routes->post('konten/store', 'Admin\KontenController::store');
+    $routes->get('konten/(:num)/edit', 'Admin\KontenController::edit/$1');
+    $routes->post('konten/(:num)/update', 'Admin\KontenController::update/$1');
+    $routes->post('konten/(:num)/delete', 'Admin\KontenController::delete/$1');
 });
 
 // Route Super Admin — dilindungi oleh AuthFilter + SuperAdminFilter (super_admin saja)

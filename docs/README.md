@@ -38,6 +38,8 @@ Dokumentasi teknis untuk project **bimbel-cpns** (SiapASN Simulation Center), pl
 
 | Dokumen | Deskripsi |
 |---|---|
+| [user-profil-update.md](./features/user-profil-update.md) | Halaman profil user — update nama, no HP, dan password dengan validasi server-side + UX indikator kekuatan password |
+| [filter-pencarian-paket-dan-redirect-mulai-tryout.md](./features/filter-pencarian-paket-dan-redirect-mulai-tryout.md) | Filter pencarian real-time nama paket di `/user/produk` & `/user/tryout`; tombol "Mulai Tryout" redirect ke halaman sesi |
 | [passing-grade-per-sub-kategori.md](./features/passing-grade-per-sub-kategori.md) | Passing grade per sub kategori + scoring TKP (SCORE) berdasarkan nilai 1-5 |
 | [midtrans-payment-methods.md](./features/midtrans-payment-methods.md) | Halaman pilih metode pembayaran (QRIS, GoPay, ShopeePay, Mandiri, BNI, BRI, Permata) sebelum checkout via Midtrans Snap |
 
@@ -46,6 +48,9 @@ Dokumentasi teknis untuk project **bimbel-cpns** (SiapASN Simulation Center), pl
 ## Recent Updates
 
 | Tanggal | Kategori | Deskripsi |
+|---|---|---|
+| 2026-05-16 | Feature | Halaman profil user — update nama, no HP, dan password dengan validasi + indikator kekuatan password |
+| 2026-05-16 | Feature | Filter pencarian real-time nama paket di `/user/produk` & `/user/tryout`; redirect "Mulai Tryout" ke halaman sesi |
 |---|---|---|
 | 2026-05-07 | Fix | Dashboard user — thumbnail, info sesi/soal/durasi pada paket aktif |
 | 2026-05-07 | Fix | Tryout user — thumbnail, badge info, modal detail paket pada daftar tryout |

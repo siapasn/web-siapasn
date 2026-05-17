@@ -115,6 +115,12 @@
     <a href="<?= base_url('login') ?>" class="text-decoration-none fw-semibold">Masuk di sini</a>
 </p>
 
+<p class="text-center mt-2 mb-0">
+    <a href="<?= base_url('/') ?>" class="text-decoration-none small text-muted">
+        <i class="bi bi-arrow-left me-1"></i> Kembali ke Beranda
+    </a>
+</p>
+
 <script>
     const togglePassword = document.getElementById('togglePassword');
     const passwordInput  = document.getElementById('password');

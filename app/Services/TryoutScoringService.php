@@ -6,6 +6,18 @@ use App\Models\JawabanUserModel;
 use App\Models\HasilTryoutModel;
 use App\Models\SesiTryoutModel;
 
+/**
+ * TryoutScoringService
+ *
+ * Aturan Scoring:
+ * - POINT (TWK, TIU): jawaban benar = 5 poin, salah/kosong = 0 poin
+ * - SCORE (TKP)     : nilai diambil dari field nilai_a–nilai_e sesuai pilihan user
+ *
+ * Passing Grade:
+ * - Dibandingkan dengan total_nilai (bukan persentase)
+ * - Lulus jika total_nilai >= nilai_minimum untuk SETIAP sub kategori yang dikonfigurasi
+ * - Status akhir 'lulus' hanya jika SEMUA sub kategori lulus
+ */
 class TryoutScoringService
 {
     protected JawabanUserModel $jawabanModel;
@@ -19,10 +31,6 @@ class TryoutScoringService
         $this->sesiModel    = new SesiTryoutModel();
     }
 
-    /**
-     * Hitung dan simpan hasil tryout untuk sesi tertentu.
-     * Termasuk passing grade per sub kategori.
-     */
     public function hitung(int $sesiId): array
     {
         $sesi = $this->sesiModel->find($sesiId);
@@ -32,42 +40,43 @@ class TryoutScoringService
 
         $db = \Config\Database::connect();
 
-        // Ambil semua jawaban beserta kunci jawaban, nilai, dan kategori soal
+        // Ambil semua jawaban beserta data soal dan kategori
         $jawaban = $db->table('jawaban_user ju')
             ->select('ju.soal_id, ju.jawaban,
-                      s.kunci_jawaban, s.nilai_a, s.nilai_b, s.nilai_c, s.nilai_d, s.nilai_e,
+                      s.kunci_jawaban,
+                      s.nilai_a, s.nilai_b, s.nilai_c, s.nilai_d, s.nilai_e,
                       s.kategori_id, s.sub_kategori_id,
-                      k.nama as kategori_nama, k.tipe_soal as kategori_tipe,
-                      sk.nama as sub_kategori_nama, sk.tipe_soal as sub_tipe_soal')
-            ->join('soal s', 's.id = ju.soal_id')
-            ->join('kategori k', 'k.id = s.kategori_id', 'left')
-            ->join('kategori sk', 'sk.id = s.sub_kategori_id', 'left')
+                      k.nama  AS kategori_nama,  k.tipe_soal AS kategori_tipe,
+                      sk.nama AS sub_kategori_nama, sk.tipe_soal AS sub_tipe_soal')
+            ->join('soal s',     's.id  = ju.soal_id')
+            ->join('kategori k', 'k.id  = s.kategori_id',  'left')
+            ->join('kategori sk','sk.id = s.sub_kategori_id','left')
             ->where('ju.sesi_tryout_id', $sesiId)
             ->get()->getResultArray();
 
-        $jumlahBenar  = 0;
-        $jumlahSalah  = 0;
-        $jumlahKosong = 0;
+        $jumlahBenar    = 0;
+        $jumlahSalah    = 0;
+        $jumlahKosong   = 0;
         $detailKategori = [];
 
         foreach ($jawaban as $j) {
             $tipeSoal = $j['sub_tipe_soal'] ?? $j['kategori_tipe'] ?? 'POINT';
             $isKosong = ($j['jawaban'] === null || $j['jawaban'] === '');
 
-            // Hitung skor berdasarkan tipe soal
+            // ── Hitung nilai per soal ────────────────────────────────────────
             if ($tipeSoal === 'SCORE') {
-                // TKP: nilai berdasarkan pilihan yang dipilih
+                // TKP: ambil nilai dari field nilai_a–nilai_e
                 $nilaiSoal = 0;
                 if (! $isKosong) {
-                    $pilihanMap = ['a' => 'nilai_a', 'b' => 'nilai_b', 'c' => 'nilai_c', 'd' => 'nilai_d', 'e' => 'nilai_e'];
-                    $kolomNilai = $pilihanMap[$j['jawaban']] ?? null;
-                    $nilaiSoal  = $kolomNilai ? (int) ($j[$kolomNilai] ?? 0) : 0;
+                    $map        = ['a'=>'nilai_a','b'=>'nilai_b','c'=>'nilai_c','d'=>'nilai_d','e'=>'nilai_e'];
+                    $kolom      = $map[$j['jawaban']] ?? null;
+                    $nilaiSoal  = $kolom ? (int)($j[$kolom] ?? 0) : 0;
                 }
-                $isBenar = ! $isKosong && $nilaiSoal > 0;
+                $isBenar = false; // SCORE tidak punya konsep benar/salah biner
             } else {
-                // POINT: benar/salah berdasarkan kunci jawaban
+                // POINT: benar = 5, salah/kosong = 0
                 $isBenar   = (! $isKosong && $j['jawaban'] === $j['kunci_jawaban']);
-                $nilaiSoal = $isBenar ? 1 : 0;
+                $nilaiSoal = $isBenar ? 5 : 0;
             }
 
             // Update is_benar di jawaban_user
@@ -78,14 +87,14 @@ class TryoutScoringService
 
             if ($isKosong) {
                 $jumlahKosong++;
-            } elseif ($isBenar) {
+            } elseif ($tipeSoal === 'POINT' && $isBenar) {
                 $jumlahBenar++;
-            } else {
+            } elseif ($tipeSoal === 'POINT') {
                 $jumlahSalah++;
             }
 
-            // Akumulasi per sub kategori (atau kategori jika tidak ada sub)
-            $groupId   = $j['sub_kategori_id'] ?? $j['kategori_id'];
+            // ── Akumulasi per sub kategori ───────────────────────────────────
+            $groupId   = $j['sub_kategori_id'] ?: $j['kategori_id'];
             $groupNama = $j['sub_kategori_id']
                 ? ($j['sub_kategori_nama'] ?? $j['kategori_nama'])
                 : $j['kategori_nama'];
@@ -93,80 +102,75 @@ class TryoutScoringService
 
             if (! isset($detailKategori[$groupId])) {
                 $detailKategori[$groupId] = [
-                    'kategori_id'      => $j['kategori_id'],
-                    'kategori_nama'    => $j['kategori_nama'],
-                    'sub_kategori_id'  => $j['sub_kategori_id'],
-                    'sub_kategori_nama'=> $groupNama,
-                    'tipe_soal'        => $groupTipe,
-                    'benar'            => 0,
-                    'salah'            => 0,
-                    'kosong'           => 0,
-                    'total'            => 0,
-                    'total_nilai'      => 0, // untuk SCORE (TKP)
-                    'max_nilai'        => 0, // untuk SCORE (TKP)
+                    'kategori_id'       => $j['kategori_id'],
+                    'kategori_nama'     => $j['kategori_nama'],
+                    'sub_kategori_id'   => $j['sub_kategori_id'],
+                    'sub_kategori_nama' => $groupNama,
+                    'tipe_soal'         => $groupTipe,
+                    'benar'             => 0,
+                    'salah'             => 0,
+                    'kosong'            => 0,
+                    'total'             => 0,
+                    'total_nilai'       => 0, // akumulasi nilai aktual
+                    'max_nilai'         => 0, // nilai maksimum possible
                 ];
             }
 
             $detailKategori[$groupId]['total']++;
-            if ($isKosong) {
-                $detailKategori[$groupId]['kosong']++;
-            } elseif ($isBenar) {
-                $detailKategori[$groupId]['benar']++;
-            } else {
-                $detailKategori[$groupId]['salah']++;
-            }
+            $detailKategori[$groupId]['total_nilai'] += $nilaiSoal;
 
-            // Akumulasi nilai untuk SCORE
-            if ($groupTipe === 'SCORE') {
-                $detailKategori[$groupId]['total_nilai'] += $nilaiSoal;
-                $detailKategori[$groupId]['max_nilai']   += 5; // nilai max per soal TKP = 5
+            if ($groupTipe === 'POINT') {
+                $detailKategori[$groupId]['max_nilai'] += 5; // max per soal POINT = 5
+                if ($isKosong)       $detailKategori[$groupId]['kosong']++;
+                elseif ($isBenar)    $detailKategori[$groupId]['benar']++;
+                else                 $detailKategori[$groupId]['salah']++;
+            } else {
+                // SCORE: max nilai per soal = 5 (nilai tertinggi TKP)
+                $detailKategori[$groupId]['max_nilai'] += 5;
+                if ($isKosong) $detailKategori[$groupId]['kosong']++;
+                else           $detailKategori[$groupId]['benar']++; // "benar" = ada jawaban
             }
         }
 
-        $totalSoal = count($jawaban);
-        $skorTotal = $totalSoal > 0 ? round(($jumlahBenar / $totalSoal) * 100, 2) : 0;
-
-        // Hitung skor per sub kategori
+        // ── Skor per sub kategori (persentase untuk tampilan) ────────────────
         foreach ($detailKategori as &$kat) {
-            if ($kat['tipe_soal'] === 'SCORE') {
-                // TKP: skor = (total_nilai / max_nilai) * 100
-                $kat['skor'] = $kat['max_nilai'] > 0
-                    ? round(($kat['total_nilai'] / $kat['max_nilai']) * 100, 2)
-                    : 0;
-            } else {
-                // POINT: skor = (benar / total) * 100
-                $kat['skor'] = $kat['total'] > 0
-                    ? round(($kat['benar'] / $kat['total']) * 100, 2)
-                    : 0;
-            }
+            $kat['skor'] = $kat['max_nilai'] > 0
+                ? round(($kat['total_nilai'] / $kat['max_nilai']) * 100, 2)
+                : 0;
         }
         unset($kat);
+
+        // ── Skor total keseluruhan ───────────────────────────────────────────
+        $totalNilaiAll = array_sum(array_column($detailKategori, 'total_nilai'));
+        $maxNilaiAll   = array_sum(array_column($detailKategori, 'max_nilai'));
+        $skorTotal     = $maxNilaiAll > 0 ? round(($totalNilaiAll / $maxNilaiAll) * 100, 2) : 0;
 
         // ── Passing Grade ────────────────────────────────────────────────────
         $passingGradeData = $this->hitungPassingGrade(
             (int) $sesi['tryout_id'],
-            $skorTotal,
             $detailKategori
         );
 
-        // Hitung peringkat
+        // ── Peringkat ────────────────────────────────────────────────────────
         $peringkat = $this->getRanking((int) $sesi['tryout_id'], $skorTotal);
 
-        // Simpan atau update hasil
+        // ── Simpan hasil ─────────────────────────────────────────────────────
         $existing = $this->hasilModel->where('sesi_tryout_id', $sesiId)->first();
 
         $hasilData = [
-            'sesi_tryout_id'      => $sesiId,
-            'user_id'             => $sesi['user_id'],
-            'tryout_id'           => $sesi['tryout_id'],
-            'skor_total'          => $skorTotal,
-            'jumlah_benar'        => $jumlahBenar,
-            'jumlah_salah'        => $jumlahSalah,
-            'jumlah_kosong'       => $jumlahKosong,
-            'detail_kategori'     => json_encode(array_values($detailKategori)),
-            'peringkat'           => $peringkat,
-            'status_lulus'        => $passingGradeData['status_lulus'],
-            'detail_passing_grade'=> json_encode($passingGradeData['detail']),
+            'sesi_tryout_id'       => $sesiId,
+            'user_id'              => $sesi['user_id'],
+            'tryout_id'            => $sesi['tryout_id'],
+            'skor_total'           => $skorTotal,
+            'total_nilai'          => $totalNilaiAll,
+            'max_nilai'            => $maxNilaiAll,
+            'jumlah_benar'         => $jumlahBenar,
+            'jumlah_salah'         => $jumlahSalah,
+            'jumlah_kosong'        => $jumlahKosong,
+            'detail_kategori'      => json_encode(array_values($detailKategori)),
+            'peringkat'            => $peringkat,
+            'status_lulus'         => $passingGradeData['status_lulus'],
+            'detail_passing_grade' => json_encode($passingGradeData['detail']),
         ];
 
         if ($existing) {
@@ -174,38 +178,36 @@ class TryoutScoringService
             $hasilData['id'] = $existing['id'];
         } else {
             $hasilData['created_at'] = date('Y-m-d H:i:s');
-            $id = $this->hasilModel->insert($hasilData);
-            $hasilData['id'] = $id;
+            $hasilData['id']         = $this->hasilModel->insert($hasilData);
         }
 
         return $hasilData;
     }
 
     /**
-     * Hitung passing grade berdasarkan konfigurasi di tabel passing_grade.
-     * Cek per sub kategori, lalu overall.
-     *
-     * @return array ['status_lulus' => 'lulus'|'tidak_lulus'|null, 'detail' => [...]]
+     * Hitung passing grade per sub kategori.
+     * Bandingkan total_nilai (bukan persentase) dengan nilai_minimum.
+     * Lulus = total_nilai >= nilai_minimum untuk SEMUA sub kategori yang dikonfigurasi.
      */
-    private function hitungPassingGrade(int $tryoutId, float $skorTotal, array $detailKategori): array
+    private function hitungPassingGrade(int $tryoutId, array $detailKategori): array
     {
         $db = \Config\Database::connect();
 
-        // Ambil semua passing grade yang relevan (global + per kategori)
         $pgRows = $db->table('passing_grade pg')
-            ->select('pg.*, k.nama as nama_kategori, sk.nama as nama_sub_kategori')
-            ->join('kategori k', 'k.id = pg.kategori_id', 'left')
-            ->join('kategori sk', 'sk.id = pg.sub_kategori_id', 'left')
-            ->where('pg.tryout_id IS NULL', null, false) // global
-            ->orWhere('pg.tryout_id', $tryoutId)         // spesifik tryout
+            ->select('pg.*, k.nama AS nama_kategori, sk.nama AS nama_sub_kategori')
+            ->join('kategori k',  'k.id  = pg.kategori_id',    'left')
+            ->join('kategori sk', 'sk.id = pg.sub_kategori_id','left')
+            ->groupStart()
+                ->where('pg.tryout_id IS NULL', null, false)
+                ->orWhere('pg.tryout_id', $tryoutId)
+            ->groupEnd()
             ->get()->getResultArray();
 
         if (empty($pgRows)) {
-            // Tidak ada konfigurasi passing grade
             return ['status_lulus' => null, 'detail' => []];
         }
 
-        $detail    = [];
+        $detail     = [];
         $semuaLulus = true;
 
         foreach ($pgRows as $pg) {
@@ -213,44 +215,46 @@ class TryoutScoringService
             $katId        = $pg['kategori_id'];
             $subKatId     = $pg['sub_kategori_id'];
 
-            if ($katId === null) {
-                // Passing grade overall (skor total)
-                $skorAktual = $skorTotal;
-                $label      = 'Keseluruhan';
-            } elseif ($subKatId !== null) {
-                // Passing grade per sub kategori
-                $skorAktual = null;
+            // Cari total_nilai aktual dari detailKategori
+            $totalNilaiAktual = null;
+            $tipeSoal         = 'POINT';
+
+            if ($subKatId !== null) {
                 foreach ($detailKategori as $kat) {
-                    if ((int) ($kat['sub_kategori_id'] ?? 0) === (int) $subKatId) {
-                        $skorAktual = $kat['skor'];
+                    if ((int)($kat['sub_kategori_id'] ?? 0) === (int)$subKatId) {
+                        $totalNilaiAktual = $kat['total_nilai'];
+                        $tipeSoal         = $kat['tipe_soal'];
                         break;
                     }
                 }
                 $label = ($pg['nama_sub_kategori'] ?? '') ?: ($pg['nama_kategori'] ?? 'Sub Kategori');
-            } else {
-                // Passing grade per kategori (tanpa sub)
-                $skorAktual = null;
+            } elseif ($katId !== null) {
                 foreach ($detailKategori as $kat) {
-                    if ((int) $kat['kategori_id'] === (int) $katId && empty($kat['sub_kategori_id'])) {
-                        $skorAktual = $kat['skor'];
-                        break;
+                    if ((int)$kat['kategori_id'] === (int)$katId) {
+                        $totalNilaiAktual = ($totalNilaiAktual ?? 0) + $kat['total_nilai'];
+                        $tipeSoal         = $kat['tipe_soal'];
                     }
                 }
                 $label = $pg['nama_kategori'] ?? 'Kategori';
+            } else {
+                // Overall: jumlah semua total_nilai
+                $totalNilaiAktual = array_sum(array_column($detailKategori, 'total_nilai'));
+                $label            = 'Keseluruhan';
             }
 
-            if ($skorAktual === null) continue;
+            if ($totalNilaiAktual === null) continue;
 
-            $lulus = $skorAktual >= $nilaiMinimum;
+            $lulus = $totalNilaiAktual >= $nilaiMinimum;
             if (! $lulus) $semuaLulus = false;
 
             $detail[] = [
-                'label'         => $label,
-                'kategori_id'   => $katId,
-                'sub_kategori_id' => $subKatId,
-                'nilai_minimum' => $nilaiMinimum,
-                'skor_aktual'   => round($skorAktual, 2),
-                'lulus'         => $lulus,
+                'label'            => $label,
+                'kategori_id'      => $katId,
+                'sub_kategori_id'  => $subKatId,
+                'tipe_soal'        => $tipeSoal,
+                'nilai_minimum'    => $nilaiMinimum,
+                'total_nilai'      => $totalNilaiAktual,
+                'lulus'            => $lulus,
             ];
         }
 
@@ -260,9 +264,6 @@ class TryoutScoringService
         ];
     }
 
-    /**
-     * Hitung peringkat user berdasarkan skor untuk tryout tertentu.
-     */
     public function getRanking(int $tryoutId, float $skorUser): int
     {
         $db    = \Config\Database::connect();

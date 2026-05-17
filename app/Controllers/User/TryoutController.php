@@ -106,18 +106,26 @@ class TryoutController extends BaseController
                     $t['jumlah_soal'] = $db->table('mapping_soal')
                         ->where('tryout_id', $t['id'])
                         ->countAllResults();
-                }
-                unset($t);
 
-                // Tandai status sesi setiap tryout
-                foreach ($tryouts as &$t) {
-                    $t['sudah_selesai'] = $this->sesiModel->sudahSelesai($userId, (int) $t['id']);
+                    // Status sesi aktif (berlangsung)
                     $sesiAktif          = $this->sesiModel->getAktif($userId, (int) $t['id']);
                     $t['sesi_aktif_id'] = $sesiAktif ? $sesiAktif['id'] : null;
+                    $t['sudah_selesai'] = false; // tidak diblokir lagi, bisa berulang
+
+                    // Riwayat sesi selesai untuk tryout ini
+                    $t['riwayat'] = $db->table('sesi_tryout st')
+                        ->select('st.id as sesi_id, st.mulai_at, st.selesai_at, st.status,
+                                  ht.skor_total, ht.jumlah_benar, ht.jumlah_salah, ht.status_lulus')
+                        ->join('hasil_tryout ht', 'ht.sesi_tryout_id = st.id', 'left')
+                        ->where('st.user_id', $userId)
+                        ->where('st.tryout_id', $t['id'])
+                        ->whereIn('st.status', ['selesai', 'timeout'])
+                        ->orderBy('st.mulai_at', 'DESC')
+                        ->get()->getResultArray();
                 }
                 unset($t);
 
-                $selesai = count(array_filter($tryouts, fn($t) => $t['sudah_selesai']));
+                $selesai = count(array_filter($tryouts, fn($t) => ! empty($t['riwayat'])));
 
                 $paketList[] = [
                     'produk'          => $produk,
@@ -144,31 +152,21 @@ class TryoutController extends BaseController
         $userId = (int) session()->get('user_id');
         $db     = \Config\Database::connect();
 
-        // Cek akses user ke tryout ini
         if (!$this->userHasAccessToTryout($userId, $tryoutId)) {
             return redirect()->to(base_url('user/tryout'))
                 ->with('error', 'Anda tidak memiliki akses ke tryout ini.');
         }
 
-        // Cek apakah sesi sudah selesai
-        if ($this->sesiModel->sudahSelesai($userId, $tryoutId)) {
-            return redirect()->to(base_url('user/tryout'))
-                ->with('error', 'Anda sudah menyelesaikan tryout ini dan tidak dapat mengulanginya.');
-        }
-
-        // Ambil data tryout
         $tryout = $db->table('tryout')->where('id', $tryoutId)->get()->getRowArray();
         if (!$tryout) {
             return redirect()->to(base_url('user/tryout'))
                 ->with('error', 'Tryout tidak ditemukan.');
         }
 
-        // Hitung jumlah soal dari mapping_soal
         $tryout['jumlah_soal'] = $db->table('mapping_soal')
             ->where('tryout_id', $tryoutId)
             ->countAllResults();
 
-        // Cek apakah ada sesi yang sedang berlangsung
         $sesiAktif = $this->sesiModel->getAktif($userId, $tryoutId);
 
         return view('user/tryout/mulai', [
@@ -179,23 +177,16 @@ class TryoutController extends BaseController
     }
 
     // -------------------------------------------------------------------------
-    // start(int $tryoutId) — POST: mulai sesi tryout
+    // start(int $tryoutId) — POST: mulai sesi tryout baru (bisa berulang)
     // -------------------------------------------------------------------------
 
     public function start(int $tryoutId)
     {
         $userId = (int) session()->get('user_id');
 
-        // Re-check akses
         if (!$this->userHasAccessToTryout($userId, $tryoutId)) {
             return redirect()->to(base_url('user/tryout'))
                 ->with('error', 'Anda tidak memiliki akses ke tryout ini.');
-        }
-
-        // Re-check sesi duplikat
-        if ($this->sesiModel->sudahSelesai($userId, $tryoutId)) {
-            return redirect()->to(base_url('user/tryout'))
-                ->with('error', 'Anda sudah menyelesaikan tryout ini dan tidak dapat mengulanginya.');
         }
 
         // Jika ada sesi berlangsung, lanjutkan sesi tersebut
@@ -204,7 +195,7 @@ class TryoutController extends BaseController
             return redirect()->to(base_url('user/tryout/jawab/' . $sesiAktif['id'] . '?soal_index=1'));
         }
 
-        // Buat sesi baru
+        // Buat sesi baru (boleh berulang)
         $sesiId = $this->sesiModel->mulai($userId, $tryoutId);
 
         return redirect()->to(base_url('user/tryout/jawab/' . $sesiId . '?soal_index=1'));
@@ -432,10 +423,17 @@ class TryoutController extends BaseController
                 ->with('error', 'Data tryout tidak ditemukan.');
         }
 
-        // Ambil semua soal beserta jawaban user dan kunci jawaban
+        // Ambil semua soal beserta jawaban user, kunci jawaban, nilai, dan tipe soal
         $soalList = $db->table('mapping_soal ms')
-            ->select('s.id as soal_id, s.pertanyaan, s.pilihan_a, s.pilihan_b, s.pilihan_c, s.pilihan_d, s.pilihan_e, s.kunci_jawaban, s.pembahasan, ju.jawaban as jawaban_user, ju.is_benar')
+            ->select('s.id as soal_id, s.pertanyaan,
+                      s.pilihan_a, s.pilihan_b, s.pilihan_c, s.pilihan_d, s.pilihan_e,
+                      s.kunci_jawaban, s.pembahasan,
+                      s.nilai_a, s.nilai_b, s.nilai_c, s.nilai_d, s.nilai_e,
+                      s.sub_kategori_id,
+                      sk.tipe_soal as sub_tipe_soal,
+                      ju.jawaban as jawaban_user, ju.is_benar')
             ->join('soal s', 's.id = ms.soal_id')
+            ->join('kategori sk', 'sk.id = s.sub_kategori_id', 'left')
             ->join('jawaban_user ju', 'ju.soal_id = ms.soal_id AND ju.sesi_tryout_id = ' . (int) $sesiId, 'left')
             ->where('ms.tryout_id', $sesi['tryout_id'])
             ->orderBy('ms.urutan', 'ASC')
@@ -446,6 +444,80 @@ class TryoutController extends BaseController
             'tryout'   => $tryout,
             'soalList' => $soalList,
             'menus'    => $this->getMenus(),
+        ]);
+    }
+
+    // -------------------------------------------------------------------------
+    // detailSesi(int $tryoutId) — GET: halaman detail sesi + riwayat + chart
+    // -------------------------------------------------------------------------
+
+    public function detailSesi(int $tryoutId)
+    {
+        $userId = (int) session()->get('user_id');
+        $db     = \Config\Database::connect();
+
+        if (! $this->userHasAccessToTryout($userId, $tryoutId)) {
+            return redirect()->to(base_url('user/tryout'))
+                ->with('error', 'Anda tidak memiliki akses ke tryout ini.');
+        }
+
+        $tryout = $db->table('tryout')->where('id', $tryoutId)->get()->getRowArray();
+        if (! $tryout) {
+            return redirect()->to(base_url('user/tryout'))
+                ->with('error', 'Tryout tidak ditemukan.');
+        }
+
+        // Ambil semua riwayat sesi selesai user untuk tryout ini
+        $riwayat = $db->table('sesi_tryout st')
+            ->select('st.id as sesi_id, st.mulai_at, st.selesai_at, st.status,
+                      ht.id as hasil_id, ht.skor_total, ht.total_nilai, ht.max_nilai,
+                      ht.jumlah_benar, ht.jumlah_salah, ht.jumlah_kosong,
+                      ht.status_lulus, ht.peringkat, ht.detail_kategori')
+            ->join('hasil_tryout ht', 'ht.sesi_tryout_id = st.id', 'left')
+            ->where('st.user_id', $userId)
+            ->where('st.tryout_id', $tryoutId)
+            ->whereIn('st.status', ['selesai', 'timeout'])
+            ->orderBy('st.mulai_at', 'ASC')
+            ->get()->getResultArray();
+
+        // Cek sesi aktif
+        $sesiAktif = $this->sesiModel->getAktif($userId, $tryoutId);
+
+        // Statistik ringkasan — gunakan total_nilai (poin) bukan persentase
+        $totalSesi     = count($riwayat);
+        $allTotalNilai = array_filter(array_column($riwayat, 'total_nilai'), fn($v) => $v > 0);
+
+        // Fallback ke skor_total jika total_nilai belum ada (data lama)
+        if (empty($allTotalNilai)) {
+            $allTotalNilai = array_column($riwayat, 'skor_total');
+        }
+
+        $skorTerbaik  = $totalSesi > 0 && ! empty($allTotalNilai) ? max($allTotalNilai) : 0;
+        $skorRataRata = $totalSesi > 0 && ! empty($allTotalNilai)
+            ? round(array_sum($allTotalNilai) / count($allTotalNilai), 0)
+            : 0;
+        $jumlahLulus  = count(array_filter($riwayat, fn($r) => $r['status_lulus'] === 'lulus'));
+
+        // Chart data — gunakan total_nilai
+        $chartLabels = [];
+        $chartData   = [];
+        foreach ($riwayat as $i => $r) {
+            $chartLabels[] = 'Sesi ' . ($i + 1) . ' (' . date('d/m', strtotime($r['mulai_at'])) . ')';
+            $nilaiChart    = (int)($r['total_nilai'] ?? 0) ?: (float)($r['skor_total'] ?? 0);
+            $chartData[]   = $nilaiChart;
+        }
+
+        return view('user/tryout/detail-sesi', [
+            'tryout'       => $tryout,
+            'riwayat'      => $riwayat,
+            'sesiAktif'    => $sesiAktif,
+            'chartLabels'  => $chartLabels,
+            'chartData'    => $chartData,
+            'totalSesi'    => $totalSesi,
+            'skorTerbaik'  => $skorTerbaik,
+            'skorRataRata' => $skorRataRata,
+            'jumlahLulus'  => $jumlahLulus,
+            'menus'        => $this->getMenus(),
         ]);
     }
 

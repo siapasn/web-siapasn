@@ -84,14 +84,37 @@
         </div>
     </div>
 <?php else: ?>
-    <div class="row g-3 mt-1">
+    <!-- Filter Pencarian -->
+    <div class="mb-3 mt-2">
+        <div class="input-group" style="max-width:360px">
+            <span class="input-group-text bg-white border-end-0">
+                <i class="bi bi-search text-muted"></i>
+            </span>
+            <input type="text" id="filterProduk" class="form-control border-start-0 ps-0"
+                   placeholder="Cari nama paket..." autocomplete="off">
+            <button type="button" id="clearFilterProduk" class="btn btn-outline-secondary d-none" title="Hapus filter">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+    </div>
+
+    <div id="emptyFilterProduk" class="d-none">
+        <div class="card border-0 shadow-sm rounded-3">
+            <div class="card-body text-center py-5 text-muted">
+                <i class="bi bi-search fs-1 d-block mb-3"></i>
+                <p class="mb-0">Tidak ada paket yang cocok dengan pencarian Anda.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mt-1" id="produkGrid">
         <?php foreach ($produk as $p): ?>
             <?php
             $thumb = ! empty($p['thumbnail'])
                 ? base_url('uploads/produk/' . $p['thumbnail'])
                 : base_url('assets/images/thumbnail/product-default.png');
             ?>
-            <div class="col-6 col-md-4 col-lg-3">
+            <div class="col-6 col-md-4 col-lg-3 produk-item" data-nama="<?= strtolower(esc($p['nama'])) ?>">
                 <div class="card border-0 shadow-sm h-100 produk-card position-relative">
 
                     <!-- Badge Dimiliki -->
@@ -147,7 +170,7 @@
                             </a>
 
                             <?php if ($p['sudah_beli']): ?>
-                                <a href="<?= base_url('user/dashboard') ?>"
+                                <a href="<?= base_url('user/tryout/' . $p['first_tryout_id'] . '/sesi') ?>"
                                    class="btn btn-success btn-sm btn-cart">
                                     <i class="bi bi-play-circle me-1"></i>Mulai Tryout
                                 </a>
@@ -253,6 +276,42 @@
                 showToast('Terjadi kesalahan. Coba lagi.', false);
             });
         });
+    });
+}());
+</script>
+
+<script>
+// Filter pencarian nama paket
+(function () {
+    const input    = document.getElementById('filterProduk');
+    const clearBtn = document.getElementById('clearFilterProduk');
+    const empty    = document.getElementById('emptyFilterProduk');
+    const grid     = document.getElementById('produkGrid');
+
+    if (!input || !grid) return;
+
+    function doFilter() {
+        const q     = input.value.trim().toLowerCase();
+        const items = grid.querySelectorAll('.produk-item');
+        let visible = 0;
+
+        items.forEach(function (el) {
+            const nama = el.dataset.nama || '';
+            const show = !q || nama.includes(q);
+            el.style.display = show ? '' : 'none';
+            if (show) visible++;
+        });
+
+        clearBtn.classList.toggle('d-none', !q);
+        empty.classList.toggle('d-none', visible > 0);
+        grid.classList.toggle('d-none', visible === 0);
+    }
+
+    input.addEventListener('input', doFilter);
+    clearBtn.addEventListener('click', function () {
+        input.value = '';
+        doFilter();
+        input.focus();
     });
 }());
 </script>

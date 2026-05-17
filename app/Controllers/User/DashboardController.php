@@ -11,39 +11,60 @@ class DashboardController extends BaseController
         $userId = session()->get('user_id');
         $db     = \Config\Database::connect();
 
-        // Paket aktif: user_produk joined with produk, where expired_at IS NULL or > now
-        $paketAktif = [];
-        if ($db->tableExists('user_produk')) {
-            $paketAktif = $db->table('user_produk up')
-                ->select('up.*, p.nama as produk_nama, p.deskripsi, p.thumbnail, up.expired_at')
-                ->join('produk p', 'p.id = up.produk_id')
-                ->where('up.user_id', $userId)
-                ->where('(up.expired_at IS NULL OR up.expired_at > NOW())')
+        // Produk terbaru yang belum pernah dibeli user (max 4)
+        $now = date('Y-m-d H:i:s');
+
+        // Ambil produk_id yang sudah dimiliki user
+        $produkDimiliki = $db->table('user_produk')
+            ->select('produk_id')
+            ->where('user_id', $userId)
+            ->get()->getResultArray();
+        $produkDimilikiIds = array_column($produkDimiliki, 'produk_id');
+
+        // Ambil produk aktif yang punya tryout dan belum dibeli
+        $produkTerbaru = $db->table('produk p')
+            ->select('p.*')
+            ->join('mapping_tryout mt', 'mt.produk_id = p.id', 'inner')
+            ->where('p.is_active', 1)
+            ->groupBy('p.id')
+            ->having('COUNT(mt.id) >', 0)
+            ->orderBy('p.id', 'DESC')
+            ->limit(4)
+            ->get()->getResultArray();
+
+        // Filter yang belum dibeli dan tambah info
+        $produkTerbaru = array_filter($produkTerbaru, function($p) use ($produkDimilikiIds) {
+            return ! in_array($p['id'], $produkDimilikiIds);
+        });
+
+        foreach ($produkTerbaru as &$p) {
+            $p['jumlah_tryout'] = $db->table('mapping_tryout')
+                ->where('produk_id', $p['id'])
+                ->countAllResults();
+
+            // Promosi aktif
+            $promosi = $db->table('promosi')
+                ->where('produk_id', $p['id'])
+                ->where('is_active', 1)
+                ->where('mulai_at <=', $now)
+                ->where('berakhir_at >=', $now)
                 ->get()->getResultArray();
 
-            // Tambah info tryout per paket
-            foreach ($paketAktif as &$paket) {
-                $tryouts = $db->table('mapping_tryout mt')
-                    ->select('t.id, t.durasi')
-                    ->join('tryout t', 't.id = mt.tryout_id')
-                    ->where('mt.produk_id', $paket['produk_id'])
-                    ->where('t.is_active', 1)
-                    ->get()->getResultArray();
-
-                $paket['jumlah_tryout'] = count($tryouts);
-                $paket['total_durasi']  = array_sum(array_column($tryouts, 'durasi'));
-
-                // Hitung total soal dari mapping_soal per tryout
-                $totalSoal = 0;
-                foreach ($tryouts as $tr) {
-                    $totalSoal += $db->table('mapping_soal')
-                        ->where('tryout_id', $tr['id'])
-                        ->countAllResults();
+            $p['harga_promo'] = null;
+            if (! empty($promosi)) {
+                $diskonTerbesar = 0;
+                foreach ($promosi as $pr) {
+                    $d = $pr['jenis_diskon'] === 'persentase'
+                        ? $p['harga'] * ($pr['nilai_diskon'] / 100)
+                        : min((float)$pr['nilai_diskon'], $p['harga']);
+                    if ($d > $diskonTerbesar) $diskonTerbesar = $d;
                 }
-                $paket['total_soal'] = $totalSoal;
+                $p['harga_promo'] = max(0, $p['harga'] - $diskonTerbesar);
             }
-            unset($paket);
+            $p['promosi'] = $promosi;
         }
+        unset($p);
+        $produkTerbaru = array_values($produkTerbaru);
 
         // 5 riwayat tryout terakhir
         $riwayatTryout = [];
@@ -72,7 +93,7 @@ class DashboardController extends BaseController
             ->get()->getResultArray();
 
         return view('user/dashboard', [
-            'paketAktif'    => $paketAktif,
+            'produkTerbaru' => $produkTerbaru,
             'riwayatTryout' => $riwayatTryout,
             'avgSkor'       => $avgSkor,
             'menus'         => $menus,

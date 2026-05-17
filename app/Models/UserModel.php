@@ -29,15 +29,9 @@ class UserModel extends Model
     protected $createdField  = 'created_at';
     protected $updatedField  = 'updated_at';
 
-    protected $validationRules = [
-        'email' => 'required|valid_email|is_unique[users.email,id,{id}]',
-    ];
+    protected $validationRules = [];
 
-    protected $validationMessages = [
-        'email' => [
-            'is_unique' => 'Email sudah terdaftar',
-        ],
-    ];
+    protected $validationMessages = [];
 
     protected $skipValidation       = false;
     protected $cleanValidationRules = true;

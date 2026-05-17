@@ -187,7 +187,7 @@
             overflow: hidden;
             box-shadow: 0 3px 12px rgba(15,39,68,.18);
         }
-        .page-header-banner::before {
+        /* .page-header-banner::before {
             content: '';
             position: absolute;
             top: -40px; right: -40px;
@@ -204,7 +204,7 @@
             border-radius: 50%;
             background: rgba(245,166,35,.06);
             pointer-events: none;
-        }
+        } */
         .page-header-banner .ph-icon {
             width: 40px; height: 40px;
             background: rgba(245,166,35,.18);

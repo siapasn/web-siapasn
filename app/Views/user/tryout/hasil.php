@@ -31,13 +31,34 @@ if (! empty($hasil['detail_passing_grade'])) {
         <div class="card border-0 shadow-sm mb-4 text-center">
             <div class="card-body py-4">
                 <?php
-                $skor      = (float) ($hasil['skor_total'] ?? 0);
-                $skorClass = $skor >= 70 ? 'text-success' : ($skor >= 50 ? 'text-warning' : 'text-danger');
+                $totalNilai = (int) ($hasil['total_nilai'] ?? 0);
+                $maxNilai   = (int) ($hasil['max_nilai']   ?? 0);
+                $skor       = (float) ($hasil['skor_total'] ?? 0);
+
+                // Fallback: hitung dari detail_kategori jika total_nilai masih 0
+                if ($totalNilai === 0 && ! empty($detailKategori)) {
+                    foreach ($detailKategori as $kat) {
+                        $totalNilai += (int) ($kat['total_nilai'] ?? 0);
+                        $maxNilai   += (int) ($kat['max_nilai']   ?? 0);
+                    }
+                }
+
+                $skorClass  = $skor >= 70 ? 'text-success' : ($skor >= 50 ? 'text-warning' : 'text-danger');
                 ?>
+
+                <!-- Total Poin -->
                 <div class="display-3 fw-bold <?= $skorClass ?>">
-                    <?= number_format($skor, 1) ?>
+                    <?= $totalNilai ?>
                 </div>
-                <div class="text-muted mt-1 mb-3">Skor Total</div>
+                <div class="text-muted small mb-1">Total Poin</div>
+                <!-- <?php if ($maxNilai > 0): ?>
+                    <div class="text-muted" style="font-size:.8rem">
+                        dari <?= $maxNilai ?> poin maksimum
+                        <span class="ms-1 badge bg-secondary bg-opacity-10 text-secondary border" style="font-size:.72rem">
+                            <?= number_format($skor, 1) ?>%
+                        </span>
+                    </div>
+                <?php endif; ?> -->
 
                 <!-- Status Lulus -->
                 <?php if ($statusLulus === 'lulus'): ?>
@@ -53,12 +74,12 @@ if (! empty($hasil['detail_passing_grade'])) {
                 <?php endif; ?>
 
                 <!-- Peringkat -->
-                <?php if (! empty($hasil['peringkat'])): ?>
+                <!-- <?php if (! empty($hasil['peringkat'])): ?>
                     <span class="badge bg-primary fs-6 px-3 py-2">
                         <i class="bi bi-award-fill me-1"></i>
                         Peringkat #<?= (int) $hasil['peringkat'] ?>
                     </span>
-                <?php endif; ?>
+                <?php endif; ?> -->
             </div>
         </div>
 
@@ -104,8 +125,8 @@ if (! empty($hasil['detail_passing_grade'])) {
                             <div>
                                 <div class="fw-semibold small"><?= esc($pg['label']) ?></div>
                                 <div class="text-muted" style="font-size:.72rem">
-                                    Min: <?= number_format($pg['nilai_minimum'], 1) ?>%
-                                    &bull; Nilai: <?= number_format($pg['skor_aktual'], 1) ?>%
+                                    Min: <?= number_format($pg['nilai_minimum'], 0) ?> poin
+                                    &bull; Nilai: <?= number_format($pg['total_nilai'] ?? 0, 0) ?> poin
                                 </div>
                             </div>
                             <?php if ($pg['lulus']): ?>
@@ -148,23 +169,34 @@ if (! empty($hasil['detail_passing_grade'])) {
 
                 <?php if (! empty($detailKategori)): ?>
                     <?php foreach ($detailKategori as $kat):
-                        $katSkor     = (float) ($kat['skor'] ?? 0);
-                        $barClass    = $katSkor >= 70 ? 'bg-success' : ($katSkor >= 50 ? 'bg-warning' : 'bg-danger');
-                        $badgeClass  = $katSkor >= 70 ? 'bg-success' : ($katSkor >= 50 ? 'bg-warning text-dark' : 'bg-danger');
-                        $tipeSoal    = $kat['tipe_soal'] ?? 'POINT';
+                        $katSkor       = (float) ($kat['skor']        ?? 0);
+                        $totalNilaiKat = (int)   ($kat['total_nilai'] ?? 0);
+                        $tipeSoal      = $kat['tipe_soal'] ?? 'POINT';
 
-                        // Cek apakah sub kategori ini lulus passing grade
-                        $pgStatus = null;
+                        // Cari passing grade untuk sub kategori ini
+                        $pgNilaiMin = null;
+                        $pgStatus   = null;
                         foreach ($detailPassingGrade as $pg) {
-                            if (! empty($kat['sub_kategori_id']) && (int)($pg['sub_kategori_id'] ?? 0) === (int)$kat['sub_kategori_id']) {
-                                $pgStatus = $pg['lulus'];
+                            $matchSub = ! empty($kat['sub_kategori_id'])
+                                && (int)($pg['sub_kategori_id'] ?? 0) === (int)$kat['sub_kategori_id'];
+                            $matchKat = empty($kat['sub_kategori_id'])
+                                && (int)($pg['kategori_id'] ?? 0) === (int)$kat['kategori_id'];
+                            if ($matchSub || $matchKat) {
+                                $pgNilaiMin = (int) $pg['nilai_minimum'];
+                                $pgStatus   = $pg['lulus'];
                                 break;
                             }
                         }
+
+                        // Progress bar: poin aktual vs passing grade (jika ada), else vs max
+                        $barMax   = $pgNilaiMin ?? (int)($kat['max_nilai'] ?? 0);
+                        $barPct   = $barMax > 0 ? min(100, round(($totalNilaiKat / $barMax) * 100)) : 0;
+                        $barClass = $pgStatus === true ? 'bg-success' : ($pgStatus === false ? 'bg-danger' : ($katSkor >= 70 ? 'bg-success' : ($katSkor >= 50 ? 'bg-warning' : 'bg-danger')));
                     ?>
                         <div class="mb-4">
                             <div class="d-flex justify-content-between align-items-center mb-1">
-                                <div class="d-flex align-items-center gap-2">
+                                <!-- Nama + badge tipe + badge PG -->
+                                <div class="d-flex align-items-center gap-2 flex-wrap">
                                     <span class="fw-semibold"><?= esc($kat['sub_kategori_nama'] ?? $kat['kategori_nama']) ?></span>
                                     <?php if ($tipeSoal === 'SCORE'): ?>
                                         <span class="badge bg-warning text-dark" style="font-size:.65rem">SCORE</span>
@@ -181,22 +213,40 @@ if (! empty($hasil['detail_passing_grade'])) {
                                         </span>
                                     <?php endif; ?>
                                 </div>
-                                <span class="badge <?= $badgeClass ?>">
-                                    <?= number_format($katSkor, 1) ?>%
-                                </span>
+
+                                <!-- Nilai: total_poin / passing_grade -->
+                                <div class="text-end d-flex align-items-center gap-2">
+                                    <span class="fw-bold" style="font-size:.95rem">
+                                        <?= $totalNilaiKat ?>
+                                        <?php if ($pgNilaiMin !== null): ?>
+                                            <span class="text-muted fw-normal" style="font-size:.78rem">/ <?= $pgNilaiMin ?></span>
+                                        <?php elseif (($kat['max_nilai'] ?? 0) > 0): ?>
+                                            <span class="text-muted fw-normal" style="font-size:.78rem">/ <?= (int)$kat['max_nilai'] ?></span>
+                                        <?php endif; ?>
+                                    </span>
+                                    <!-- <span class="badge <?= $barClass ?>" style="font-size:.68rem">
+                                        <?= number_format($katSkor, 1) ?>%
+                                    </span> -->
+                                </div>
                             </div>
-                            <div class="progress mb-1" style="height:10px" role="progressbar">
-                                <div class="progress-bar <?= $barClass ?>" style="width:<?= $katSkor ?>%"></div>
+
+                            <!-- Progress bar -->
+                            <div class="progress mb-1" style="height:8px" role="progressbar">
+                                <div class="progress-bar <?= $barClass ?>" style="width:<?= $barPct ?>%"></div>
                             </div>
+
+                            <!-- Info detail — SCORE tidak tampilkan Benar/Salah -->
                             <div class="small text-muted">
                                 <?php if ($tipeSoal === 'SCORE'): ?>
-                                    Nilai: <?= (int) ($kat['total_nilai'] ?? 0) ?>/<?= (int) ($kat['max_nilai'] ?? 0) ?>
-                                    &nbsp;|&nbsp;
+                                    Nilai dipilih: <?= $totalNilaiKat ?> poin
+                                    &nbsp;|&nbsp; Total soal: <?= (int) $kat['total'] ?>
+                                    &nbsp;|&nbsp; Kosong: <?= (int) $kat['kosong'] ?>
+                                <?php else: ?>
+                                    Benar: <?= (int) $kat['benar'] ?>
+                                    &nbsp;|&nbsp; Salah: <?= (int) $kat['salah'] ?>
+                                    &nbsp;|&nbsp; Kosong: <?= (int) $kat['kosong'] ?>
+                                    &nbsp;|&nbsp; Total: <?= (int) $kat['total'] ?>
                                 <?php endif; ?>
-                                Benar: <?= (int) $kat['benar'] ?>
-                                &nbsp;|&nbsp; Salah: <?= (int) $kat['salah'] ?>
-                                &nbsp;|&nbsp; Kosong: <?= (int) $kat['kosong'] ?>
-                                &nbsp;|&nbsp; Total: <?= (int) $kat['total'] ?>
                             </div>
                         </div>
                     <?php endforeach; ?>

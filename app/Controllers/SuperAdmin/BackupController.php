@@ -88,12 +88,17 @@ class BackupController extends BaseController
 
     public function backup(): ResponseInterface
     {
-        $dbConfig = \Config\Database::connect()->getConnection();
-        $hostname = $dbConfig->hostname ?? 'localhost';
-        $database = $dbConfig->database;
-        $username = $dbConfig->username;
-        $password = $dbConfig->password;
-        $port     = $dbConfig->port ?? 3306;
+        // Ambil config database langsung dari koneksi aktif CI4
+        $db       = \Config\Database::connect();
+        $dbConfig = new \Config\Database();
+        $group    = $dbConfig->defaultGroup;
+        $dbConf   = (array) $dbConfig->$group;
+
+        $hostname = $dbConf['hostname'] ?? 'localhost';
+        $database = $dbConf['database'] ?? '';
+        $username = $dbConf['username'] ?? '';
+        $password = $dbConf['password'] ?? '';
+        $port     = $dbConf['port']     ?? 3306;
 
         $filename   = 'backup_' . date('Y-m-d_H-i-s') . '.sql';
         $outputPath = $this->backupDir . $filename;
@@ -102,12 +107,12 @@ class BackupController extends BaseController
         $mysqldump = $this->findMysqldump();
 
         if ($mysqldump !== null) {
-            $sql = $this->dumpViaMysqldump($mysqldump, $hostname, (int) $port, $database, $username, $password, $outputPath);
+            $result = $this->dumpViaMysqldump($mysqldump, $hostname, (int) $port, $database, $username, $password, $outputPath);
         } else {
-            $sql = $this->dumpViaPHP($database, $outputPath);
+            $result = $this->dumpViaPHP($database, $outputPath);
         }
 
-        if (! $sql) {
+        if (! $result) {
             return redirect()->to(base_url('superadmin/backup'))
                 ->with('error', 'Gagal membuat backup database.');
         }
@@ -181,7 +186,7 @@ class BackupController extends BaseController
     {
         $db = \Config\Database::connect();
 
-        $sql  = "-- SiapASN Simulation Center — Database Backup\n";
+        $sql  = "-- SiapASN Simulation Center - Database Backup\n";
         $sql .= "-- Generated: " . date('Y-m-d H:i:s') . "\n";
         $sql .= "-- Database: {$database}\n\n";
         $sql .= "SET FOREIGN_KEY_CHECKS=0;\n\n";
@@ -268,7 +273,6 @@ class BackupController extends BaseController
         try {
             $db->query('SET FOREIGN_KEY_CHECKS=0');
 
-            // Pisahkan statement berdasarkan titik koma di akhir baris
             $statements = $this->splitSqlStatements($sqlContent);
 
             foreach ($statements as $stmt) {
@@ -292,7 +296,6 @@ class BackupController extends BaseController
 
     /**
      * Pisahkan konten SQL menjadi array statement individual.
-     * Menangani string literal dan komentar dengan benar.
      */
     private function splitSqlStatements(string $sql): array
     {
