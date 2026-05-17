@@ -3,12 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= config('App')->appName ?? 'SiapASN Simulation Center' ?></title>
 
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="<?= base_url('siapasn_favicon.ico') ?>">
 
+    <?php
+    $seo_title       = '';
+    $seo_description = 'Platform simulasi tryout CPNS & PPPK terlengkap. Ribuan soal SKD & SKB terverifikasi, pembahasan lengkap, analisis nilai real-time. Persiapkan dirimu lolos seleksi ASN bersama SiapASN.';
+    $seo_keywords    = 'tryout CPNS online, simulasi CPNS, latihan soal CPNS, SKD online, SKB online, PPPK, seleksi ASN, bimbel CPNS, passing grade CPNS, soal CPNS 2025';
+    $seo_canonical   = base_url('/');
+    $seo_page_type   = 'home';
+    ?>
+    <?= $this->include('partials/_seo_head') ?>
+
     <!-- Bootstrap 5.3 CSS -->
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
@@ -508,6 +517,48 @@
 
 <!-- Bootstrap 5 JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- FAQ Schema — Rich Snippet Google -->
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+        {
+            "@type": "Question",
+            "name": "Apa itu SiapASN Simulation Center?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "SiapASN Simulation Center adalah platform tryout online untuk persiapan seleksi CPNS dan PPPK. Kami menyediakan ribuan soal SKD dan SKB terverifikasi, pembahasan lengkap, dan analisis nilai real-time."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "Apakah tryout di SiapASN gratis?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Pendaftaran akun di SiapASN gratis. Tersedia berbagai paket tryout yang bisa dipilih sesuai kebutuhan persiapan seleksi ASN Anda."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "Soal apa saja yang tersedia di SiapASN?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "SiapASN menyediakan soal SKD (Seleksi Kompetensi Dasar) meliputi TWK, TIU, dan TKP, serta soal SKB (Seleksi Kompetensi Bidang) untuk berbagai formasi CPNS dan PPPK."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "Bagaimana cara mendaftar di SiapASN?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Klik tombol Daftar di halaman utama, isi nama, email, dan password, lalu verifikasi email Anda. Proses pendaftaran selesai dalam hitungan menit."
+            }
+        }
+    ]
+}
+</script>
 
 </body>
 </html>

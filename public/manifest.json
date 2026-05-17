@@ -1,0 +1,27 @@
+{
+    "name": "SiapASN Simulation Center",
+    "short_name": "SiapASN",
+    "description": "Platform simulasi tryout CPNS & PPPK terlengkap. Ribuan soal SKD & SKB terverifikasi dengan pembahasan lengkap.",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#0f2744",
+    "theme_color": "#0f2744",
+    "orientation": "portrait-primary",
+    "lang": "id",
+    "icons": [
+        {
+            "src": "/assets/images/SiapASN.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/assets/images/SiapASN.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ],
+    "categories": ["education", "productivity"],
+    "screenshots": []
+}

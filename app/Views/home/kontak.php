@@ -3,11 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hubungi Kami — <?= config('App')->appName ?? 'SiapASN Simulation Center' ?></title>
 
     <link rel="icon" type="image/x-icon" href="<?= base_url('siapasn_favicon.ico') ?>">
+
+    <?php
+    $seo_title       = 'Hubungi Kami';
+    $seo_description = 'Hubungi tim SiapASN Simulation Center melalui email, WhatsApp, atau kunjungi kantor kami. Kami siap membantu persiapan tryout CPNS & PPPK Anda.';
+    $seo_canonical   = base_url('hubungi-kami');
+    $seo_keywords    = 'hubungi SiapASN, kontak tryout CPNS, customer service CPNS';
+    ?>
+    <?= $this->include('partials/_seo_head') ?>
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            {"@type":"ListItem","position":1,"name":"Beranda","item":"<?= base_url('/') ?>"},
+            {"@type":"ListItem","position":2,"name":"Hubungi Kami","item":"<?= base_url('hubungi-kami') ?>"}
+        ]
+    }
+    </script>
+    <?php if (!empty($email) || !empty($wa) || !empty($alamat)): ?>
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "EducationalOrganization",
+        "name": "SiapASN Simulation Center",
+        "url": "<?= base_url('/') ?>",
+        "logo": "<?= base_url('assets/images/SiapASN.png') ?>",
+        "description": "Platform simulasi tryout CPNS & PPPK terlengkap di Indonesia.",
+        <?php if (!empty($email)): ?>
+        "email": "<?= esc($email) ?>",
+        <?php endif; ?>
+        <?php if (!empty($wa)): ?>
+        "telephone": "<?= esc($wa) ?>",
+        <?php endif; ?>
+        <?php if (!empty($alamat)): ?>
+        "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "<?= esc($alamat) ?>",
+            "addressCountry": "ID"
+        },
+        <?php endif; ?>
+        "contactPoint": {
+            "@type": "ContactPoint",
+            "contactType": "customer support",
+            "availableLanguage": "Indonesian"
+        }
+    }
+    </script>
+    <?php endif; ?>
+
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
 
     <style>
         :root {

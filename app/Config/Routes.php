@@ -14,6 +14,9 @@ $routes->get('/syarat-ketentuan', 'HomeController::syarat');
 $routes->get('/kebijakan-privasi', 'HomeController::privasi');
 $routes->get('/hubungi-kami', 'HomeController::kontak');
 
+// SEO — Sitemap & Robots
+$routes->get('/sitemap.xml', 'SitemapController::index');
+
 // Route autentikasi (publik)
 $routes->get('/login', 'Auth\AuthController::login');
 $routes->post('/login', 'Auth\AuthController::loginProcess');

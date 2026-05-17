@@ -1,2 +1,23 @@
 User-agent: *
-Disallow: 
+Allow: /
+Allow: /syarat-ketentuan
+Allow: /kebijakan-privasi
+Allow: /hubungi-kami
+
+# Blokir halaman yang tidak perlu diindeks
+Disallow: /admin/
+Disallow: /superadmin/
+Disallow: /user/
+Disallow: /login
+Disallow: /register
+Disallow: /logout
+Disallow: /reset-password
+Disallow: /verify-email/
+Disallow: /webhook/
+Disallow: /cron/
+
+# Sitemap
+Sitemap: https://bimbelnipasn.id/sitemap.xml
+
+# Crawl-delay untuk mengurangi beban server
+Crawl-delay: 1

@@ -8,6 +8,10 @@
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="<?= base_url('siapasn_favicon.ico') ?>">
 
+    <!-- Noindex: halaman user dashboard tidak perlu diindeks mesin pencari -->
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#0f2744">
+
     <!-- Bootstrap 5.3 CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <!-- Bootstrap Icons -->
