@@ -1,27 +1,47 @@
 # ============================================================
 # SiapASN Simulation Center — Root .htaccess
 # Untuk shared hosting (Rumah Web / cPanel / Apache)
+#
+# Cara deploy:
+# 1. Upload SEMUA file project ke public_html/
+# 2. File ini + index.php di root akan handle routing
 # ============================================================
 
 <IfModule mod_rewrite.c>
     Options +FollowSymlinks
     RewriteEngine On
 
-    # Blokir akses ke folder/file sensitif
-    RewriteRule ^(app|vendor|writable|tests|build)(/|$) - [F,L]
-    RewriteRule ^(\.env|composer\.(json|lock)|spark|php\.ini)$ - [F,L]
+    # Jika request menuju file/folder yang benar-benar ada (aset, dll.) — biarkan
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
 
-    # Aset statis di dalam public/ — layani langsung
+    # Jika request menuju file/folder di dalam public/ — layani langsung
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteCond %{DOCUMENT_ROOT}/public%{REQUEST_URI} -f
-    RewriteRule ^(.+)$ public/$1 [L,QSA]
+    RewriteCond %{DOCUMENT_ROOT}/public/%{REQUEST_URI} -f
+    RewriteRule ^(.*)$ public/$1 [L]
 
-    # Semua request lain → public/index.php
+    # Semua request lain → index.php di root (yang akan forward ke public/index.php)
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteRule ^(.*)$ public/index.php/$1 [L,QSA]
+    RewriteRule ^(.*)$ index.php [L,QSA]
 </IfModule>
 
+<IfModule !mod_rewrite.c>
+    ErrorDocument 404 /index.php
+</IfModule>
+
+# Keamanan — blokir akses langsung ke folder sensitif
+<IfModule mod_rewrite.c>
+    RewriteRule ^(app|vendor|writable|tests|build)(/.*)?$ - [F,L]
+    RewriteRule ^\.env$ - [F,L]
+    RewriteRule ^composer\.(json|lock)$ - [F,L]
+    RewriteRule ^spark$ - [F,L]
+</IfModule>
+
+# Disable directory listing
 Options -Indexes
+
+# Sembunyikan server signature
 ServerSignature Off
