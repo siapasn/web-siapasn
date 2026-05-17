@@ -1,26 +1,30 @@
-# ============================================================
-# SiapASN — public/.htaccess (cPanel production)
-# ============================================================
-
+# Disable directory browsing
 Options -Indexes
-ServerSignature Off
 
 <IfModule mod_rewrite.c>
-    RewriteEngine On
-    RewriteBase /
+	Options +FollowSymlinks
+	RewriteEngine On
 
-    # Biarkan file/folder yang benar-benar ada
-    RewriteCond %{REQUEST_FILENAME} -f [OR]
-    RewriteCond %{REQUEST_FILENAME} -d
-    RewriteRule ^ - [L]
+	# Redirect Trailing Slashes
+	RewriteCond %{REQUEST_FILENAME} !-d
+	RewriteCond %{REQUEST_URI} (.+)/$
+	RewriteRule ^ %1 [L,R=301]
 
-    # Semua request lain → index.php
-    RewriteRule ^(.*)$ index.php/$1 [L,QSA]
+	# Layani file/folder yang benar-benar ada
+	RewriteCond %{REQUEST_FILENAME} !-f
+	RewriteCond %{REQUEST_FILENAME} !-d
+	RewriteRule ^([\s\S]*)$ index.php/$1 [L,NC,QSA]
+
+	# Ensure Authorization header is passed along
+	RewriteCond %{HTTP:Authorization} .
+	RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 </IfModule>
 
 <IfModule !mod_rewrite.c>
-    ErrorDocument 404 index.php
+	ErrorDocument 404 index.php
 </IfModule>
+
+ServerSignature Off
 
 <IfModule mod_headers.c>
     Header always set X-Content-Type-Options "nosniff"

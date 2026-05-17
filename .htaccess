@@ -1,0 +1,27 @@
+# ============================================================
+# SiapASN Simulation Center — Root .htaccess
+# Untuk shared hosting (Rumah Web / cPanel / Apache)
+# ============================================================
+
+<IfModule mod_rewrite.c>
+    Options +FollowSymlinks
+    RewriteEngine On
+
+    # Blokir akses ke folder/file sensitif
+    RewriteRule ^(app|vendor|writable|tests|build)(/|$) - [F,L]
+    RewriteRule ^(\.env|composer\.(json|lock)|spark|php\.ini)$ - [F,L]
+
+    # Aset statis di dalam public/ — layani langsung
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{DOCUMENT_ROOT}/public%{REQUEST_URI} -f
+    RewriteRule ^(.+)$ public/$1 [L,QSA]
+
+    # Semua request lain → public/index.php
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)$ public/index.php/$1 [L,QSA]
+</IfModule>
+
+Options -Indexes
+ServerSignature Off
