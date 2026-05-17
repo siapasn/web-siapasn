@@ -17,7 +17,7 @@ Disallow: /webhook/
 Disallow: /cron/
 
 # Sitemap
-Sitemap: https://bimbelnipasn.id/sitemap.xml
+Sitemap: https://siapasnsimulationcenter.id/sitemap.xml
 
 # Crawl-delay untuk mengurangi beban server
 Crawl-delay: 1

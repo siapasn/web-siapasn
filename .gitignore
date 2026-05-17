@@ -84,6 +84,9 @@ php_errors.log
 #-------------------------
 # Composer
 #-------------------------
+# vendor/ di-ignore dari git, tapi HARUS diupload ke hosting
+# Jalankan: composer install --no-dev --optimize-autoloader
+# lalu upload folder vendor/ ke hosting
 vendor/
 
 #-------------------------

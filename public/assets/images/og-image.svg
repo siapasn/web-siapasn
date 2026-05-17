@@ -43,7 +43,7 @@
   <text x="660" y="478" font-family="'Segoe UI', Arial, sans-serif" font-size="20" fill="#f5a623" text-anchor="middle">Pembahasan Lengkap</text>
 
   <!-- Domain -->
-  <text x="120" y="570" font-family="'Segoe UI', Arial, sans-serif" font-size="24" fill="rgba(255,255,255,0.45)">bimbelnipasn.id</text>
+  <text x="120" y="570" font-family="'Segoe UI', Arial, sans-serif" font-size="24" fill="rgba(255,255,255,0.45)">siapasnsimulationcenter.id</text>
 
   <!-- Right side icon area -->
   <rect x="850" y="160" width="260" height="260" rx="32" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
