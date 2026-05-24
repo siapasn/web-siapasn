@@ -159,8 +159,7 @@
                     <?php if (! empty($kat['produk'])): ?>
                     <?php
                     $totalPaket    = count($kat['produk']);
-                    $sudahDimiliki = count(array_filter($kat['produk'], fn($p) => $p['sudah_beli']));
-                    $belumDimiliki = $totalPaket - $sudahDimiliki;
+                    $adaPromo      = count(array_filter($kat['produk'], fn($p) => $p['harga_promo'] !== null));
                     ?>
                     <div class="row g-2 align-items-center mb-4">
 
@@ -171,25 +170,19 @@
                                 <i class="bi bi-box-seam" style="color:#1a3a5c;font-size:1rem"></i>
                                 <div style="line-height:1.2">
                                     <div class="fw-bold" style="font-size:.95rem;color:#1a3a5c"><?= $totalPaket ?></div>
-                                    <div style="font-size:.68rem;color:#64748b;white-space:nowrap">Total Paket</div>
+                                    <div style="font-size:.68rem;color:#64748b;white-space:nowrap">Paket Tersedia</div>
                                 </div>
                             </div>
-                            <div class="d-flex align-items-center gap-2 px-3 py-2 rounded-3 flex-shrink-0"
-                                 style="background:#f0fdf4;border:1px solid #86efac">
-                                <i class="bi bi-check-circle-fill" style="color:#16a34a;font-size:1rem"></i>
-                                <div style="line-height:1.2">
-                                    <div class="fw-bold" style="font-size:.95rem;color:#16a34a"><?= $sudahDimiliki ?></div>
-                                    <div style="font-size:.68rem;color:#64748b;white-space:nowrap">Dimiliki</div>
-                                </div>
-                            </div>
+                            <?php if ($adaPromo > 0): ?>
                             <div class="d-flex align-items-center gap-2 px-3 py-2 rounded-3 flex-shrink-0"
                                  style="background:#fff7ed;border:1px solid #fdba74">
-                                <i class="bi bi-bag-heart" style="color:#ea580c;font-size:1rem"></i>
+                                <i class="bi bi-tag-fill" style="color:#ea580c;font-size:1rem"></i>
                                 <div style="line-height:1.2">
-                                    <div class="fw-bold" style="font-size:.95rem;color:#ea580c"><?= $belumDimiliki ?></div>
-                                    <div style="font-size:.68rem;color:#64748b;white-space:nowrap">Tersedia</div>
+                                    <div class="fw-bold" style="font-size:.95rem;color:#ea580c"><?= $adaPromo ?></div>
+                                    <div style="font-size:.68rem;color:#64748b;white-space:nowrap">Sedang Promo</div>
                                 </div>
                             </div>
+                            <?php endif; ?>
                         </div>
 
                         <!-- Kanan: filter — sudut kanan di desktop, full width di mobile -->
@@ -318,16 +311,30 @@
                     <!-- Empty state: belum ada produk di kategori ini -->
                     <?php if (empty($kat['produk'])): ?>
                     <div class="text-center py-5">
-                        <div class="mb-4" style="font-size:4rem;line-height:1">🚀</div>
-                        <h5 class="fw-bold text-dark mb-2">Segera Hadir!</h5>
-                        <p class="text-muted mb-3" style="max-width:380px;margin:0 auto">
-                            Paket tryout <strong><?= esc($kat['kat_nama']) ?></strong> sedang dalam persiapan.
-                            Kami sedang menyiapkan soal-soal terbaik untuk membantu persiapan ujian Anda.
-                        </p>
-                        <span class="badge rounded-pill px-3 py-2"
-                              style="background:linear-gradient(135deg,#1a3a5c,#2d6a9f);font-size:.8rem;letter-spacing:.03em">
-                            <i class="bi bi-clock me-1"></i>Coming Soon
-                        </span>
+                        <?php if (! empty($kat['semua_sudah_beli'])): ?>
+                            <!-- Semua produk sudah dibeli -->
+                            <div class="mb-4" style="font-size:4rem;line-height:1">🎉</div>
+                            <h5 class="fw-bold text-dark mb-2">Semua Paket Sudah Dimiliki!</h5>
+                            <p class="text-muted mb-3" style="max-width:380px;margin:0 auto">
+                                Anda sudah memiliki semua paket <strong><?= esc($kat['kat_nama']) ?></strong> yang tersedia.
+                                Kunjungi halaman <strong>Paket Saya</strong> untuk mulai tryout.
+                            </p>
+                            <a href="<?= base_url('user/tryout') ?>" class="btn btn-success btn-sm px-4 rounded-pill">
+                                <i class="bi bi-play-circle me-1"></i>Mulai Tryout
+                            </a>
+                        <?php else: ?>
+                            <!-- Belum ada produk sama sekali -->
+                            <div class="mb-4" style="font-size:4rem;line-height:1">🚀</div>
+                            <h5 class="fw-bold text-dark mb-2">Segera Hadir!</h5>
+                            <p class="text-muted mb-3" style="max-width:380px;margin:0 auto">
+                                Paket tryout <strong><?= esc($kat['kat_nama']) ?></strong> sedang dalam persiapan.
+                                Kami sedang menyiapkan soal-soal terbaik untuk membantu persiapan ujian Anda.
+                            </p>
+                            <span class="badge rounded-pill px-3 py-2"
+                                  style="background:linear-gradient(135deg,#1a3a5c,#2d6a9f);font-size:.8rem;letter-spacing:.03em">
+                                <i class="bi bi-clock me-1"></i>Coming Soon
+                            </span>
+                        <?php endif; ?>
                     </div>
                     <?php endif; ?>
 

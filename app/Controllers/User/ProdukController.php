@@ -92,29 +92,41 @@ class ProdukController extends BaseController
             $produkEnriched[] = $p;
         }
 
+        // Filter: hanya tampilkan produk yang BELUM dibeli
+        $produkEnriched = array_values(array_filter($produkEnriched, fn($p) => ! $p['sudah_beli']));
+
         // Bangun struktur tab: semua kategori level 1, produk dimasukkan sesuai kategori_id
+        // Hitung juga total produk asli (sebelum filter) per kategori untuk empty state
+        $totalPerKat = [];
+        foreach ($produkRaw as $p) {
+            $kid = (int)($p['kat_id'] ?? 0);
+            $totalPerKat[$kid] = ($totalPerKat[$kid] ?? 0) + 1;
+        }
+
         $produkByKategori = [];
         foreach ($semuaKategori as $kat) {
-            $produkKat = array_filter($produkEnriched, fn($p) => (int)($p['kat_id'] ?? 0) === (int)$kat['id']);
-            $produkKat = array_values($produkKat);
-            // Sort: belum beli duluan
-            usort($produkKat, fn($a, $b) => $a['sudah_beli'] <=> $b['sudah_beli']);
+            $produkKat = array_values(array_filter(
+                $produkEnriched, fn($p) => (int)($p['kat_id'] ?? 0) === (int)$kat['id']
+            ));
+
+            $totalAsli = $totalPerKat[(int)$kat['id']] ?? 0;
 
             $produkByKategori[] = [
-                'kat_id'   => $kat['id'],
-                'kat_nama' => $kat['nama'],
-                'produk'   => $produkKat,
+                'kat_id'           => $kat['id'],
+                'kat_nama'         => $kat['nama'],
+                'produk'           => $produkKat,
+                'semua_sudah_beli' => $totalAsli > 0 && empty($produkKat),
             ];
         }
 
         // Produk tanpa kategori → masuk tab "Lainnya" jika ada
         $produkTanpaKat = array_values(array_filter($produkEnriched, fn($p) => empty($p['kat_id'])));
         if (! empty($produkTanpaKat)) {
-            usort($produkTanpaKat, fn($a, $b) => $a['sudah_beli'] <=> $b['sudah_beli']);
             $produkByKategori[] = [
-                'kat_id'   => 0,
-                'kat_nama' => 'Lainnya',
-                'produk'   => $produkTanpaKat,
+                'kat_id'           => 0,
+                'kat_nama'         => 'Lainnya',
+                'produk'           => $produkTanpaKat,
+                'semua_sudah_beli' => false,
             ];
         }
 

@@ -46,18 +46,26 @@
                            placeholder="Masukkan nama promosi" required>
                 </div>
 
-                <!-- Produk -->
-                <div class="col-12 col-md-6">
-                    <label for="produk_id" class="form-label">Produk <span class="text-danger">*</span></label>
-                    <select id="produk_id" name="produk_id" class="form-select" required>
-                        <option value="">-- Pilih Produk --</option>
+                <!-- Produk (Select2 Multiple) -->
+                <div class="col-12">
+                    <label for="produk_ids" class="form-label">Produk <span class="text-danger">*</span></label>
+                    <?php
+                    // Pre-select: dari old() saat validasi gagal, atau dari data yang ada
+                    $oldProdukIds = old('produk_ids', $selectedProdukIds ?? []);
+                    if (! is_array($oldProdukIds)) $oldProdukIds = [$oldProdukIds];
+                    ?>
+                    <select id="produk_ids" name="produk_ids[]"
+                            class="form-select select2-produk"
+                            multiple required
+                            style="width:100%">
                         <?php foreach ($produks as $prod): ?>
                             <option value="<?= $prod['id'] ?>"
-                                <?= old('produk_id', $promosi['produk_id'] ?? '') == $prod['id'] ? 'selected' : '' ?>>
+                                <?= in_array((string)$prod['id'], array_map('strval', $oldProdukIds)) ? 'selected' : '' ?>>
                                 <?= esc($prod['nama']) ?>
                             </option>
                         <?php endforeach; ?>
                     </select>
+                    <div class="form-text">Pilih satu atau lebih produk. Ketik untuk mencari.</div>
                 </div>
 
                 <!-- Jenis Diskon -->
@@ -145,4 +153,22 @@
     </div>
 </div>
 
+<?= $this->endSection() ?>
+
+<?= $this->section('scripts') ?>
+<script>
+$(document).ready(function () {
+    $('#produk_ids').select2({
+        theme: 'bootstrap-5',
+        placeholder: '-- Cari dan pilih produk --',
+        allowClear: true,
+        width: '100%',
+        language: {
+            noResults: function () { return 'Produk tidak ditemukan'; },
+            searching:  function () { return 'Mencari...'; },
+            removeAllItems: function () { return 'Hapus semua'; },
+        },
+    });
+});
+</script>
 <?= $this->endSection() ?>

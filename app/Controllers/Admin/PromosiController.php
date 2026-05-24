@@ -55,21 +55,23 @@ class PromosiController extends BaseController
         $produks = $this->produkModel->getAktif();
 
         return view('admin/promosi/form', [
-            'promosi' => null,
-            'produks' => $produks,
-            'action'  => base_url('admin/promosi/store'),
-            'menus'   => $this->getMenus(),
+            'promosi'          => null,
+            'produks'          => $produks,
+            'selectedProdukIds'=> [],
+            'action'           => base_url('admin/promosi/store'),
+            'menus'            => $this->getMenus(),
         ]);
     }
 
     /**
      * Simpan promosi baru.
+     * Jika multiple produk dipilih, buat satu record promosi per produk.
      */
     public function store()
     {
         $rules = [
             'nama'        => 'required',
-            'produk_id'   => 'required|integer',
+            'produk_ids'  => 'required',
             'jenis_diskon'=> 'required|in_list[persentase,nominal]',
             'nilai_diskon'=> 'required|decimal|greater_than[0]',
             'mulai_at'    => 'required|valid_date[Y-m-d\TH:i]',
@@ -83,14 +85,17 @@ class PromosiController extends BaseController
         $mulaiAt    = $this->request->getPost('mulai_at');
         $berakhirAt = $this->request->getPost('berakhir_at');
 
-        // berakhir_at must be after mulai_at
         if (strtotime($berakhirAt) <= strtotime($mulaiAt)) {
             return redirect()->back()->withInput()
                 ->with('errors', ['berakhir_at' => 'Tanggal berakhir harus setelah tanggal mulai.']);
         }
 
-        $this->promosiModel->insert([
-            'produk_id'   => (int) $this->request->getPost('produk_id'),
+        $produkIds = $this->request->getPost('produk_ids'); // array
+        if (! is_array($produkIds)) {
+            $produkIds = [$produkIds];
+        }
+
+        $base = [
             'nama'        => $this->request->getPost('nama'),
             'deskripsi'   => $this->request->getPost('deskripsi') ?? null,
             'jenis_diskon'=> $this->request->getPost('jenis_diskon'),
@@ -98,9 +103,15 @@ class PromosiController extends BaseController
             'mulai_at'    => date('Y-m-d H:i:s', strtotime($mulaiAt)),
             'berakhir_at' => date('Y-m-d H:i:s', strtotime($berakhirAt)),
             'is_active'   => $this->request->getPost('is_active') ? 1 : 0,
-        ]);
+        ];
 
-        return redirect()->to(base_url('admin/promosi'))->with('success', 'Promosi berhasil ditambahkan.');
+        foreach ($produkIds as $produkId) {
+            $this->promosiModel->insert(array_merge($base, ['produk_id' => (int) $produkId]));
+        }
+
+        $jumlah = count($produkIds);
+        return redirect()->to(base_url('admin/promosi'))
+            ->with('success', "Promosi berhasil ditambahkan untuk {$jumlah} produk.");
     }
 
     /**
@@ -117,15 +128,17 @@ class PromosiController extends BaseController
         $produks = $this->produkModel->getAktif();
 
         return view('admin/promosi/form', [
-            'promosi' => $promosi,
-            'produks' => $produks,
-            'action'  => base_url("admin/promosi/{$id}/update"),
-            'menus'   => $this->getMenus(),
+            'promosi'          => $promosi,
+            'produks'          => $produks,
+            'selectedProdukIds'=> [$promosi['produk_id']], // pre-select produk saat ini
+            'action'           => base_url("admin/promosi/{$id}/update"),
+            'menus'            => $this->getMenus(),
         ]);
     }
 
     /**
      * Update promosi.
+     * Jika multiple produk dipilih, update record ini + buat record baru untuk produk tambahan.
      */
     public function update(int $id)
     {
@@ -137,7 +150,7 @@ class PromosiController extends BaseController
 
         $rules = [
             'nama'        => 'required',
-            'produk_id'   => 'required|integer',
+            'produk_ids'  => 'required',
             'jenis_diskon'=> 'required|in_list[persentase,nominal]',
             'nilai_diskon'=> 'required|decimal|greater_than[0]',
             'mulai_at'    => 'required|valid_date[Y-m-d\TH:i]',
@@ -156,8 +169,12 @@ class PromosiController extends BaseController
                 ->with('errors', ['berakhir_at' => 'Tanggal berakhir harus setelah tanggal mulai.']);
         }
 
-        $this->promosiModel->update($id, [
-            'produk_id'   => (int) $this->request->getPost('produk_id'),
+        $produkIds = $this->request->getPost('produk_ids');
+        if (! is_array($produkIds)) {
+            $produkIds = [$produkIds];
+        }
+
+        $base = [
             'nama'        => $this->request->getPost('nama'),
             'deskripsi'   => $this->request->getPost('deskripsi') ?? null,
             'jenis_diskon'=> $this->request->getPost('jenis_diskon'),
@@ -165,7 +182,19 @@ class PromosiController extends BaseController
             'mulai_at'    => date('Y-m-d H:i:s', strtotime($mulaiAt)),
             'berakhir_at' => date('Y-m-d H:i:s', strtotime($berakhirAt)),
             'is_active'   => $this->request->getPost('is_active') ? 1 : 0,
-        ]);
+        ];
+
+        // Update record pertama (yang sedang diedit)
+        $this->promosiModel->update($id, array_merge($base, [
+            'produk_id' => (int) $produkIds[0],
+        ]));
+
+        // Buat record baru untuk produk tambahan (index 1+)
+        for ($i = 1; $i < count($produkIds); $i++) {
+            $this->promosiModel->insert(array_merge($base, [
+                'produk_id' => (int) $produkIds[$i],
+            ]));
+        }
 
         return redirect()->to(base_url('admin/promosi'))->with('success', 'Promosi berhasil diperbarui.');
     }

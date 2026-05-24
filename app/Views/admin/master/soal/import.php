@@ -52,6 +52,14 @@ $importErrors  = session()->getFlashdata('import_errors') ?? [];
             <strong>Import berhasil!</strong> <?= (int) $totalImported ?> soal berhasil diimpor.
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
         </div>
+    <?php elseif ($totalImported === 0 && empty($importErrors)): ?>
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-1"></i>
+            <strong>Tidak ada soal yang diimpor.</strong>
+            Kemungkinan penyebab: semua baris dilewati karena <code>kategori_id</code> tidak valid,
+            atau format kolom tidak sesuai template. Pastikan <code>kategori_id</code> ada di database.
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
+        </div>
     <?php endif; ?>
 
     <?php if (! empty($importErrors)): ?>

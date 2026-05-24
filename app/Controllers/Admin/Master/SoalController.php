@@ -708,9 +708,11 @@ class SoalController extends BaseController
         if (! $tipe) {
             $colKunci = trim((string) ($cols[8] ?? ''));
             if (in_array(strtolower($colKunci), ['a','b','c','d','e'], true)) {
-                $tipe = 'SCORE';
+                $tipe = 'SCORE'; // ada kunci jawaban → SCORE (pilihan ganda)
             } elseif (is_numeric($cols[9] ?? '') && in_array((int)($cols[9] ?? ''), [1,2,3,4,5])) {
-                $tipe = 'POINT';
+                $tipe = 'POINT'; // ada nilai 1-5 → POINT (TKP)
+            } else {
+                $tipe = 'SCORE'; // default fallback ke SCORE
             }
         }
 
@@ -759,9 +761,11 @@ class SoalController extends BaseController
         if (! $tipe) {
             $colKunci = trim((string) ($cols[8] ?? ''));
             if (in_array(strtolower($colKunci), ['a','b','c','d','e'], true)) {
-                $tipe = 'SCORE';
+                $tipe = 'SCORE'; // ada kunci jawaban → SCORE
             } elseif (is_numeric($cols[9] ?? '') && in_array((int)($cols[9] ?? ''), [1,2,3,4,5])) {
-                $tipe = 'POINT';
+                $tipe = 'POINT'; // ada nilai 1-5 → POINT
+            } else {
+                $tipe = 'SCORE'; // default fallback
             }
         }
 
