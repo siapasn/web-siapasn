@@ -46,6 +46,21 @@
                            placeholder="Masukkan nama produk" required>
                 </div>
 
+                <!-- Kategori -->
+                <div class="col-12 col-md-6">
+                    <label for="kategori_id" class="form-label">Kategori <span class="text-danger">*</span></label>
+                    <select id="kategori_id" name="kategori_id" class="form-select" required>
+                        <option value="">-- Pilih Kategori --</option>
+                        <?php foreach ($kategoris as $kat): ?>
+                            <option value="<?= $kat['id'] ?>"
+                                <?= (string) old('kategori_id', $produk['kategori_id'] ?? '') === (string) $kat['id'] ? 'selected' : '' ?>>
+                                <?= esc($kat['nama']) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                    <div class="form-text">Digunakan untuk mengelompokkan produk di katalog (tab kategori).</div>
+                </div>
+
                 <!-- Deskripsi -->
                 <div class="col-12">
                     <label for="deskripsi" class="form-label">Deskripsi</label>

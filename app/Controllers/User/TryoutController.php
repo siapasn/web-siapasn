@@ -80,14 +80,16 @@ class TryoutController extends BaseController
         if ($db->tableExists('mapping_tryout') && $db->tableExists('user_produk')) {
             // Ambil semua produk yang dimiliki user (aktif)
             $produkList = $db->table('user_produk up')
-                ->select('p.id, p.nama, p.thumbnail, p.deskripsi, up.expired_at')
+                ->select('p.id, p.nama, p.thumbnail, p.deskripsi, p.kategori_id, k.nama AS kategori_nama, up.expired_at')
                 ->join('produk p', 'p.id = up.produk_id')
+                ->join('kategori k', 'k.id = p.kategori_id', 'left')
                 ->where('up.user_id', $userId)
                 ->groupStart()
                     ->where('up.expired_at IS NULL', null, false)
                     ->orWhere('up.expired_at >', date('Y-m-d H:i:s'))
                 ->groupEnd()
                 ->groupBy('p.id')
+                ->orderBy('k.id', 'ASC')
                 ->orderBy('p.nama', 'ASC')
                 ->get()->getResultArray();
 
@@ -137,9 +139,32 @@ class TryoutController extends BaseController
                 ];            }
         }
 
+        // Ambil semua kategori level 1 untuk tab
+        $semuaKategori = $db->table('kategori')
+            ->where('parent_id IS NULL', null, false)
+            ->orderBy('id', 'ASC')
+            ->get()->getResultArray();
+
+        // Group paket by kategori
+        $paketByKategori = [];
+        foreach ($semuaKategori as $kat) {
+            $paketKat = array_values(array_filter($paketList, fn($p) => (int)($p['produk']['kategori_id'] ?? 0) === (int)$kat['id']));
+            $paketByKategori[] = [
+                'kat_id'   => $kat['id'],
+                'kat_nama' => $kat['nama'],
+                'paket'    => $paketKat,
+            ];
+        }
+        // Paket tanpa kategori
+        $paketTanpaKat = array_values(array_filter($paketList, fn($p) => empty($p['produk']['kategori_id'])));
+        if (! empty($paketTanpaKat)) {
+            $paketByKategori[] = ['kat_id' => 0, 'kat_nama' => 'Lainnya', 'paket' => $paketTanpaKat];
+        }
+
         return view('user/tryout/index', [
-            'paketList' => $paketList,
-            'menus'     => $this->getMenus(),
+            'paketList'       => $paketList,
+            'paketByKategori' => $paketByKategori,
+            'menus'           => $this->getMenus(),
         ]);
     }
 

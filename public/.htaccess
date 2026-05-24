@@ -1,6 +1,34 @@
-<IfModule authz_core_module>
-	Require all denied
+# ============================================================
+# SiapASN — public/.htaccess
+# Untuk deployment di shared hosting (semua file di public_html/)
+#
+# File ini MENGIZINKAN akses ke assets (CSS, JS, gambar, uploads)
+# tapi tetap memblokir akses langsung ke index.php dari luar.
+# ============================================================
+
+<IfModule mod_rewrite.c>
+    Options +FollowSymlinks
+    RewriteEngine On
+
+    # Izinkan akses langsung ke file/folder yang ada (assets, uploads, dll.)
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # Semua request lain → index.php (CodeIgniter front controller)
+    RewriteRule ^(.*)$ index.php [L,QSA]
 </IfModule>
-<IfModule !authz_core_module>
-	Deny from all
+
+# Disable directory listing
+Options -Indexes
+
+# Cache untuk aset statis
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/png  "access plus 1 month"
+    ExpiresByType image/jpeg "access plus 1 month"
+    ExpiresByType image/webp "access plus 1 month"
+    ExpiresByType image/svg+xml "access plus 1 month"
+    ExpiresByType text/css   "access plus 1 week"
+    ExpiresByType application/javascript "access plus 1 week"
 </IfModule>

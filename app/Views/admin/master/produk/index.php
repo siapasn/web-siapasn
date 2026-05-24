@@ -50,6 +50,7 @@
                         <th class="ps-3" style="width:50px">No</th>
                         <th style="width:80px">Thumbnail</th>
                         <th>Nama Produk</th>
+                        <th>Kategori</th>
                         <th class="text-end">Harga</th>
                         <th class="text-center">Status</th>
                         <th class="text-center pe-3" style="width:130px">Aksi</th>
@@ -69,6 +70,15 @@
                                      class="rounded" style="width:60px;height:60px;object-fit:cover;object-position:center;">
                             </td>
                             <td class="fw-medium"><?= esc($p['nama']) ?></td>
+                            <td>
+                                <?php if (! empty($p['kategori_nama'])): ?>
+                                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle">
+                                        <?= esc($p['kategori_nama']) ?>
+                                    </span>
+                                <?php else: ?>
+                                    <span class="text-muted small">—</span>
+                                <?php endif; ?>
+                            </td>
                             <td class="text-end">Rp <?= number_format((float) $p['harga'], 0, ',', '.') ?></td>
                             <td class="text-center">
                                 <?php if ($p['is_active']): ?>
@@ -121,8 +131,8 @@ $('#tabelProduk').DataTable({
     ordering: true,
     order: [],
     columnDefs: [
-        { orderable: false, targets: [0, 1, 5] },
-        { searchable: false, targets: [0, 1, 5] },
+        { orderable: false, targets: [0, 1, 6] },
+        { searchable: false, targets: [0, 1, 6] },
     ]
 });
 <?php endif; ?>

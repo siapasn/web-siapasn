@@ -22,6 +22,8 @@ class ProdukController extends BaseController
 
     /**
      * Tampilkan katalog produk aktif beserta promosi yang sedang berjalan.
+     * Produk dikelompokkan per kategori untuk ditampilkan sebagai tab.
+     * Semua kategori level 1 selalu ditampilkan, meski belum ada produk.
      */
     public function index()
     {
@@ -29,9 +31,15 @@ class ProdukController extends BaseController
         $db      = \Config\Database::connect();
         $now     = date('Y-m-d H:i:s');
 
+        // Ambil semua kategori level 1 (tidak punya parent) sebagai tab, urut by id
+        $semuaKategori = $db->table('kategori')
+            ->where('parent_id IS NULL', null, false)
+            ->orderBy('id', 'ASC')
+            ->get()->getResultArray();
+
         // Ambil produk aktif yang sudah memiliki minimal 1 tryout ter-mapping
         $produkRaw = $db->table('produk p')
-            ->select('p.*')
+            ->select('p.*, p.kategori_id AS kat_id')
             ->join('mapping_tryout mt', 'mt.produk_id = p.id', 'inner')
             ->where('p.is_active', 1)
             ->groupBy('p.id')
@@ -39,14 +47,13 @@ class ProdukController extends BaseController
             ->orderBy('p.id', 'DESC')
             ->get()->getResultArray();
 
-        $produk = [];
+        // Enrich setiap produk
+        $produkEnriched = [];
         foreach ($produkRaw as $p) {
-            // Hitung jumlah tryout
             $p['jumlah_tryout'] = $db->table('mapping_tryout')
                 ->where('produk_id', $p['id'])
                 ->countAllResults();
 
-            // Ambil tryout_id pertama untuk link "Lihat Sesi"
             $firstTryout = $db->table('mapping_tryout mt')
                 ->select('mt.tryout_id')
                 ->join('tryout t', 't.id = mt.tryout_id')
@@ -57,10 +64,8 @@ class ProdukController extends BaseController
                 ->get()->getRowArray();
             $p['first_tryout_id'] = $firstTryout ? $firstTryout['tryout_id'] : 0;
 
-            // Sudah beli — cek dulu sebelum fetch promosi
             $p['sudah_beli'] = $this->userProdukModel->hasAccess($userId, $p['id']);
 
-            // Promosi aktif — hanya tampilkan jika user belum memiliki produk ini
             $promosi = [];
             if (! $p['sudah_beli'] && $db->tableExists('promosi')) {
                 $promosi = $db->table('promosi')
@@ -72,7 +77,6 @@ class ProdukController extends BaseController
             }
             $p['promosi'] = $promosi;
 
-            // Harga promo — hanya jika belum beli dan ada promosi
             $p['harga_promo'] = null;
             if (! $p['sudah_beli'] && ! empty($promosi)) {
                 $diskonTerbesar = 0;
@@ -85,11 +89,34 @@ class ProdukController extends BaseController
                 $p['harga_promo'] = max(0, $p['harga'] - $diskonTerbesar);
             }
 
-            $produk[] = $p;
+            $produkEnriched[] = $p;
         }
 
-        // Sort: produk yang belum dibeli tampil duluan, sudah dibeli di belakang
-        usort($produk, fn($a, $b) => $a['sudah_beli'] <=> $b['sudah_beli']);
+        // Bangun struktur tab: semua kategori level 1, produk dimasukkan sesuai kategori_id
+        $produkByKategori = [];
+        foreach ($semuaKategori as $kat) {
+            $produkKat = array_filter($produkEnriched, fn($p) => (int)($p['kat_id'] ?? 0) === (int)$kat['id']);
+            $produkKat = array_values($produkKat);
+            // Sort: belum beli duluan
+            usort($produkKat, fn($a, $b) => $a['sudah_beli'] <=> $b['sudah_beli']);
+
+            $produkByKategori[] = [
+                'kat_id'   => $kat['id'],
+                'kat_nama' => $kat['nama'],
+                'produk'   => $produkKat,
+            ];
+        }
+
+        // Produk tanpa kategori → masuk tab "Lainnya" jika ada
+        $produkTanpaKat = array_values(array_filter($produkEnriched, fn($p) => empty($p['kat_id'])));
+        if (! empty($produkTanpaKat)) {
+            usort($produkTanpaKat, fn($a, $b) => $a['sudah_beli'] <=> $b['sudah_beli']);
+            $produkByKategori[] = [
+                'kat_id'   => 0,
+                'kat_nama' => 'Lainnya',
+                'produk'   => $produkTanpaKat,
+            ];
+        }
 
         $menus = $db->table('menu_mapping')
             ->where('role', session()->get('role'))
@@ -98,8 +125,8 @@ class ProdukController extends BaseController
             ->get()->getResultArray();
 
         return view('user/produk/index', [
-            'produk' => $produk,
-            'menus'  => $menus,
+            'produkByKategori' => $produkByKategori,
+            'menus'            => $menus,
         ]);
     }
 

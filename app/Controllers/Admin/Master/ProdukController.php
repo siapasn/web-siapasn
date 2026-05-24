@@ -27,12 +27,26 @@ class ProdukController extends BaseController
             ->get()->getResultArray();
     }
 
+    private function getKategoris(): array
+    {
+        return \Config\Database::connect()
+            ->table('kategori')
+            ->where('parent_id IS NULL', null, false)
+            ->orderBy('nama', 'ASC')
+            ->get()->getResultArray();
+    }
+
     /**
      * Daftar semua produk.
      */
     public function index()
     {
-        $produks = $this->produkModel->orderBy('id', 'DESC')->findAll();
+        $db = \Config\Database::connect();
+        $produks = $db->table('produk p')
+            ->select('p.*, k.nama AS kategori_nama')
+            ->join('kategori k', 'k.id = p.kategori_id', 'left')
+            ->orderBy('p.id', 'DESC')
+            ->get()->getResultArray();
 
         return view('admin/master/produk/index', [
             'produks' => $produks,
@@ -46,10 +60,11 @@ class ProdukController extends BaseController
     public function create()
     {
         return view('admin/master/produk/form', [
-            'produk' => null,
-            'materi' => [],
-            'action' => base_url('admin/master/produk/store'),
-            'menus'  => $this->getMenus(),
+            'produk'    => null,
+            'materi'    => [],
+            'kategoris' => $this->getKategoris(),
+            'action'    => base_url('admin/master/produk/store'),
+            'menus'     => $this->getMenus(),
         ]);
     }
 
@@ -76,11 +91,12 @@ class ProdukController extends BaseController
         }
 
         $produkId = $this->produkModel->insert([
-            'nama'      => $this->request->getPost('nama'),
-            'deskripsi' => $this->request->getPost('deskripsi') ?? null,
-            'thumbnail' => $thumbnailName,
-            'harga'     => (float) $this->request->getPost('harga'),
-            'is_active' => $this->request->getPost('is_active') ? 1 : 0,
+            'nama'        => $this->request->getPost('nama'),
+            'kategori_id' => $this->request->getPost('kategori_id') ?: null,
+            'deskripsi'   => $this->request->getPost('deskripsi') ?? null,
+            'thumbnail'   => $thumbnailName,
+            'harga'       => (float) $this->request->getPost('harga'),
+            'is_active'   => $this->request->getPost('is_active') ? 1 : 0,
         ]);
 
         // Simpan materi pelajaran
@@ -101,10 +117,11 @@ class ProdukController extends BaseController
         }
 
         return view('admin/master/produk/form', [
-            'produk' => $produk,
-            'materi' => $this->materiModel->getByProduk($id),
-            'action' => base_url("admin/master/produk/{$id}/update"),
-            'menus'  => $this->getMenus(),
+            'produk'    => $produk,
+            'materi'    => $this->materiModel->getByProduk($id),
+            'kategoris' => $this->getKategoris(),
+            'action'    => base_url("admin/master/produk/{$id}/update"),
+            'menus'     => $this->getMenus(),
         ]);
     }
 
@@ -149,11 +166,12 @@ class ProdukController extends BaseController
         }
 
         $this->produkModel->update($id, [
-            'nama'      => $this->request->getPost('nama'),
-            'deskripsi' => $this->request->getPost('deskripsi') ?? null,
-            'thumbnail' => $thumbnailName,
-            'harga'     => (float) $this->request->getPost('harga'),
-            'is_active' => $this->request->getPost('is_active') ? 1 : 0,
+            'nama'        => $this->request->getPost('nama'),
+            'kategori_id' => $this->request->getPost('kategori_id') ?: null,
+            'deskripsi'   => $this->request->getPost('deskripsi') ?? null,
+            'thumbnail'   => $thumbnailName,
+            'harga'       => (float) $this->request->getPost('harga'),
+            'is_active'   => $this->request->getPost('is_active') ? 1 : 0,
         ]);
 
         // Simpan ulang materi pelajaran (replace all)
