@@ -54,6 +54,13 @@
 
 <!-- Table -->
 <div class="card border-0 shadow-sm">
+    <style>
+        #tabelAuditLog_wrapper .dataTables_length label,
+        #tabelAuditLog_wrapper .dataTables_filter label { margin-bottom:0; font-size:.875rem; }
+        #tabelAuditLog_wrapper .dataTables_filter input { margin-left:.4rem; border-radius:.375rem; border:1px solid #dee2e6; padding:.25rem .5rem; font-size:.875rem; }
+        #tabelAuditLog_wrapper .dataTables_info, #tabelAuditLog_wrapper .dataTables_paginate { font-size:.875rem; }
+        #tabelAuditLog_wrapper .paginate_button { border-radius:.375rem !important; }
+    </style>
     <div class="card-body p-0">
         <div class="table-responsive">
             <table id="tabelAuditLog" class="table table-hover align-middle mb-0">
@@ -130,6 +137,9 @@
     <?php endif; ?>
 </div>
 
+<?= $this->endSection() ?>
+
+<?= $this->section('scripts') ?>
 <script>
 $(document).ready(function () {
     $('#tabelAuditLog').DataTable({
@@ -137,6 +147,7 @@ $(document).ready(function () {
         searching: false,
         info: false,
         ordering: true,
+        dom: '<"px-3 pt-3 d-flex justify-content-between align-items-center flex-wrap gap-2"lf>rt<"px-3 pb-3 d-flex justify-content-between align-items-center flex-wrap gap-2 mt-2"ip>',
         language: {
             url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/id.json',
         },
@@ -146,5 +157,4 @@ $(document).ready(function () {
     });
 });
 </script>
-
 <?= $this->endSection() ?>

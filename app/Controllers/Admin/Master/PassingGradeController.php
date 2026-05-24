@@ -48,7 +48,7 @@ class PassingGradeController extends BaseController
         return view('admin/master/passing-grade/form', [
             'passingGrade' => null,
             'action'       => base_url('admin/master/passing-grade/store'),
-            'kategoris'    => $this->kategoriModel->getParents(),
+            'kategoris'    => $this->kategoriModel->getAll(),
             'subKategoris' => [],
             'menus'        => $this->getMenus(),
         ]);
@@ -98,7 +98,7 @@ class PassingGradeController extends BaseController
     {
         $rules = [
             'kategori_id'   => 'required|is_natural_no_zero',
-            'nilai_minimum' => 'required|decimal|greater_than_equal_to[0]|less_than_equal_to[100]',
+            'nilai_minimum' => 'permit_empty|decimal|greater_than_equal_to[0]|less_than_equal_to[100]',
         ];
 
         if (! $this->validate($rules)) {
@@ -108,7 +108,8 @@ class PassingGradeController extends BaseController
         $kategoriId    = (int) $this->request->getPost('kategori_id');
         $subKategoriId = $this->request->getPost('sub_kategori_id');
         $subKategoriId = ($subKategoriId !== '' && $subKategoriId !== null) ? (int) $subKategoriId : null;
-        $nilaiMinimum  = (float) $this->request->getPost('nilai_minimum');
+        $nilaiMinimumRaw = $this->request->getPost('nilai_minimum');
+        $nilaiMinimum  = ($nilaiMinimumRaw !== '' && $nilaiMinimumRaw !== null) ? (float) $nilaiMinimumRaw : null;
 
         // Upsert: update jika kombinasi sudah ada, insert jika belum
         $existing = $this->passingGradeModel->findByKategoriAndSub($kategoriId, $subKategoriId);
@@ -151,7 +152,7 @@ class PassingGradeController extends BaseController
         return view('admin/master/passing-grade/form', [
             'passingGrade' => $passingGrade,
             'action'       => base_url("admin/master/passing-grade/{$id}/update"),
-            'kategoris'    => $this->kategoriModel->getParents(),
+            'kategoris'    => $this->kategoriModel->getAll(),
             'subKategoris' => $subKategoris,
             'menus'        => $this->getMenus(),
         ]);
@@ -170,21 +171,22 @@ class PassingGradeController extends BaseController
 
         $rules = [
             'kategori_id'   => 'required|is_natural_no_zero',
-            'nilai_minimum' => 'required|decimal|greater_than_equal_to[0]|less_than_equal_to[100]',
+            'nilai_minimum' => 'permit_empty|decimal|greater_than_equal_to[0]|less_than_equal_to[100]',
         ];
 
         if (! $this->validate($rules)) {
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
 
-        $kategoriId    = (int) $this->request->getPost('kategori_id');
-        $subKategoriId = $this->request->getPost('sub_kategori_id');
+        $kategoriId      = (int) $this->request->getPost('kategori_id');
+        $subKategoriId   = $this->request->getPost('sub_kategori_id');
+        $nilaiMinimumRaw = $this->request->getPost('nilai_minimum');
 
         $this->passingGradeModel->update($id, [
-            'tryout_id'      => null,
-            'kategori_id'    => $kategoriId,
+            'tryout_id'       => null,
+            'kategori_id'     => $kategoriId,
             'sub_kategori_id' => ($subKategoriId !== '' && $subKategoriId !== null) ? (int) $subKategoriId : null,
-            'nilai_minimum'  => (float) $this->request->getPost('nilai_minimum'),
+            'nilai_minimum'   => ($nilaiMinimumRaw !== '' && $nilaiMinimumRaw !== null) ? (float) $nilaiMinimumRaw : null,
         ]);
 
         return redirect()->to(base_url('admin/master/passing-grade'))->with('success', 'Passing grade berhasil diperbarui.');

@@ -15,24 +15,22 @@
 
 <?= $this->section('content') ?>
 
-<!-- SortableJS CDN -->
-<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
-
 <!-- Tryout Selector -->
 <div class="card border-0 shadow-sm mb-4">
     <div class="card-body py-2">
-        <form method="get" action="<?= base_url('admin/mapping/soal') ?>" class="d-flex align-items-center gap-2 flex-wrap">
-            <label for="tryout_select" class="form-label mb-0 text-nowrap fw-medium">Pilih Tryout:</label>
-            <select id="tryout_select" name="_tryout" class="form-select form-select-sm" style="max-width:320px"
-                    onchange="window.location.href='<?= base_url('admin/mapping/soal') ?>/' + this.value">
-                <option value="0">— Pilih Tryout —</option>
-                <?php foreach ($tryouts as $t): ?>
-                    <option value="<?= $t['id'] ?>" <?= $tryoutId == $t['id'] ? 'selected' : '' ?>>
-                        <?= esc($t['nama']) ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
-        </form>
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+            <label class="form-label mb-0 text-nowrap fw-medium">Pilih Tryout:</label>
+            <div style="min-width:320px; max-width:480px; flex:1">
+                <select id="tryout_select" class="form-select form-select-sm" style="width:100%">
+                    <option value="0">— Pilih Tryout —</option>
+                    <?php foreach ($tryouts as $t): ?>
+                        <option value="<?= $t['id'] ?>" <?= $tryoutId == $t['id'] ? 'selected' : '' ?>>
+                            <?= esc($t['nama']) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -66,10 +64,11 @@
                                     <?= $ms['urutan'] ?>
                                 </span>
                                 <!-- Pertanyaan -->
-                                <span class="flex-grow-1 small" title="<?= esc($ms['pertanyaan']) ?>">
-                                    <?= esc(mb_strlen($ms['pertanyaan']) > 70
-                                        ? mb_substr($ms['pertanyaan'], 0, 70) . '…'
-                                        : $ms['pertanyaan']) ?>
+                                <span class="flex-grow-1 small" title="<?= esc(strip_tags($ms['pertanyaan'])) ?>">
+                                    <?php
+                                    $plain = strip_tags($ms['pertanyaan']);
+                                    echo esc(mb_strlen($plain) > 70 ? mb_substr($plain, 0, 70) . '…' : $plain);
+                                    ?>
                                     <?php if (! empty($ms['nama_kategori'])): ?>
                                         <br><span class="text-muted" style="font-size:0.75rem"><?= esc($ms['nama_kategori']) ?></span>
                                     <?php endif; ?>
@@ -106,32 +105,25 @@
                     <i class="bi bi-collection me-2 text-success"></i>
                     Soal Tersedia
                 </h6>
-                <!-- Filter kategori & sub kategori -->
+                <!-- Filter kategori -->
                 <form method="get" action="<?= base_url("admin/mapping/soal/{$tryoutId}") ?>"
                       id="formFilterMapping" class="mt-2">
                     <div class="d-flex flex-wrap gap-2 align-items-center">
 
-                        <!-- Kategori -->
-                        <select id="filter_kategori_id" name="kategori_id"
-                                class="form-select form-select-sm" style="max-width:180px">
-                            <option value="">— Semua Kategori —</option>
-                            <?php foreach ($kategoris as $k): ?>
-                                <option value="<?= $k['id'] ?>"
-                                    <?= (string) $kategoriFilter === (string) $k['id'] ? 'selected' : '' ?>>
-                                    <?= esc($k['nama']) ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-
-                        <!-- Sub Kategori (muncul via AJAX) -->
-                        <div id="wrap_filter_sub" <?= empty($subKategoris) ? 'style="display:none"' : '' ?>>
-                            <select id="filter_sub_kategori_id" name="sub_kategori_id"
-                                    class="form-select form-select-sm" style="max-width:180px">
-                                <option value="">— Semua Sub —</option>
-                                <?php foreach ($subKategoris as $sk): ?>
-                                    <option value="<?= $sk['id'] ?>"
-                                        <?= (string) $subKategoriFilter === (string) $sk['id'] ? 'selected' : '' ?>>
-                                        <?= esc($sk['nama']) ?>
+                        <!-- Kategori — Select2, semua kategori -->
+                        <div style="min-width:220px; flex:1">
+                            <select id="filter_kategori_id" name="kategori_id"
+                                    class="form-select form-select-sm" style="width:100%">
+                                <option value="">— Semua Kategori —</option>
+                                <?php foreach ($kategoris as $k):
+                                    $label = esc($k['nama']);
+                                    if (! empty($k['parent_nama'])) {
+                                        $label = esc($k['parent_nama']) . ' › ' . $label;
+                                    }
+                                ?>
+                                    <option value="<?= $k['id'] ?>"
+                                        <?= (string) $kategoriFilter === (string) $k['id'] ? 'selected' : '' ?>>
+                                        <?= $label ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>
@@ -140,7 +132,7 @@
                         <button type="submit" class="btn btn-sm btn-primary">
                             <i class="bi bi-funnel me-1"></i>Filter
                         </button>
-                        <?php if ($kategoriFilter !== '' || $subKategoriFilter !== ''): ?>
+                        <?php if ($kategoriFilter !== ''): ?>
                             <a href="<?= base_url("admin/mapping/soal/{$tryoutId}") ?>"
                                class="btn btn-sm btn-outline-secondary">
                                 <i class="bi bi-x-lg me-1"></i>Reset
@@ -158,20 +150,19 @@
                                 <tr>
                                     <th class="ps-3">Pertanyaan</th>
                                     <th>Kategori</th>
-                                    <th>Sub Kategori</th>
                                     <th class="text-center pe-3" style="width:80px">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <?php foreach ($availableSoals as $s): ?>
                                     <tr>
-                                        <td class="ps-3" title="<?= esc($s['pertanyaan']) ?>">
-                                            <?= esc(mb_strlen($s['pertanyaan']) > 60
-                                                ? mb_substr($s['pertanyaan'], 0, 60) . '…'
-                                                : $s['pertanyaan']) ?>
+                                        <td class="ps-3" title="<?= esc(strip_tags($s['pertanyaan'])) ?>">
+                                            <?php
+                                            $plain = strip_tags($s['pertanyaan']);
+                                            echo esc(mb_strlen($plain) > 60 ? mb_substr($plain, 0, 60) . '…' : $plain);
+                                            ?>
                                         </td>
-                                        <td class="text-muted"><?= esc($s['nama_kategori'] ?? '—') ?></td>
-                                        <td class="text-muted"><?= esc($s['nama_sub_kategori'] ?? '—') ?></td>
+                                        <td class="text-muted small"><?= esc($s['nama_kategori'] ?? '—') ?></td>
                                         <td class="text-center pe-3">
                                             <button type="button"
                                                     class="btn btn-sm btn-success py-0 px-2 btn-tambah-soal"
@@ -215,58 +206,48 @@
     </div>
 </div>
 
+<?= $this->endSection() ?>
+
+<?= $this->section('scripts') ?>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 <script>
 (function () {
-    const tryoutId   = <?= (int) $tryoutId ?>;
-    const csrfName   = '<?= csrf_token() ?>';
-    const csrfHash   = '<?= csrf_hash() ?>';
-    const storeUrl   = '<?= base_url('admin/mapping/soal/store') ?>';
-    const urutanUrl  = '<?= base_url('admin/mapping/soal/urutan') ?>';
-    const baseAjaxUrl = '<?= rtrim(base_url('admin/master/soal/sub-kategori'), '/') ?>';
+    const tryoutId  = <?= (int) $tryoutId ?>;
+    const csrfName  = '<?= csrf_token() ?>';
+    const csrfHash  = '<?= csrf_hash() ?>';
+    const storeUrl  = '<?= base_url('admin/mapping/soal/store') ?>';
+    const urutanUrl = '<?= base_url('admin/mapping/soal/urutan') ?>';
 
-    // ── AJAX load sub-kategori saat filter kategori berubah ──────────────────
-    const filterKategori    = document.getElementById('filter_kategori_id');
-    const filterSubKategori = document.getElementById('filter_sub_kategori_id');
-    const wrapFilterSub     = document.getElementById('wrap_filter_sub');
+    // ── Select2: Pilih Tryout ─────────────────────────────────────────────────
+    $('#tryout_select').select2({
+        theme: 'bootstrap-5',
+        placeholder: '— Pilih Tryout —',
+        allowClear: true,
+        width: '100%',
+    });
 
-    if (filterKategori) {
-        filterKategori.addEventListener('change', function () {
-            const kategoriId = this.value;
+    $('#tryout_select').on('change', function () {
+        const val = this.value;
+        if (val && val !== '0') {
+            window.location.href = '<?= base_url('admin/mapping/soal') ?>/' + val;
+        } else {
+            window.location.href = '<?= base_url('admin/mapping/soal') ?>';
+        }
+    });
 
-            // Reset sub kategori
-            if (filterSubKategori) {
-                filterSubKategori.innerHTML = '<option value="">— Semua Sub —</option>';
-            }
+    // ── Select2: Filter Kategori ──────────────────────────────────────────────
+    $('#filter_kategori_id').select2({
+        theme: 'bootstrap-5',
+        placeholder: '— Semua Kategori —',
+        allowClear: true,
+        width: '100%',
+        dropdownParent: $('#formFilterMapping'),
+    });
 
-            if (! kategoriId) {
-                if (wrapFilterSub) wrapFilterSub.style.display = 'none';
-                return;
-            }
-
-            fetch(baseAjaxUrl + '/' + kategoriId, {
-                method: 'GET',
-                credentials: 'same-origin',
-                headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
-            })
-            .then(function (r) { return r.json(); })
-            .then(function (data) {
-                if (data.status && data.data && data.data.length > 0) {
-                    data.data.forEach(function (sub) {
-                        const opt = document.createElement('option');
-                        opt.value       = sub.id;
-                        opt.textContent = sub.nama;
-                        filterSubKategori.appendChild(opt);
-                    });
-                    if (wrapFilterSub) wrapFilterSub.style.display = '';
-                } else {
-                    if (wrapFilterSub) wrapFilterSub.style.display = 'none';
-                }
-            })
-            .catch(function () {
-                if (wrapFilterSub) wrapFilterSub.style.display = 'none';
-            });
-        });
-    }
+    // Auto-submit saat kategori dipilih
+    $('#filter_kategori_id').on('change', function () {
+        document.getElementById('formFilterMapping').submit();
+    });
 
     // ── Toast helper ──────────────────────────────────────────────────────────
     function showToast(message, success) {
@@ -283,7 +264,6 @@
     document.querySelectorAll('.btn-tambah-soal').forEach(function (btn) {
         btn.addEventListener('click', function () {
             const soalId = this.dataset.soalId;
-            const row    = this.closest('tr');
 
             fetch(storeUrl, {
                 method: 'POST',
@@ -298,7 +278,6 @@
             .then(data => {
                 if (data.status) {
                     showToast('Soal berhasil ditambahkan.', true);
-                    // Reload halaman agar daftar diperbarui
                     setTimeout(() => location.reload(), 800);
                 } else {
                     showToast(data.message || 'Gagal menambahkan soal.', false);
@@ -315,17 +294,14 @@
             handle: '.drag-handle',
             animation: 150,
             onEnd: function () {
-                // Kumpulkan urutan baru
                 const items = [];
                 sortableEl.querySelectorAll('li[data-id]').forEach(function (li, index) {
                     const newUrutan = index + 1;
-                    // Perbarui badge urutan secara visual
                     const badge = li.querySelector('.urutan-badge');
                     if (badge) badge.textContent = newUrutan;
                     items.push({ id: li.dataset.id, urutan: newUrutan });
                 });
 
-                // Kirim ke server
                 fetch(urutanUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -353,5 +329,4 @@
     }
 }());
 </script>
-
 <?= $this->endSection() ?>

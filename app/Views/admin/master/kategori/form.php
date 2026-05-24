@@ -49,26 +49,30 @@
                 <!-- Parent Kategori -->
                 <div class="col-12 col-md-6">
                     <label for="parent_id" class="form-label">Parent Kategori</label>
-                    <select id="parent_id" name="parent_id" class="form-select">
+                    <select id="parent_id" name="parent_id" class="form-select select2-kategori" style="width:100%">
                         <option value="">— Tidak ada (kategori induk) —</option>
                         <?php
                         $selectedParent = old('parent_id', $kategori['parent_id'] ?? '');
                         foreach ($parents as $p):
                             if ($isEdit && (int) $p['id'] === (int) $kategori['id']) continue;
+                            $label = esc($p['nama']);
+                            if (! empty($p['parent_nama'])) {
+                                $label = esc($p['parent_nama']) . ' › ' . $label;
+                            }
                         ?>
                             <option value="<?= $p['id'] ?>"
                                 <?= (string) $selectedParent === (string) $p['id'] ? 'selected' : '' ?>>
-                                <?= esc($p['nama']) ?>
+                                <?= $label ?>
                             </option>
                         <?php endforeach; ?>
                     </select>
-                    <div class="form-text">Pilih parent jika ini adalah sub-kategori. <span class="text-warning fw-semibold">Sub-kategori hanya diperbolehkan 1 tingkat.</span></div>
+                    <div class="form-text">Pilih parent jika ini adalah sub-kategori.</div>
                 </div>
 
                 <!-- Tipe Soal (hanya muncul jika parent dipilih) -->
                 <div class="col-12 col-md-6" id="tipe_soal_wrapper" style="<?= empty(old('parent_id', $kategori['parent_id'] ?? '')) ? 'display:none' : '' ?>">
                     <label for="tipe_soal" class="form-label">
-                        Tipe Soal <span class="text-danger">*</span>
+                        Tipe Soal <span class="text-muted small">(opsional)</span>
                     </label>
                     <select id="tipe_soal" name="tipe_soal" class="form-select">
                         <option value="">— Pilih Tipe —</option>
@@ -103,26 +107,37 @@
     </div>
 </div>
 
+<?= $this->endSection() ?>
+
+<?= $this->section('scripts') ?>
 <script>
 (function () {
-    const parentSelect      = document.getElementById('parent_id');
-    const tipeSoalWrapper   = document.getElementById('tipe_soal_wrapper');
-    const tipeSoalSelect    = document.getElementById('tipe_soal');
+    const tipeSoalWrapper = document.getElementById('tipe_soal_wrapper');
+    const tipeSoalSelect  = document.getElementById('tipe_soal');
 
     function toggleTipeSoal() {
-        if (parentSelect.value) {
+        const val = $('#parent_id').val();
+        if (val) {
             tipeSoalWrapper.style.display = '';
-            tipeSoalSelect.required = true;
         } else {
             tipeSoalWrapper.style.display = 'none';
-            tipeSoalSelect.required = false;
             tipeSoalSelect.value = '';
         }
     }
 
-    parentSelect.addEventListener('change', toggleTipeSoal);
+    // Inisialisasi Select2 untuk field Parent Kategori
+    $('#parent_id').select2({
+        theme: 'bootstrap-5',
+        placeholder: '— Tidak ada (kategori induk) —',
+        allowClear: true,
+        width: '100%',
+    });
+
+    $('#parent_id').on('change', function () {
+        toggleTipeSoal();
+    });
+
     toggleTipeSoal(); // on page load
 }());
 </script>
-
 <?= $this->endSection() ?>

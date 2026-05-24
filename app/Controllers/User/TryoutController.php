@@ -366,9 +366,16 @@ class TryoutController extends BaseController
                 ->with('error', 'Data tryout tidak ditemukan.');
         }
 
-        // Cek apakah hasil sudah ada; jika belum, hitung sekarang
+        // Cek apakah hasil sudah ada; hitung ulang jika belum ada atau masih 0
+        // (bisa terjadi jika scoring sebelumnya gagal / race condition)
         $hasil = $this->hasilModel->getBySesi($sesiId);
-        if (!$hasil) {
+        $perluHitung = ! $hasil
+            || ((int)($hasil['jumlah_benar'] ?? 0) === 0
+                && (int)($hasil['jumlah_salah'] ?? 0) === 0
+                && (int)($hasil['jumlah_kosong'] ?? 0) === 0
+                && (float)($hasil['total_nilai'] ?? 0) == 0);
+
+        if ($perluHitung) {
             try {
                 $hasil = $this->scoringService->hitung($sesiId);
             } catch (\RuntimeException $e) {
@@ -423,17 +430,34 @@ class TryoutController extends BaseController
                 ->with('error', 'Data tryout tidak ditemukan.');
         }
 
+        // Pastikan scoring sudah dijalankan agar is_benar di jawaban_user terisi benar.
+        // Jika hasil belum ada atau semua 0, hitung sekarang.
+        $hasil = $this->hasilModel->getBySesi($sesiId);
+        $perluHitung = ! $hasil
+            || ((int)($hasil['jumlah_benar'] ?? 0) === 0
+                && (int)($hasil['jumlah_salah'] ?? 0) === 0
+                && (int)($hasil['jumlah_kosong'] ?? 0) === 0
+                && (float)($hasil['total_nilai'] ?? 0) == 0);
+
+        if ($perluHitung) {
+            try {
+                $this->scoringService->hitung($sesiId);
+            } catch (\RuntimeException $e) {
+                // Scoring gagal — lanjutkan tampil pembahasan, is_benar mungkin NULL
+            }
+        }
+
         // Ambil semua soal beserta jawaban user, kunci jawaban, nilai, dan tipe soal
         $soalList = $db->table('mapping_soal ms')
             ->select('s.id as soal_id, s.pertanyaan,
                       s.pilihan_a, s.pilihan_b, s.pilihan_c, s.pilihan_d, s.pilihan_e,
                       s.kunci_jawaban, s.pembahasan,
                       s.nilai_a, s.nilai_b, s.nilai_c, s.nilai_d, s.nilai_e,
-                      s.sub_kategori_id,
-                      sk.tipe_soal as sub_tipe_soal,
+                      s.kategori_id,
+                      k.tipe_soal as tipe_soal,
                       ju.jawaban as jawaban_user, ju.is_benar')
             ->join('soal s', 's.id = ms.soal_id')
-            ->join('kategori sk', 'sk.id = s.sub_kategori_id', 'left')
+            ->join('kategori k', 'k.id = s.kategori_id', 'left')
             ->join('jawaban_user ju', 'ju.soal_id = ms.soal_id AND ju.sesi_tryout_id = ' . (int) $sesiId, 'left')
             ->where('ms.tryout_id', $sesi['tryout_id'])
             ->orderBy('ms.urutan', 'ASC')

@@ -98,10 +98,64 @@
                     </div>
                 <?php endif; ?>
             </div>
-        </div>
-    </div>
+        </div><!-- /card daftar tryout -->
 
-    <!-- Panel Pembelian -->
+        <!-- ── Materi Pelajaran (hanya tampil jika sudah beli & ada materi) ── -->
+        <?php if ($sudahBeli && ! empty($materi)): ?>
+        <div class="card border-0 shadow-sm mt-4">
+            <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
+                <h6 class="mb-0"><i class="bi bi-book me-2 text-primary"></i>Materi Pelajaran</h6>
+                <span class="badge bg-primary"><?= count($materi) ?> materi</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    <?php
+                    $ikonTipe = [
+                        'Gambar'  => ['icon' => 'bi-image',        'color' => 'text-success',  'bg' => 'bg-success'],
+                        'Video'   => ['icon' => 'bi-play-circle',  'color' => 'text-danger',   'bg' => 'bg-danger'],
+                        'Dokumen' => ['icon' => 'bi-file-earmark-text', 'color' => 'text-warning', 'bg' => 'bg-warning'],
+                    ];
+                    ?>
+                    <?php foreach ($materi as $i => $m): ?>
+                        <?php
+                        $tipe  = $m['tipe_file'];
+                        $ikon  = $ikonTipe[$tipe] ?? ['icon' => 'bi-link-45deg', 'color' => 'text-secondary', 'bg' => 'bg-secondary'];
+
+                        // Konversi URL admin serve → URL user serve
+                        // url_file tersimpan sebagai: .../admin/master/datafile/{id}/serve
+                        // User mengakses via: .../user/materi/{id}/file
+                        $bukaUrl = $m['url_file']; // fallback ke URL asli jika bukan dari datafile
+                        if (preg_match('#/admin/master/datafile/(\d+)/serve#', $m['url_file'], $matches)) {
+                            $bukaUrl = base_url('user/materi/' . $matches[1] . '/file');
+                        }
+                        ?>
+                        <div class="list-group-item d-flex justify-content-between align-items-center py-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center <?= $ikon['bg'] ?> bg-opacity-10"
+                                     style="width:40px;height:40px;flex-shrink:0">
+                                    <i class="bi <?= $ikon['icon'] ?> <?= $ikon['color'] ?>"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-semibold"><?= esc($m['judul']) ?></div>
+                                    <small class="text-muted">
+                                        <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary-subtle" style="font-size:.7rem">
+                                            <?= esc($tipe) ?>
+                                        </span>
+                                    </small>
+                                </div>
+                            </div>
+                            <a href="<?= esc($bukaUrl) ?>" target="_blank" rel="noopener noreferrer"
+                               class="btn btn-sm btn-outline-primary py-1 px-3 fw-semibold" style="font-size:.8rem;white-space:nowrap">
+                                <i class="bi bi-box-arrow-up-right me-1"></i>Buka
+                            </a>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        </div>
+        <?php endif; ?>
+
+    </div><!-- /col-lg-8 -->
     <div class="col-lg-4">
         <div class="card border-0 shadow-sm sticky-top" style="top: 80px;">
             <!-- Thumbnail -->

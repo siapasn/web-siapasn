@@ -31,7 +31,7 @@
         $nomorSoal   = $index + 1;
         $jawabanUser = $soal['jawaban_user'] ?? null;
         $kunci       = $soal['kunci_jawaban'] ?? null;
-        $tipeSoal    = $soal['sub_tipe_soal'] ?? 'POINT';
+        $tipeSoal    = $soal['tipe_soal'] ?? 'POINT';
         $isKosong    = ($jawabanUser === null || $jawabanUser === '');
 
         // Nilai per pilihan untuk SCORE
@@ -42,6 +42,18 @@
             'd' => (int)($soal['nilai_d'] ?? 0),
             'e' => (int)($soal['nilai_e'] ?? 0),
         ];
+
+        // Fallback SCORE → POINT jika nilai_a–e semua NULL/0
+        // (sama dengan logika di TryoutScoringService)
+        if ($tipeSoal === 'SCORE') {
+            $adaNilaiScore = false;
+            foreach ($nilaiMap as $n) {
+                if ($n > 0) { $adaNilaiScore = true; break; }
+            }
+            if (! $adaNilaiScore) {
+                $tipeSoal = 'POINT';
+            }
+        }
 
         // Cari pilihan dengan nilai tertinggi (untuk SCORE)
         $nilaiTertinggi = 0;
@@ -59,18 +71,18 @@
         if ($tipeSoal === 'SCORE') {
             $nilaiDipilih = $isKosong ? 0 : ($nilaiMap[$jawabanUser] ?? 0);
             if ($isKosong) {
-                $statusBadge = '<span class="badge bg-secondary">Tidak Dijawab</span>';
+                $statusBadge = '<span class="badge bg-secondary">Tidak Dijawab · 0 poin</span>';
             } else {
-                $statusBadge = '<span class="badge bg-info text-dark">Nilai: ' . $nilaiDipilih . '</span>';
+                $statusBadge = '<span class="badge bg-info text-dark">Nilai: ' . $nilaiDipilih . ' poin</span>';
             }
         } else {
             $isBenar = (! $isKosong && $jawabanUser === $kunci);
             if ($isKosong) {
-                $statusBadge = '<span class="badge bg-secondary">Tidak Dijawab</span>';
+                $statusBadge = '<span class="badge bg-secondary">Tidak Dijawab · 0 poin</span>';
             } elseif ($isBenar) {
-                $statusBadge = '<span class="badge bg-success">Benar</span>';
+                $statusBadge = '<span class="badge bg-success">Benar · +5 poin</span>';
             } else {
-                $statusBadge = '<span class="badge bg-danger">Salah</span>';
+                $statusBadge = '<span class="badge bg-danger">Salah · 0 poin</span>';
             }
         }
 

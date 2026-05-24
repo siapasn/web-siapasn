@@ -4,16 +4,19 @@ namespace App\Controllers\User;
 
 use App\Controllers\BaseController;
 use App\Models\ProdukModel;
+use App\Models\ProdukMateriModel;
 use App\Models\UserProdukModel;
 
 class ProdukController extends BaseController
 {
-    protected ProdukModel $produkModel;
-    protected UserProdukModel $userProdukModel;
+    protected ProdukModel       $produkModel;
+    protected ProdukMateriModel $materiModel;
+    protected UserProdukModel   $userProdukModel;
 
     public function __construct()
     {
         $this->produkModel     = new ProdukModel();
+        $this->materiModel     = new ProdukMateriModel();
         $this->userProdukModel = new UserProdukModel();
     }
 
@@ -182,6 +185,7 @@ class ProdukController extends BaseController
             'tryouts'   => $tryouts,
             'promosi'   => $promosi,
             'sudahBeli' => $sudahBeli,
+            'materi'    => $sudahBeli ? $this->materiModel->getByProduk($id) : [],
             'menus'     => $menus,
         ]);
     }

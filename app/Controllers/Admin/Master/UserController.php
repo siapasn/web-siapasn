@@ -25,7 +25,8 @@ class UserController extends BaseController
     }
 
     /**
-     * Daftar semua user dengan pagination, search, dan filter role.
+     * Daftar semua user dengan search dan filter role.
+     * Pagination ditangani oleh DataTables client-side.
      */
     public function index()
     {
@@ -47,21 +48,13 @@ class UserController extends BaseController
 
         $builder->orderBy('created_at', 'DESC');
 
-        $pager = \Config\Services::pager();
-        $page  = (int) ($this->request->getGet('page') ?? 1);
-        $perPage = 20;
-
-        $total = $builder->countAllResults(false);
-        $users = $builder->limit($perPage, ($page - 1) * $perPage)->get()->getResultArray();
+        $users = $builder->get()->getResultArray();
 
         return view('admin/master/user/index', [
-            'users'   => $users,
-            'search'  => $search,
-            'role'    => $role,
-            'total'   => $total,
-            'page'    => $page,
-            'perPage' => $perPage,
-            'menus'   => $this->getMenus(),
+            'users'  => $users,
+            'search' => $search,
+            'role'   => $role,
+            'menus'  => $this->getMenus(),
         ]);
     }
 

@@ -112,6 +112,98 @@
 
             <hr class="my-4">
 
+            <!-- ================================================================
+                 MATERI PELAJARAN
+            ================================================================ -->
+            <div class="mb-3 d-flex align-items-center justify-content-between">
+                <div>
+                    <h6 class="mb-0 fw-semibold"><i class="bi bi-book me-2 text-primary"></i>Materi Pelajaran</h6>
+                    <div class="text-muted small mt-1">Materi hanya dapat diakses oleh user yang telah membeli produk ini.</div>
+                </div>
+                <button type="button" id="btnTambahMateri" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-plus-lg me-1"></i>Tambah Materi
+                </button>
+            </div>
+
+            <div id="materiContainer">
+                <?php if (! empty($materi)): ?>
+                    <?php foreach ($materi as $idx => $m): ?>
+                    <div class="materi-row card border mb-2">
+                        <div class="card-body py-2 px-3">
+                            <div class="row g-2 align-items-end">
+                                <div class="col-12 col-md-4">
+                                    <label class="form-label form-label-sm mb-1">Judul Materi <span class="text-danger">*</span></label>
+                                    <input type="text" name="materi_judul[]" class="form-control form-control-sm"
+                                           placeholder="Contoh: Modul TWK Bab 1"
+                                           value="<?= esc($m['judul']) ?>" required>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <label class="form-label form-label-sm mb-1">Tipe File <span class="text-danger">*</span></label>
+                                    <select name="materi_tipe[]" class="form-select form-select-sm" required>
+                                        <option value="">-- Pilih --</option>
+                                        <option value="Gambar"  <?= $m['tipe_file'] === 'Gambar'  ? 'selected' : '' ?>>Gambar</option>
+                                        <option value="Video"   <?= $m['tipe_file'] === 'Video'   ? 'selected' : '' ?>>Video</option>
+                                        <option value="Dokumen" <?= $m['tipe_file'] === 'Dokumen' ? 'selected' : '' ?>>Dokumen</option>
+                                    </select>
+                                </div>
+                                <div class="col-12 col-md-4">
+                                    <label class="form-label form-label-sm mb-1">URL File <span class="text-danger">*</span></label>
+                                    <input type="url" name="materi_url[]" class="form-control form-control-sm"
+                                           placeholder="https://..."
+                                           value="<?= esc($m['url_file']) ?>" required>
+                                </div>
+                                <div class="col-6 col-md-1 text-end">
+                                    <button type="button" class="btn btn-sm btn-outline-danger btn-hapus-materi" title="Hapus baris ini">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </div>
+
+            <div id="materiEmpty" class="text-center py-3 text-muted small <?= ! empty($materi) ? 'd-none' : '' ?>">
+                <i class="bi bi-inbox me-1"></i>Belum ada materi. Klik <strong>Tambah Materi</strong> untuk menambahkan.
+            </div>
+
+            <!-- Template baris materi (hidden, di-clone via JS) -->
+            <template id="materiRowTemplate">
+                <div class="materi-row card border mb-2">
+                    <div class="card-body py-2 px-3">
+                        <div class="row g-2 align-items-end">
+                            <div class="col-12 col-md-4">
+                                <label class="form-label form-label-sm mb-1">Judul Materi <span class="text-danger">*</span></label>
+                                <input type="text" name="materi_judul[]" class="form-control form-control-sm"
+                                       placeholder="Contoh: Modul TWK Bab 1" required>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <label class="form-label form-label-sm mb-1">Tipe File <span class="text-danger">*</span></label>
+                                <select name="materi_tipe[]" class="form-select form-select-sm" required>
+                                    <option value="">-- Pilih --</option>
+                                    <option value="Gambar">Gambar</option>
+                                    <option value="Video">Video</option>
+                                    <option value="Dokumen">Dokumen</option>
+                                </select>
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <label class="form-label form-label-sm mb-1">URL File <span class="text-danger">*</span></label>
+                                <input type="url" name="materi_url[]" class="form-control form-control-sm"
+                                       placeholder="https://..." required>
+                            </div>
+                            <div class="col-6 col-md-1 text-end">
+                                <button type="button" class="btn btn-sm btn-outline-danger btn-hapus-materi" title="Hapus baris ini">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </template>
+
+            <hr class="my-4">
+
             <div class="d-flex gap-2">
                 <button type="submit" class="btn btn-primary">
                     <i class="bi bi-save me-1"></i> <?= $isEdit ? 'Simpan Perubahan' : 'Tambah Produk' ?>
@@ -125,36 +217,28 @@
     </div>
 </div>
 
+<?= $this->endSection() ?>
+
+<?= $this->section('scripts') ?>
 <script>
-window.addEventListener('load', function () {
-    if (typeof $ === 'undefined' || typeof $.fn.summernote === 'undefined') {
-        console.error('jQuery atau Summernote belum tersedia');
-        return;
-    }
-
-    $('#deskripsi').summernote({
-        lang: 'id-ID',
-        placeholder: 'Deskripsi produk (opsional)',
-        tabsize: 2,
-        height: 200,
-        toolbar: [
-            ['style',   ['bold', 'italic', 'underline', 'clear']],
-            ['fontsize',['fontsize']],
-            ['color',   ['color']],
-            ['para',    ['ul', 'ol', 'paragraph']],
-            ['insert',  ['link', 'picture', 'hr']],
-            ['view',    ['fullscreen', 'codeview']]
-        ]
-    });
-
-    // Sync Summernote ke textarea sebelum submit
-    $('form').on('submit', function () {
-        $('#deskripsi').val($('#deskripsi').summernote('code'));
-    });
+$('#deskripsi').summernote({
+    placeholder: 'Deskripsi produk (opsional)',
+    tabsize: 2,
+    height: 200,
+    toolbar: [
+        ['style',   ['bold', 'italic', 'underline', 'clear']],
+        ['fontsize',['fontsize']],
+        ['color',   ['color']],
+        ['para',    ['ul', 'ol', 'paragraph']],
+        ['insert',  ['link', 'picture', 'hr']],
+        ['view',    ['fullscreen', 'codeview']]
+    ]
 });
-</script>
 
-<script>
+$('form').on('submit', function () {
+    $('#deskripsi').val($('#deskripsi').summernote('code'));
+});
+
 // Preview thumbnail sebelum upload
 document.getElementById('thumbnail').addEventListener('change', function () {
     const file = this.files[0];
@@ -177,6 +261,41 @@ if (hapusCheck) {
         }
     });
 }
-</script>
 
+// ── Materi Pelajaran ─────────────────────────────────────────────────────────
+(function () {
+    const container = document.getElementById('materiContainer');
+    const emptyMsg  = document.getElementById('materiEmpty');
+    const template  = document.getElementById('materiRowTemplate');
+    const btnTambah = document.getElementById('btnTambahMateri');
+
+    function updateEmpty() {
+        const rows = container.querySelectorAll('.materi-row');
+        emptyMsg.classList.toggle('d-none', rows.length > 0);
+    }
+
+    function bindHapus(row) {
+        row.querySelector('.btn-hapus-materi').addEventListener('click', function () {
+            row.remove();
+            updateEmpty();
+        });
+    }
+
+    // Bind hapus untuk baris yang sudah ada (mode edit)
+    container.querySelectorAll('.materi-row').forEach(bindHapus);
+
+    // Tambah baris baru
+    btnTambah.addEventListener('click', function () {
+        const clone = template.content.cloneNode(true);
+        const row   = clone.querySelector('.materi-row');
+        bindHapus(row);
+        container.appendChild(row);
+        updateEmpty();
+        // Fokus ke input judul baris baru
+        row.querySelector('input[name="materi_judul[]"]').focus();
+    });
+
+    updateEmpty();
+}());
+</script>
 <?= $this->endSection() ?>

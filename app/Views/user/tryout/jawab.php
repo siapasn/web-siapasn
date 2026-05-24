@@ -42,6 +42,18 @@ $csrfHash     = csrf_hash();
 }
 
 /* ── Navigasi soal ── */
+.nav-panel {
+    position: sticky;
+    top: 80px;
+    max-height: calc(100vh - 100px);
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #dee2e6 transparent;
+}
+.nav-panel::-webkit-scrollbar { width: 4px; }
+.nav-panel::-webkit-scrollbar-thumb { background: #dee2e6; border-radius: 2px; }
+
+/* ── Navigasi soal ── */
 .nav-panel .nav-grid {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
@@ -167,7 +179,7 @@ $csrfHash     = csrf_hash();
                         $cls     = $aktif ? 'aktif' : ($dijawab ? 'dijawab' : '');
                     ?>
                         <a href="<?= base_url('user/tryout/jawab/' . $sesiId . '?soal_index=' . $nomor) ?>"
-                           class="nav-btn <?= $cls ?>" title="Soal <?= $nomor ?>">
+                           class="nav-btn <?= $cls ?> nav-soal-btn" title="Soal <?= $nomor ?>">
                             <?= $nomor ?>
                         </a>
                     <?php endforeach; ?>
@@ -262,13 +274,13 @@ $csrfHash     = csrf_hash();
             <div class="d-flex gap-2">
                 <?php if ($soalIndex > 1): ?>
                     <a href="<?= base_url('user/tryout/jawab/' . $sesiId . '?soal_index=' . ($soalIndex - 1)) ?>"
-                       class="btn btn-outline-secondary">
+                       class="btn btn-outline-secondary nav-soal-btn">
                         <i class="bi bi-chevron-left me-1"></i>Sebelumnya
                     </a>
                 <?php endif; ?>
                 <?php if ($soalIndex < $totalSoal): ?>
                     <a href="<?= base_url('user/tryout/jawab/' . $sesiId . '?soal_index=' . ($soalIndex + 1)) ?>"
-                       class="btn btn-primary">
+                       class="btn btn-primary nav-soal-btn">
                         Selanjutnya<i class="bi bi-chevron-right ms-1"></i>
                     </a>
                 <?php endif; ?>
@@ -320,44 +332,113 @@ $csrfHash     = csrf_hash();
 // ── Auto-save jawaban ─────────────────────────────────────────────────────────
 (function () {
     const saveIndicator = document.getElementById('save-indicator');
+    let   pendingNav    = null;   // URL tujuan navigasi yang sedang menunggu save
+    let   isSaving      = false;
 
     function showSaved() {
         saveIndicator.classList.add('show');
         setTimeout(() => saveIndicator.classList.remove('show'), 2000);
     }
 
-    function simpanJawaban(jawaban) {
+    function getJawabanTerpilih() {
+        const radio = document.querySelector('.pilihan-radio:checked');
+        return radio ? radio.value : null;
+    }
+
+    /**
+     * Simpan jawaban ke server.
+     * @param {string|null} jawaban  - nilai pilihan (a/b/c/d/e) atau null
+     * @param {Function}    callback - dipanggil setelah selesai (berhasil/gagal)
+     */
+    function simpanJawaban(jawaban, callback) {
         const fd = new FormData();
         fd.append('sesi_id', document.getElementById('sesi_id').value);
         fd.append('soal_id', document.getElementById('soal_id').value);
-        fd.append('jawaban', jawaban);
+        if (jawaban !== null) fd.append('jawaban', jawaban);
         fd.append(document.getElementById('csrf_name').value,
                   document.getElementById('csrf_hash').value);
 
+        isSaving = true;
         fetch('<?= base_url('user/tryout/simpan-jawaban') ?>', {
             method: 'POST', body: fd,
             headers: { 'X-Requested-With': 'XMLHttpRequest' }
         })
         .then(r => r.json())
-        .then(d => { if (d.status) showSaved(); })
-        .catch(console.error);
+        .then(d => {
+            isSaving = false;
+            if (d.status) showSaved();
+            if (callback) callback();
+        })
+        .catch(() => {
+            isSaving = false;
+            if (callback) callback(); // tetap navigasi meski gagal
+        });
     }
 
-    // Klik seluruh baris pilihan
+    // Klik seluruh baris pilihan — simpan langsung
     document.querySelectorAll('.pilihan-item').forEach(function (item) {
         item.addEventListener('click', function () {
-            // Hapus selected dari semua
             document.querySelectorAll('.pilihan-item').forEach(i => i.classList.remove('selected'));
-            // Set selected pada yang diklik
             this.classList.add('selected');
-            // Check radio di dalamnya
             const radio = this.querySelector('input[type="radio"]');
             if (radio) {
                 radio.checked = true;
-                simpanJawaban(radio.value);
+                simpanJawaban(radio.value, null);
             }
         });
     });
+
+    // Scroll panel navigasi agar tombol soal aktif selalu terlihat saat halaman load
+    (function () {
+        const navPanel  = document.querySelector('.nav-panel');
+        const aktifBtn  = navPanel ? navPanel.querySelector('.nav-btn.aktif') : null;
+        if (navPanel && aktifBtn) {
+            // Hitung posisi tombol relatif terhadap panel, lalu scroll ke tengah
+            const panelTop    = navPanel.getBoundingClientRect().top;
+            const btnTop      = aktifBtn.getBoundingClientRect().top;
+            const offset      = btnTop - panelTop;
+            const panelHeight = navPanel.clientHeight;
+            const btnHeight   = aktifBtn.clientHeight;
+            navPanel.scrollTop = offset - (panelHeight / 2) + (btnHeight / 2);
+        }
+    }());
+
+    // Intercept semua link navigasi soal (Sebelumnya, Selanjutnya, nav panel)
+    document.querySelectorAll('.nav-soal-btn').forEach(function (link) {
+        link.addEventListener('click', function (e) {
+            e.preventDefault();
+            const tujuan = this.href;
+            const isNavBtn = this.classList.contains('nav-btn'); // tombol nomor di panel
+
+            // Feedback visual langsung — disable & tampilkan spinner
+            if (isNavBtn) {
+                // Panel nomor: ubah isi jadi spinner kecil
+                this.innerHTML = '<span class="spinner-border spinner-border-sm" style="width:.7rem;height:.7rem"></span>';
+                this.style.pointerEvents = 'none';
+            } else {
+                // Tombol Sebelumnya / Selanjutnya
+                const originalHtml = this.innerHTML;
+                this.innerHTML = '<span class="spinner-border spinner-border-sm me-1" style="width:.85rem;height:.85rem"></span> Menyimpan...';
+                this.classList.add('disabled');
+                this.style.pointerEvents = 'none';
+                this.style.opacity = '0.75';
+            }
+
+            // Disable semua nav btn lain agar tidak double-click
+            document.querySelectorAll('.nav-soal-btn').forEach(b => {
+                if (b !== this) {
+                    b.style.pointerEvents = 'none';
+                    b.style.opacity = '0.5';
+                }
+            });
+
+            const jawaban = getJawabanTerpilih();
+            simpanJawaban(jawaban, function () {
+                window.location.href = tujuan;
+            });
+        });
+    });
+
 }());
 
 // ── Countdown timer ───────────────────────────────────────────────────────────

@@ -132,4 +132,44 @@ class DataFileController extends BaseController
 
         return redirect()->to(base_url('admin/master/datafile'))->with('success', 'File berhasil dihapus.');
     }
+
+    /**
+     * Serve file dari WRITEPATH agar bisa diakses via URL.
+     * Digunakan untuk preview dan sebagai URL yang disalin ke materi pelajaran.
+     */
+    public function serve(int $id)
+    {
+        $record = $this->fileModel->find($id);
+
+        if (! $record) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('File tidak ditemukan.');
+        }
+
+        $physicalPath = WRITEPATH . $record['path'];
+
+        if (! is_file($physicalPath)) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('File fisik tidak ditemukan.');
+        }
+
+        $mimeMap = [
+            'jpg'  => 'image/jpeg',
+            'jpeg' => 'image/jpeg',
+            'png'  => 'image/png',
+            'gif'  => 'image/gif',
+            'pdf'  => 'application/pdf',
+            'doc'  => 'application/msword',
+            'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'xls'  => 'application/vnd.ms-excel',
+            'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ];
+
+        $ext      = strtolower($record['tipe']);
+        $mimeType = $mimeMap[$ext] ?? 'application/octet-stream';
+
+        return $this->response
+            ->setHeader('Content-Type', $mimeType)
+            ->setHeader('Content-Disposition', 'inline; filename="' . $record['nama'] . '"')
+            ->setHeader('Cache-Control', 'private, max-age=3600')
+            ->setBody(file_get_contents($physicalPath));
+    }
 }

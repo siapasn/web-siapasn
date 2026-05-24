@@ -50,9 +50,16 @@
 
 <!-- Table -->
 <div class="card border-0 shadow-sm">
+    <style>
+        #tabelUser_wrapper .dataTables_length label,
+        #tabelUser_wrapper .dataTables_filter label { margin-bottom:0; font-size:.875rem; }
+        #tabelUser_wrapper .dataTables_filter input { margin-left:.4rem; border-radius:.375rem; border:1px solid #dee2e6; padding:.25rem .5rem; font-size:.875rem; }
+        #tabelUser_wrapper .dataTables_info, #tabelUser_wrapper .dataTables_paginate { font-size:.875rem; }
+        #tabelUser_wrapper .paginate_button { border-radius:.375rem !important; }
+    </style>
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table id="tabelUser" class="table table-hover align-middle mb-0">
+            <table id="tabelUser" class="table table-hover align-middle mb-0" style="width:100%">
                 <thead class="table-light">
                     <tr>
                         <th class="ps-3" style="width:50px">No</th>
@@ -67,7 +74,7 @@
                     <?php if (!empty($users)): ?>
                         <?php foreach ($users as $i => $u): ?>
                             <tr>
-                                <td class="ps-3 text-muted"><?= ($page - 1) * $perPage + $i + 1 ?></td>
+                                <td class="ps-3 text-muted"><?= $i + 1 ?></td>
                                 <td>
                                     <div class="fw-medium"><?= esc($u['nama']) ?></div>
                                     <?php if (!empty($u['telepon'])): ?>
@@ -124,45 +131,24 @@
             </table>
         </div>
     </div>
-
-    <!-- Pagination -->
-    <?php if ($total > $perPage): ?>
-        <div class="card-footer bg-white border-top d-flex align-items-center justify-content-between py-2 px-3">
-            <small class="text-muted">
-                Menampilkan <?= ($page - 1) * $perPage + 1 ?>–<?= min($page * $perPage, $total) ?> dari <?= $total ?> user
-            </small>
-            <nav>
-                <ul class="pagination pagination-sm mb-0">
-                    <?php $totalPages = (int) ceil($total / $perPage); ?>
-                    <?php for ($p = 1; $p <= $totalPages; $p++): ?>
-                        <li class="page-item <?= $p === $page ? 'active' : '' ?>">
-                            <a class="page-link"
-                               href="<?= base_url('admin/master/user') ?>?page=<?= $p ?>&search=<?= urlencode($search) ?>&role=<?= urlencode($role) ?>">
-                                <?= $p ?>
-                            </a>
-                        </li>
-                    <?php endfor; ?>
-                </ul>
-            </nav>
-        </div>
-    <?php endif; ?>
 </div>
 
+<?= $this->endSection() ?>
+
+<?= $this->section('scripts') ?>
 <script>
-$(document).ready(function () {
-    $('#tabelUser').DataTable({
-        paging: false,
-        searching: false,
-        info: false,
-        ordering: true,
-        language: {
-            url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/id.json',
-        },
-        columnDefs: [
-            { orderable: false, targets: [0, 5] }
-        ]
-    });
+$('#tabelUser').DataTable({
+    language: {
+        url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/id.json',
+    },
+    pageLength: 25,
+    ordering: true,
+    order: [],
+    dom: '<"px-3 pt-3 d-flex justify-content-between align-items-center flex-wrap gap-2"lf>rt<"px-3 pb-3 d-flex justify-content-between align-items-center flex-wrap gap-2 mt-2"ip>',
+    columnDefs: [
+        { orderable: false, targets: [0, 5] },
+        { searchable: false, targets: [0, 5] },
+    ]
 });
 </script>
-
 <?= $this->endSection() ?>

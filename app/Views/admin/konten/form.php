@@ -207,7 +207,6 @@ document.querySelector('form').addEventListener('submit', function () {
 $(document).ready(function () {
     $('.summernote-editor').summernote({
         height: 350,
-        lang: 'id-ID',
         toolbar: [
             ['style',  ['style']],
             ['font',   ['bold', 'italic', 'underline', 'strikethrough', 'clear']],

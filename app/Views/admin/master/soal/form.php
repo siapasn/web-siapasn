@@ -38,35 +38,59 @@
 
             <div class="row g-3">
 
-                <!-- Kategori (hanya parent) -->
+                <!-- Kategori — Select2, semua kategori -->
                 <div class="col-12 col-md-6">
                     <label for="kategori_id" class="form-label">Kategori <span class="text-danger">*</span></label>
-                    <select id="kategori_id" name="kategori_id" class="form-select" required>
+                    <select id="kategori_id" name="kategori_id" class="form-select" style="width:100%" required>
                         <option value="">— Pilih Kategori —</option>
                         <?php
-                        // $kategoris hanya berisi parent (parent_id IS NULL)
                         $selectedKategori = old('kategori_id', $soal['kategori_id'] ?? '');
                         foreach ($kategoris as $k):
+                            $label = esc($k['nama']);
+                            if (! empty($k['parent_nama'])) {
+                                $label = esc($k['parent_nama']) . ' › ' . $label;
+                            }
                         ?>
                             <option value="<?= $k['id'] ?>"
+                                data-tipe="<?= esc($k['tipe_soal'] ?? '') ?>"
                                 <?= (string) $selectedKategori === (string) $k['id'] ? 'selected' : '' ?>>
-                                <?= esc($k['nama']) ?>
+                                <?= $label ?>
                             </option>
                         <?php endforeach; ?>
                     </select>
+                    <div id="tipe_soal_badge" class="mt-1"></div>
                 </div>
 
-                <!-- Sub Kategori (load AJAX berdasarkan kategori yang dipilih) -->
+                <!-- Tambahkan ke Tryout (opsional) — Select2 searchable -->
                 <div class="col-12 col-md-6">
-                    <label for="sub_kategori_id" class="form-label">
-                        Sub Kategori
-                        <span id="sub_kategori_required_badge" class="text-danger d-none">*</span>
-                        <span id="sub_kategori_optional_badge" class="text-muted small">(opsional — muncul jika kategori punya sub)</span>
+                    <label for="tryout_id" class="form-label">
+                        Tambahkan ke Tryout
+                        <span class="text-muted small">(opsional)</span>
                     </label>
-                    <select id="sub_kategori_id" name="sub_kategori_id" class="form-select" disabled>
-                        <option value="">— Pilih Kategori dulu —</option>
+                    <select id="tryout_id" name="tryout_id" class="form-select" style="width:100%">
+                        <option value="">— Tidak ditambahkan ke tryout —</option>
+                        <?php
+                        $selectedTryout = old('tryout_id', '');
+                        if ($isEdit && ! empty($mappedTryoutIds ?? [])) {
+                            $selectedTryout = (string) ($mappedTryoutIds[0] ?? '');
+                        }
+                        foreach ($tryouts ?? [] as $t):
+                        ?>
+                            <option value="<?= $t['id'] ?>"
+                                <?= (string) $selectedTryout === (string) $t['id'] ? 'selected' : '' ?>>
+                                <?= esc($t['nama']) ?>
+                            </option>
+                        <?php endforeach; ?>
                     </select>
-                    <div id="sub_kategori_info" class="form-text text-muted"></div>
+                    <div class="form-text">
+                        <?php if ($isEdit && ! empty($mappedTryoutIds ?? [])): ?>
+                            <i class="bi bi-info-circle me-1 text-info"></i>
+                            Soal ini sudah terdapat di <strong><?= count($mappedTryoutIds) ?></strong> tryout.
+                            Pilih tryout lain untuk menambahkan ke tryout baru.
+                        <?php else: ?>
+                            Jika dipilih, soal akan otomatis ditambahkan ke tryout tanpa perlu mapping manual.
+                        <?php endif; ?>
+                    </div>
                 </div>
 
                 <!-- Pertanyaan -->
@@ -74,7 +98,6 @@
                     <label for="pertanyaan" class="form-label">Pertanyaan <span class="text-danger">*</span></label>
                     <textarea id="pertanyaan" name="pertanyaan" class="summernote-editor"
                               placeholder="Tulis pertanyaan di sini..."><?= old('pertanyaan', $soal['pertanyaan'] ?? '') ?></textarea>
-                    <!-- Hidden field untuk validasi required -->
                     <input type="hidden" id="pertanyaan_check" value="">
                 </div>
 
@@ -113,7 +136,7 @@
                               placeholder="Pilihan E (opsional)"><?= esc(old('pilihan_e', $soal['pilihan_e'] ?? '')) ?></textarea>
                 </div>
 
-                <!-- Kunci Jawaban (hanya untuk POINT: TWK, TIU) -->
+                <!-- Kunci Jawaban (untuk tipe POINT) -->
                 <div class="col-12 col-md-6" id="section_kunci_jawaban" style="display:none">
                     <label class="form-label">Kunci Jawaban <span class="text-danger">*</span></label>
                     <div class="d-flex gap-3 flex-wrap mt-1">
@@ -135,7 +158,7 @@
                     <div class="form-text text-muted">Pilih satu jawaban yang benar.</div>
                 </div>
 
-                <!-- Nilai A-E (hanya untuk SCORE: TKP) -->
+                <!-- Nilai A-E (untuk tipe SCORE) -->
                 <div class="col-12" id="section_nilai_score" style="display:none">
                     <label class="form-label fw-semibold">
                         Nilai Per Pilihan <span class="text-danger">*</span>
@@ -195,161 +218,75 @@
     </div>
 </div>
 
+<?= $this->endSection() ?>
+
+<?= $this->section('scripts') ?>
 <script>
 (function () {
-    const kategoriSelect    = document.getElementById('kategori_id');
-    const subKategoriSelect = document.getElementById('sub_kategori_id');
-    const subKategoriInfo   = document.getElementById('sub_kategori_info');
-    const baseAjaxUrl       = '<?= rtrim(base_url('admin/master/soal/sub-kategori'), '/') ?>';
-    const preselectedSub    = '<?= old('sub_kategori_id', $soal['sub_kategori_id'] ?? '') ?>';
-
-    function loadSubKategori(kategoriId, selectedId) {
-        if (! kategoriId) {
-            subKategoriSelect.innerHTML = '<option value="">— Pilih Kategori dulu —</option>';
-            subKategoriSelect.disabled  = true;
-            subKategoriSelect.required  = false;
-            if (subKategoriInfo) subKategoriInfo.textContent = '';
-            // Reset label
-            document.getElementById('sub_kategori_required_badge').classList.add('d-none');
-            document.getElementById('sub_kategori_optional_badge').classList.remove('d-none');
-            return;
-        }
-
-        subKategoriSelect.innerHTML = '<option value="">— Memuat... —</option>';
-        subKategoriSelect.disabled  = true;
-        subKategoriSelect.required  = false;
-        if (subKategoriInfo) {
-            subKategoriInfo.textContent = 'Memuat sub kategori...';
-            subKategoriInfo.className   = 'form-text text-muted';
-        }
-
-        const url = baseAjaxUrl + '/' + kategoriId;
-
-        fetch(url, {
-            method: 'GET',
-            credentials: 'same-origin',
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'Accept': 'application/json'
-            }
-        })
-        .then(function(r) {
-            if (r.redirected || r.url.includes('/login')) {
-                window.location.href = '<?= base_url('login') ?>';
-                return null;
-            }
-            if (! r.ok) throw new Error('HTTP ' + r.status);
-            return r.json();
-        })
-        .then(function(data) {
-            if (! data) return;
-            if (data.status && data.data && data.data.length > 0) {
-                subKategoriSelect.innerHTML = '<option value="">— Pilih Sub Kategori —</option>';
-                var autoSelectedTipe = '';
-                data.data.forEach(function(sub) {
-                    const opt = document.createElement('option');
-                    opt.value            = sub.id;
-                    opt.textContent      = sub.nama;
-                    opt.dataset.tipeSoal = sub.tipe_soal || '';
-                    if (String(sub.id) === String(selectedId)) {
-                        opt.selected     = true;
-                        autoSelectedTipe = sub.tipe_soal || '';
-                    }
-                    subKategoriSelect.appendChild(opt);
-                });
-                subKategoriSelect.disabled = false;
-                subKategoriSelect.required = true;
-                document.getElementById('sub_kategori_required_badge').classList.remove('d-none');
-                document.getElementById('sub_kategori_optional_badge').classList.add('d-none');
-                if (subKategoriInfo) {
-                    subKategoriInfo.textContent = data.data.length + ' sub kategori tersedia. Wajib dipilih.';
-                    subKategoriInfo.className   = 'form-text text-warning fw-semibold';
-                }
-                // Update tipe soal berdasarkan sub-kategori yang ter-select
-                updateTipeSoal(autoSelectedTipe);
-            } else {
-                subKategoriSelect.innerHTML = '<option value="">— Tidak ada sub kategori —</option>';
-                subKategoriSelect.disabled  = true;
-                subKategoriSelect.required  = false;
-                document.getElementById('sub_kategori_required_badge').classList.add('d-none');
-                document.getElementById('sub_kategori_optional_badge').classList.remove('d-none');
-                if (subKategoriInfo) {
-                    subKategoriInfo.textContent = 'Kategori ini tidak memiliki sub kategori.';
-                    subKategoriInfo.className   = 'form-text text-muted';
-                }
-                updateTipeSoal('');
-            }
-        })
-        .catch(function(err) {
-            console.error('Sub kategori load error:', err);
-            subKategoriSelect.innerHTML = '<option value="">— Gagal memuat —</option>';
-            subKategoriSelect.disabled  = false;
-            subKategoriSelect.required  = false;
-            if (subKategoriInfo) {
-                subKategoriInfo.textContent = 'Gagal memuat. Error: ' + err.message;
-                subKategoriInfo.className   = 'form-text text-danger';
-            }
-        });
-    }
-
-    // Event: saat kategori berubah
-    kategoriSelect.addEventListener('change', function () {
-        loadSubKategori(this.value, '');
+    // ── Select2: Kategori ─────────────────────────────────────────────────────
+    $('#kategori_id').select2({
+        theme: 'bootstrap-5',
+        placeholder: '— Pilih Kategori —',
+        allowClear: true,
+        width: '100%',
     });
 
-    // Event: saat sub-kategori berubah → update tipe soal
-    subKategoriSelect.addEventListener('change', function () {
-        const selectedOpt = this.options[this.selectedIndex];
-        const tipe = selectedOpt ? (selectedOpt.dataset.tipeSoal || '') : '';
-        updateTipeSoal(tipe);
+    // ── Select2: Tryout ───────────────────────────────────────────────────────
+    $('#tryout_id').select2({
+        theme: 'bootstrap-5',
+        placeholder: '— Tidak ditambahkan ke tryout —',
+        allowClear: true,
+        width: '100%',
     });
 
-    // Toggle tampilan SCORE vs POINT
+    // ── Toggle tampilan SCORE vs POINT ────────────────────────────────────────
     function updateTipeSoal(tipe) {
         const sectionKunci   = document.getElementById('section_kunci_jawaban');
         const sectionNilai   = document.getElementById('section_nilai_score');
         const tipeSoalHidden = document.getElementById('tipe_soal_hidden');
+        const badge          = document.getElementById('tipe_soal_badge');
 
-        // Jika tipe tidak diberikan, ambil dari option yang terpilih
-        if (tipe === undefined || tipe === null) {
-            const selectedOpt = subKategoriSelect.options[subKategoriSelect.selectedIndex];
-            tipe = selectedOpt ? (selectedOpt.dataset.tipeSoal || '') : '';
-        }
-
-        if (tipeSoalHidden) tipeSoalHidden.value = tipe;
+        if (tipeSoalHidden) tipeSoalHidden.value = tipe || '';
 
         if (tipe === 'SCORE') {
-            // SCORE (TKP): tampilkan nilai A-E, sembunyikan kunci jawaban
+            // SCORE: tampilkan Kunci Jawaban, sembunyikan Nilai Per Pilihan
+            if (sectionKunci) sectionKunci.style.display = '';
+            if (sectionNilai) sectionNilai.style.display = 'none';
+            if (badge) badge.innerHTML = '<span class="badge bg-info text-dark"><i class="bi bi-check-circle me-1"></i>Tipe: SCORE — pilihan ganda kunci jawaban</span>';
+        } else if (tipe === 'POINT') {
+            // POINT: tampilkan Nilai Per Pilihan, sembunyikan Kunci Jawaban
             if (sectionKunci) sectionKunci.style.display = 'none';
             if (sectionNilai) sectionNilai.style.display = '';
             document.querySelectorAll('input[name="kunci_jawaban"]').forEach(function(r) { r.required = false; });
-        } else if (tipe === 'POINT') {
-            // POINT (TWK, TIU): tampilkan kunci jawaban, sembunyikan nilai A-E
-            if (sectionKunci) sectionKunci.style.display = '';
-            if (sectionNilai) sectionNilai.style.display = 'none';
+            if (badge) badge.innerHTML = '<span class="badge bg-warning text-dark"><i class="bi bi-star-fill me-1"></i>Tipe: POINT — nilai per pilihan (1–5)</span>';
         } else {
-            // Belum ada sub kategori dipilih: sembunyikan keduanya
             if (sectionKunci) sectionKunci.style.display = 'none';
             if (sectionNilai) sectionNilai.style.display = 'none';
+            if (badge) badge.innerHTML = '';
         }
     }
 
-    // On page load: jika kategori sudah dipilih (mode edit atau old input)
-    if (kategoriSelect.value) {
-        loadSubKategori(kategoriSelect.value, preselectedSub);
-    } else {
-        // Tidak ada kategori dipilih → pastikan tampilan default (kunci jawaban)
-        updateTipeSoal('');
-    }
+    // ── Event: saat kategori berubah → baca tipe_soal dari data-tipe ─────────
+    $('#kategori_id').on('change', function () {
+        const selectedOption = this.options[this.selectedIndex];
+        const tipe = selectedOption ? (selectedOption.dataset.tipe || '') : '';
+        updateTipeSoal(tipe);
+    });
 
-    // Fallback: jika tipe_soal_hidden sudah terisi dari server (mode edit),
-    // terapkan segera sebelum AJAX selesai (mencegah flash kunci jawaban)
+    // ── On page load: terapkan tipe dari server (mode edit / old input) ───────
     const initialTipe = document.getElementById('tipe_soal_hidden').value;
     if (initialTipe) {
         updateTipeSoal(initialTipe);
+    } else {
+        // Baca dari option yang terpilih saat ini
+        const sel = document.getElementById('kategori_id');
+        if (sel && sel.value) {
+            const opt = sel.options[sel.selectedIndex];
+            updateTipeSoal(opt ? (opt.dataset.tipe || '') : '');
+        }
     }
 
-    // Validasi nilai tidak boleh sama
+    // ── Validasi nilai tidak boleh sama ───────────────────────────────────────
     document.querySelectorAll('.nilai-select').forEach(function(sel) {
         sel.addEventListener('change', function () {
             const values = Array.from(document.querySelectorAll('.nilai-select'))
@@ -364,17 +301,9 @@
             }
         });
     });
-}());
 
-// Inisialisasi Summernote — tunggu sampai semua script di-load
-window.addEventListener('load', function () {
-    if (typeof $ === 'undefined' || typeof $.fn.summernote === 'undefined') {
-        console.error('jQuery atau Summernote belum tersedia');
-        return;
-    }
-
+    // ── Summernote ────────────────────────────────────────────────────────────
     var snConfig = {
-        lang: 'id-ID',
         tabsize: 2,
         height: 200,
         toolbar: [
@@ -389,19 +318,16 @@ window.addEventListener('load', function () {
         ]
     };
 
-    // Field Pertanyaan
     $('#pertanyaan').summernote($.extend({}, snConfig, {
         placeholder: 'Tulis pertanyaan di sini...',
         height: 220
     }));
 
-    // Field Pembahasan
     $('#pembahasan').summernote($.extend({}, snConfig, {
         placeholder: 'Tulis pembahasan jawaban di sini...',
         height: 180
     }));
 
-    // Validasi sebelum submit
     $('form').on('submit', function (e) {
         if ($('#pertanyaan').summernote('isEmpty')) {
             e.preventDefault();
@@ -410,7 +336,6 @@ window.addEventListener('load', function () {
             return false;
         }
     });
-});
+}());
 </script>
-
 <?= $this->endSection() ?>

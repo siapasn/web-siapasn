@@ -41,10 +41,18 @@
 </div>
 
 <!-- Tabel Statistik Tryout -->
+<?php if (!empty($statistik)): ?>
 <div class="card border-0 shadow-sm">
+    <style>
+        #tabelTryout_wrapper .dataTables_length label,
+        #tabelTryout_wrapper .dataTables_filter label { margin-bottom:0; font-size:.875rem; }
+        #tabelTryout_wrapper .dataTables_filter input { margin-left:.4rem; border-radius:.375rem; border:1px solid #dee2e6; padding:.25rem .5rem; font-size:.875rem; }
+        #tabelTryout_wrapper .dataTables_info, #tabelTryout_wrapper .dataTables_paginate { font-size:.875rem; }
+        #tabelTryout_wrapper .paginate_button { border-radius:.375rem !important; }
+    </style>
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table id="tabelTryout" class="table table-hover align-middle mb-0">
+            <table id="tabelTryout" class="table table-hover align-middle mb-0" style="width:100%">
                 <thead class="table-light">
                     <tr>
                         <th class="ps-3" style="width:50px">No</th>
@@ -56,47 +64,52 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <?php if (! empty($statistik)): ?>
-                        <?php foreach ($statistik as $i => $s): ?>
-                            <tr>
-                                <td class="ps-3 text-muted"><?= $i + 1 ?></td>
-                                <td class="fw-medium"><?= esc($s['tryout_nama']) ?></td>
-                                <td class="text-center">
-                                    <span class="badge bg-primary rounded-pill">
-                                        <?= (int) $s['total_sesi'] ?>
-                                    </span>
-                                </td>
-                                <td class="text-end">
-                                    <?= number_format((float) $s['rata_rata_skor'], 2, ',', '.') ?>
-                                </td>
-                                <td class="text-end text-success fw-medium">
-                                    <?= number_format((float) $s['skor_tertinggi'], 2, ',', '.') ?>
-                                </td>
-                                <td class="text-end text-danger fw-medium pe-3">
-                                    <?= number_format((float) $s['skor_terendah'], 2, ',', '.') ?>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    <?php else: ?>
+                    <?php foreach ($statistik as $i => $s): ?>
                         <tr>
-                            <td colspan="6" class="text-center text-muted py-4">
-                                <i class="bi bi-inbox fs-4 d-block mb-1"></i>
-                                Belum ada data statistik tryout
+                            <td class="ps-3 text-muted"><?= $i + 1 ?></td>
+                            <td class="fw-medium"><?= esc($s['tryout_nama']) ?></td>
+                            <td class="text-center">
+                                <span class="badge bg-primary rounded-pill">
+                                    <?= (int) $s['total_sesi'] ?>
+                                </span>
+                            </td>
+                            <td class="text-end">
+                                <?= number_format((float) $s['rata_rata_skor'], 2, ',', '.') ?>
+                            </td>
+                            <td class="text-end text-success fw-medium">
+                                <?= number_format((float) $s['skor_tertinggi'], 2, ',', '.') ?>
+                            </td>
+                            <td class="text-end text-danger fw-medium pe-3">
+                                <?= number_format((float) $s['skor_terendah'], 2, ',', '.') ?>
                             </td>
                         </tr>
-                    <?php endif; ?>
+                    <?php endforeach; ?>
                 </tbody>
             </table>
         </div>
     </div>
 </div>
+<?php else: ?>
+<div class="card border-0 shadow-sm">
+    <div class="card-body text-center py-5">
+        <i class="bi bi-bar-chart text-muted" style="font-size:2.5rem"></i>
+        <div class="mt-3 fw-semibold text-muted">Belum ada data statistik tryout</div>
+        <div class="text-muted small mt-1">Belum ada tryout yang diselesaikan</div>
+    </div>
+</div>
+<?php endif; ?>
 
+<?= $this->endSection() ?>
+
+<?= $this->section('scripts') ?>
+<?php if (!empty($statistik)): ?>
 <script>
 $(document).ready(function () {
     $('#tabelTryout').DataTable({
         language: {
             url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/id.json',
         },
+        dom: '<"px-3 pt-3 d-flex justify-content-between align-items-center flex-wrap gap-2"lf>rt<"px-3 pb-3 d-flex justify-content-between align-items-center flex-wrap gap-2 mt-2"ip>',
         pageLength: 25,
         ordering: true,
         columnDefs: [
@@ -105,5 +118,5 @@ $(document).ready(function () {
     });
 });
 </script>
-
+<?php endif; ?>
 <?= $this->endSection() ?>

@@ -38,18 +38,22 @@
 
             <div class="row g-3">
 
-                <!-- Kategori (parent) -->
+                <!-- Kategori -->
                 <div class="col-12 col-md-6">
                     <label for="kategori_id" class="form-label">Kategori <span class="text-danger">*</span></label>
-                    <select id="kategori_id" name="kategori_id" class="form-select" required>
+                    <select id="kategori_id" name="kategori_id" class="form-select" style="width:100%" required>
                         <option value="">— Pilih Kategori —</option>
                         <?php
                         $selectedKategori = old('kategori_id', $passingGrade['kategori_id'] ?? '');
                         foreach ($kategoris as $k):
+                            $label = esc($k['nama']);
+                            if (! empty($k['parent_nama'])) {
+                                $label = esc($k['parent_nama']) . ' › ' . $label;
+                            }
                         ?>
                             <option value="<?= $k['id'] ?>"
                                 <?= (string) $selectedKategori === (string) $k['id'] ? 'selected' : '' ?>>
-                                <?= esc($k['nama']) ?>
+                                <?= $label ?>
                             </option>
                         <?php endforeach; ?>
                     </select>
@@ -81,12 +85,12 @@
 
                 <!-- Nilai Minimum -->
                 <div class="col-12 col-md-6">
-                    <label for="nilai_minimum" class="form-label">Nilai Minimum <span class="text-danger">*</span></label>
+                    <label for="nilai_minimum" class="form-label">Nilai Minimum <span class="text-muted small">(opsional)</span></label>
                     <input type="number" id="nilai_minimum" name="nilai_minimum" class="form-control"
                            min="0" max="100" step="0.01"
                            value="<?= esc(old('nilai_minimum', $passingGrade['nilai_minimum'] ?? '')) ?>"
-                           placeholder="Contoh: 65.00" required>
-                    <div class="form-text">Nilai antara 0 sampai 100.</div>
+                           placeholder="Contoh: 65.00">
+                    <div class="form-text">Nilai antara 0 sampai 100. Kosongkan jika belum ditentukan.</div>
                 </div>
 
             </div><!-- /.row -->
@@ -153,6 +157,9 @@
     </div>
 </div>
 
+<?= $this->endSection() ?>
+
+<?= $this->section('scripts') ?>
 <script>
 (function () {
     const kategoriSelect    = document.getElementById('kategori_id');
@@ -164,8 +171,16 @@
     const isEdit            = <?= ! empty($passingGrade) ? 'true' : 'false' ?>;
     const excludeId         = '<?= $passingGrade['id'] ?? '' ?>';
 
+    // ── Inisialisasi Select2 untuk field Kategori ─────────────────────────────
+    $('#kategori_id').select2({
+        theme: 'bootstrap-5',
+        placeholder: '— Pilih Kategori —',
+        allowClear: true,
+        width: '100%',
+    });
+
     // ── AJAX load sub-kategori ────────────────────────────────────────────────
-    kategoriSelect.addEventListener('change', function () {
+    $('#kategori_id').on('change', function () {
         const kategoriId = this.value;
 
         subKategoriSelect.innerHTML = '<option value="">— Semua Sub Kategori —</option>';
@@ -204,8 +219,8 @@
     });
 
     // Trigger saat page load jika kategori sudah dipilih (mode edit / old input)
-    if (kategoriSelect.value) {
-        kategoriSelect.dispatchEvent(new Event('change'));
+    if ($('#kategori_id').val()) {
+        $('#kategori_id').trigger('change');
     }
 
     // ── Intercept form submit — cek duplikat dulu (hanya mode tambah) ─────────
@@ -219,7 +234,7 @@
 
             e.preventDefault();
 
-            const kategoriId    = kategoriSelect.value;
+            const kategoriId    = $('#kategori_id').val();
             const subKategoriId = subKategoriSelect.value;
             const nilaiMinimum  = document.getElementById('nilai_minimum').value;
 
@@ -246,8 +261,8 @@
                     // Isi detail modal
                     document.getElementById('konfirm_kategori').textContent  = data.nama_kategori;
                     document.getElementById('konfirm_sub').textContent       = data.nama_sub;
-                    document.getElementById('konfirm_nilai').textContent     = parseFloat(data.nilai_minimum).toFixed(2);
-                    document.getElementById('konfirm_nilai_baru').textContent = parseFloat(nilaiMinimum).toFixed(2);
+                    document.getElementById('konfirm_nilai').textContent     = data.nilai_minimum !== null ? parseFloat(data.nilai_minimum).toFixed(2) : '—';
+                    document.getElementById('konfirm_nilai_baru').textContent = nilaiMinimum !== '' ? parseFloat(nilaiMinimum).toFixed(2) : '—';
 
                     // Tampilkan modal
                     const modal = new bootstrap.Modal(document.getElementById('modalKonfirmasiDuplikat'));
@@ -277,5 +292,4 @@
     });
 }());
 </script>
-
 <?= $this->endSection() ?>

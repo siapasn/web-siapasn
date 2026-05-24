@@ -36,7 +36,11 @@ class MappingTryoutController extends BaseController
      */
     public function index(int $produkId = 0)
     {
-        $produks = $this->produkModel->findAll();
+        $db      = \Config\Database::connect();
+        $produks = $db->table('produk')
+            ->select('id, nama')
+            ->orderBy('nama', 'ASC')
+            ->get()->getResultArray();
 
         $mappedTryouts    = [];
         $availableTryouts = [];
@@ -51,19 +55,19 @@ class MappingTryoutController extends BaseController
                     ->with('error', 'Produk tidak ditemukan.');
             }
 
-            $mappedTryouts = $this->mappingModel->getByProduk($produkId);
-            $totalTryout   = $this->mappingModel->getTotalByProduk($produkId);
-
-            // Ambil tryout yang belum di-mapping ke produk ini
+            $mappedTryouts   = $this->mappingModel->getByProduk($produkId);
+            $totalTryout     = $this->mappingModel->getTotalByProduk($produkId);
             $mappedTryoutIds = array_column($mappedTryouts, 'tryout_id');
 
-            $db      = \Config\Database::connect();
-            $builder = $db->table('tryout')
-                ->select('id, nama, durasi, jumlah_soal')
-                ->orderBy('id', 'ASC');
+            // Hitung jumlah soal dari mapping_soal (bukan kolom jumlah_soal)
+            $builder = $db->table('tryout t')
+                ->select('t.id, t.nama, t.durasi, COUNT(ms.soal_id) AS jumlah_soal')
+                ->join('mapping_soal ms', 'ms.tryout_id = t.id', 'left')
+                ->groupBy('t.id')
+                ->orderBy('t.nama', 'ASC');
 
             if (! empty($mappedTryoutIds)) {
-                $builder->whereNotIn('id', $mappedTryoutIds);
+                $builder->whereNotIn('t.id', $mappedTryoutIds);
             }
 
             $availableTryouts = $builder->get()->getResultArray();

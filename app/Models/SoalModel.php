@@ -15,7 +15,6 @@ class SoalModel extends Model
 
     protected $allowedFields = [
         'kategori_id',
-        'sub_kategori_id',
         'pertanyaan',
         'pilihan_a',
         'pilihan_b',

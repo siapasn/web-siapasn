@@ -45,7 +45,8 @@ class MappingSoalController extends BaseController
         $availableSoals = [];
         $selectedTryout = null;
         $totalSoal      = 0;
-        $kategoris      = $this->kategoriModel->getParents();
+        $kategoris      = $this->kategoriModel->getAll();
+        $kategoriFilter = '';
 
         if ($tryoutId > 0) {
             $selectedTryout = $this->tryoutModel->find($tryoutId);
@@ -55,18 +56,15 @@ class MappingSoalController extends BaseController
                     ->with('error', 'Tryout tidak ditemukan.');
             }
 
-            $mappedSoals = $this->mappingModel->getByTryout($tryoutId);
-            $totalSoal   = $this->mappingModel->getTotalByTryout($tryoutId);
-
-            $mappedSoalIds  = array_column($mappedSoals, 'soal_id');
-            $kategoriFilter    = $this->request->getGet('kategori_id') ?? '';
-            $subKategoriFilter = $this->request->getGet('sub_kategori_id') ?? '';
+            $mappedSoals   = $this->mappingModel->getByTryout($tryoutId);
+            $totalSoal     = $this->mappingModel->getTotalByTryout($tryoutId);
+            $mappedSoalIds = array_column($mappedSoals, 'soal_id');
+            $kategoriFilter = $this->request->getGet('kategori_id') ?? '';
 
             $db      = \Config\Database::connect();
             $builder = $db->table('soal s')
-                ->select('s.id, s.pertanyaan, s.kategori_id, s.sub_kategori_id, k.nama AS nama_kategori, sk.nama AS nama_sub_kategori')
+                ->select('s.id, s.pertanyaan, s.kategori_id, k.nama AS nama_kategori')
                 ->join('kategori k', 'k.id = s.kategori_id', 'left')
-                ->join('kategori sk', 'sk.id = s.sub_kategori_id', 'left')
                 ->orderBy('s.id', 'ASC');
 
             if (! empty($mappedSoalIds)) {
@@ -77,34 +75,19 @@ class MappingSoalController extends BaseController
                 $builder->where('s.kategori_id', (int) $kategoriFilter);
             }
 
-            if ($subKategoriFilter !== '') {
-                $builder->where('s.sub_kategori_id', (int) $subKategoriFilter);
-            }
-
             $availableSoals = $builder->get()->getResultArray();
-
-            // Sub-kategori untuk dropdown (jika kategori sudah dipilih)
-            $subKategoris = $kategoriFilter !== ''
-                ? $this->kategoriModel->getChildren((int) $kategoriFilter)
-                : [];
-        } else {
-            $subKategoris      = [];
-            $kategoriFilter    = '';
-            $subKategoriFilter = '';
         }
 
         return view('admin/mapping/soal/index', [
-            'tryouts'           => $tryouts,
-            'selectedTryout'    => $selectedTryout,
-            'tryoutId'          => $tryoutId,
-            'mappedSoals'       => $mappedSoals,
-            'availableSoals'    => $availableSoals,
-            'totalSoal'         => $totalSoal,
-            'kategoris'         => $kategoris,
-            'subKategoris'      => $subKategoris,
-            'kategoriFilter'    => $kategoriFilter,
-            'subKategoriFilter' => $subKategoriFilter,
-            'menus'             => $this->getMenus(),
+            'tryouts'        => $tryouts,
+            'selectedTryout' => $selectedTryout,
+            'tryoutId'       => $tryoutId,
+            'mappedSoals'    => $mappedSoals,
+            'availableSoals' => $availableSoals,
+            'totalSoal'      => $totalSoal,
+            'kategoris'      => $kategoris,
+            'kategoriFilter' => $kategoriFilter,
+            'menus'          => $this->getMenus(),
         ]);
     }
 

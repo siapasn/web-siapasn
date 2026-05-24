@@ -40,19 +40,28 @@ class TryoutScoringService
 
         $db = \Config\Database::connect();
 
-        // Ambil semua jawaban beserta data soal dan kategori
-        $jawaban = $db->table('jawaban_user ju')
-            ->select('ju.soal_id, ju.jawaban,
-                      s.kunci_jawaban,
-                      s.nilai_a, s.nilai_b, s.nilai_c, s.nilai_d, s.nilai_e,
-                      s.kategori_id, s.sub_kategori_id,
-                      k.nama  AS kategori_nama,  k.tipe_soal AS kategori_tipe,
-                      sk.nama AS sub_kategori_nama, sk.tipe_soal AS sub_tipe_soal')
-            ->join('soal s',     's.id  = ju.soal_id')
-            ->join('kategori k', 'k.id  = s.kategori_id',  'left')
-            ->join('kategori sk','sk.id = s.sub_kategori_id','left')
-            ->where('ju.sesi_tryout_id', $sesiId)
-            ->get()->getResultArray();
+        // Ambil semua jawaban beserta data soal dan kategori.
+        // Gunakan raw query untuk menghindari kolom collision saat JOIN dua kali ke tabel kategori.
+        $sql = "
+            SELECT
+                ju.soal_id,
+                ju.jawaban,
+                s.kunci_jawaban,
+                s.nilai_a, s.nilai_b, s.nilai_c, s.nilai_d, s.nilai_e,
+                s.kategori_id,
+                k.nama        AS kategori_nama,
+                k.tipe_soal   AS kategori_tipe
+            FROM jawaban_user ju
+            INNER JOIN soal s  ON s.id  = ju.soal_id
+            LEFT  JOIN kategori k  ON k.id  = s.kategori_id
+            WHERE ju.sesi_tryout_id = ?
+        ";
+        $jawaban = $db->query($sql, [$sesiId])->getResultArray();
+
+        // Jika tidak ada jawaban sama sekali, lempar exception agar tidak menyimpan hasil 0
+        if (empty($jawaban)) {
+            throw new \RuntimeException("Tidak ada jawaban ditemukan untuk sesi: {$sesiId}");
+        }
 
         $jumlahBenar    = 0;
         $jumlahSalah    = 0;
@@ -60,8 +69,23 @@ class TryoutScoringService
         $detailKategori = [];
 
         foreach ($jawaban as $j) {
-            $tipeSoal = $j['sub_tipe_soal'] ?? $j['kategori_tipe'] ?? 'POINT';
+            $tipeSoal = $j['kategori_tipe'] ?? 'POINT';
             $isKosong = ($j['jawaban'] === null || $j['jawaban'] === '');
+
+            // ── Deteksi apakah soal SCORE benar-benar punya nilai per pilihan ──
+            // Jika tipe SCORE tapi semua nilai_a–e NULL/0, fallback ke mode POINT
+            $adaNilaiScore = false;
+            if ($tipeSoal === 'SCORE') {
+                foreach (['nilai_a','nilai_b','nilai_c','nilai_d','nilai_e'] as $kol) {
+                    if (isset($j[$kol]) && $j[$kol] !== null && (int)$j[$kol] > 0) {
+                        $adaNilaiScore = true;
+                        break;
+                    }
+                }
+                if (! $adaNilaiScore) {
+                    $tipeSoal = 'POINT'; // fallback: tidak ada nilai per pilihan, pakai POINT
+                }
+            }
 
             // ── Hitung nilai per soal ────────────────────────────────────────
             if ($tipeSoal === 'SCORE') {
@@ -93,18 +117,17 @@ class TryoutScoringService
                 $jumlahSalah++;
             }
 
-            // ── Akumulasi per sub kategori ───────────────────────────────────
-            $groupId   = $j['sub_kategori_id'] ?: $j['kategori_id'];
-            $groupNama = $j['sub_kategori_id']
-                ? ($j['sub_kategori_nama'] ?? $j['kategori_nama'])
-                : $j['kategori_nama'];
-            $groupTipe = $j['sub_tipe_soal'] ?? $j['kategori_tipe'] ?? 'POINT';
+            // ── Akumulasi per kategori ───────────────────────────────────────
+            $groupId   = $j['kategori_id'];
+            $groupNama = $j['kategori_nama'];
+            // Gunakan $tipeSoal yang sudah di-resolve (termasuk fallback SCORE→POINT)
+            $groupTipe = $tipeSoal;
 
             if (! isset($detailKategori[$groupId])) {
                 $detailKategori[$groupId] = [
                     'kategori_id'       => $j['kategori_id'],
                     'kategori_nama'     => $j['kategori_nama'],
-                    'sub_kategori_id'   => $j['sub_kategori_id'],
+                    'sub_kategori_id'   => null,
                     'sub_kategori_nama' => $groupNama,
                     'tipe_soal'         => $groupTipe,
                     'benar'             => 0,

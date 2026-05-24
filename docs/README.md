@@ -23,10 +23,21 @@ Dokumentasi teknis untuk project **bimbel-cpns** (SiapASN Simulation Center), pl
 
 ---
 
+## Guides
+
+| Dokumen | Deskripsi |
+|---|---|
+| [datatables-standard-pattern.md](./guides/datatables-standard-pattern.md) | Pola standar DataTables di semua admin views — `section('scripts')`, `dom` dengan padding, CSS scoped, empty state |
+
+---
+
 ## Troubleshooting
 
 | Dokumen | Deskripsi |
 |---|---|
+| [mapping-tryout-produk-tidak-muncul.md](./troubleshooting/mapping-tryout-produk-tidak-muncul.md) | Data produk tidak muncul di mapping tryout — kolom `jumlah_soal` sudah dihapus, harus dihitung dari `mapping_soal` |
+| [csp-datatables-summernote-blocked.md](./troubleshooting/csp-datatables-summernote-blocked.md) | `tooltip is not a function` — CSP tidak whitelist `cdn.datatables.net` + jQuery harus di-load sebelum Bootstrap |
+| [select2-jquery-not-defined-scripts-section.md](./troubleshooting/select2-jquery-not-defined-scripts-section.md) | `$ is not defined` pada Select2/jQuery — script view harus di `section('scripts')`, bukan `section('content')` |
 | [isedit-undefined-page-header-section.md](./troubleshooting/isedit-undefined-page-header-section.md) | `$isEdit` undefined di form admin — deklarasi harus sebelum `section('page_header')` |
 | [csp-midtrans-snap-blocked.md](./troubleshooting/csp-midtrans-snap-blocked.md) | CSP memblokir Midtrans Snap — fix header di BaseController dan .htaccess |
 | [midtrans-status-not-updating-localhost.md](./troubleshooting/midtrans-status-not-updating-localhost.md) | Status transaksi tidak berubah di localhost — pull-based fallback via Midtrans Status API |
@@ -38,6 +49,9 @@ Dokumentasi teknis untuk project **bimbel-cpns** (SiapASN Simulation Center), pl
 
 | Dokumen | Deskripsi |
 |---|---|
+| [soal-import-salin-antar-tryout.md](./features/soal-import-salin-antar-tryout.md) | Import soal format baru (tanpa sub_kategori) + fitur Salin Soal antar tryout |
+| [soal-form-tipe-soal-dari-kategori.md](./features/soal-form-tipe-soal-dari-kategori.md) | Form soal — hapus sub kategori, tipe soal (SCORE/POINT) langsung dari kategori yang dipilih |
+| [select2-kategori-passing-grade-form.md](./features/select2-kategori-passing-grade-form.md) | Select2 search pada form Kategori (parent dropdown) & Passing Grade (kategori dropdown); nilai minimum jadi opsional |
 | [user-profil-update.md](./features/user-profil-update.md) | Halaman profil user — update nama, no HP, dan password dengan validasi server-side + UX indikator kekuatan password |
 | [filter-pencarian-paket-dan-redirect-mulai-tryout.md](./features/filter-pencarian-paket-dan-redirect-mulai-tryout.md) | Filter pencarian real-time nama paket di `/user/produk` & `/user/tryout`; tombol "Mulai Tryout" redirect ke halaman sesi |
 | [passing-grade-per-sub-kategori.md](./features/passing-grade-per-sub-kategori.md) | Passing grade per sub kategori + scoring TKP (SCORE) berdasarkan nilai 1-5 |
@@ -49,6 +63,11 @@ Dokumentasi teknis untuk project **bimbel-cpns** (SiapASN Simulation Center), pl
 
 | Tanggal | Kategori | Deskripsi |
 |---|---|---|
+| 2026-05-21 | Feature | Import soal format baru (tanpa sub_kategori) + fitur Salin Soal antar tryout |
+| 2026-05-21 | Guide | Pola standar DataTables — `section('scripts')`, `dom` padding, CSS scoped, diterapkan ke 14 halaman admin |
+| 2026-05-21 | Feature | Form soal — hapus sub kategori, tipe soal langsung dari kategori yang dipilih |
+| 2026-05-21 | Feature | Select2 search pada form Kategori & Passing Grade; nilai minimum passing grade jadi opsional |
+| 2026-05-21 | Fix | `$ is not defined` — script view dipindah ke `section('scripts')` agar jQuery/Select2 ter-load lebih dulu |
 | 2026-05-16 | Feature | Halaman profil user — update nama, no HP, dan password dengan validasi + indikator kekuatan password |
 | 2026-05-16 | Feature | Filter pencarian real-time nama paket di `/user/produk` & `/user/tryout`; redirect "Mulai Tryout" ke halaman sesi |
 |---|---|---|

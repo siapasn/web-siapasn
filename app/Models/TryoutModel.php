@@ -43,7 +43,7 @@ class TryoutModel extends Model
                 'ms.urutan, ms.soal_id, s.pertanyaan, s.pilihan_a, s.pilihan_b, ' .
                 's.pilihan_c, s.pilihan_d, s.pilihan_e, ' .
                 's.nilai_a, s.nilai_b, s.nilai_c, s.nilai_d, s.nilai_e, ' .
-                's.kunci_jawaban, s.pembahasan, s.kategori_id, s.sub_kategori_id'
+                's.kunci_jawaban, s.pembahasan, s.kategori_id'
             )
             ->join('soal s', 's.id = ms.soal_id')
             ->where('ms.tryout_id', $tryoutId)

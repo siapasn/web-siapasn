@@ -70,6 +70,9 @@ $routes->group('user', ['filter' => 'auth'], function ($routes) {
 
     // Detail sesi tryout (riwayat + chart)
     $routes->get('tryout/(:num)/sesi', 'User\TryoutController::detailSesi/$1');
+
+    // Serve file materi pelajaran — hanya untuk user yang sudah membeli produk terkait
+    $routes->get('materi/(:num)/file', 'User\MateriFileController::serve/$1');
 });
 
 // Webhook Midtrans — publik, tidak memerlukan autentikasi
@@ -102,6 +105,7 @@ $routes->group('admin', ['filter' => ['auth', 'admin_only']], function ($routes)
     $routes->get('master/datafile', 'Admin\Master\DataFileController::index');
     $routes->post('master/datafile/upload', 'Admin\Master\DataFileController::upload');
     $routes->post('master/datafile/(:num)/delete', 'Admin\Master\DataFileController::delete/$1');
+    $routes->get('master/datafile/(:num)/serve', 'Admin\Master\DataFileController::serve/$1');
 
     // Master Soal
     $routes->get('master/soal', 'Admin\Master\SoalController::index');
@@ -110,6 +114,9 @@ $routes->group('admin', ['filter' => ['auth', 'admin_only']], function ($routes)
     $routes->get('master/soal/import', 'Admin\Master\SoalController::import');
     $routes->post('master/soal/import', 'Admin\Master\SoalController::importProcess');
     $routes->get('master/soal/template', 'Admin\Master\SoalTemplateController::download');
+    $routes->get('master/soal/salin', 'Admin\Master\SoalController::salinSoal');
+    $routes->post('master/soal/salin', 'Admin\Master\SoalController::salinSoalProcess');
+    $routes->get('master/soal/tipe-soal/(:num)', 'Admin\Master\SoalController::getTipeSoal/$1');
     $routes->get('master/soal/sub-kategori/(:num)', 'Admin\Master\SoalController::getSubKategori/$1');
     $routes->get('master/soal/(:num)/edit', 'Admin\Master\SoalController::edit/$1');
     $routes->post('master/soal/(:num)/update', 'Admin\Master\SoalController::update/$1');

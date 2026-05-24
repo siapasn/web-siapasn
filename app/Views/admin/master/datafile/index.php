@@ -55,6 +55,13 @@
 
 <!-- Files Table -->
 <div class="card border-0 shadow-sm">
+    <style>
+        #tabelDataFile_wrapper .dataTables_length label,
+        #tabelDataFile_wrapper .dataTables_filter label { margin-bottom:0; font-size:.875rem; }
+        #tabelDataFile_wrapper .dataTables_filter input { margin-left:.4rem; border-radius:.375rem; border:1px solid #dee2e6; padding:.25rem .5rem; font-size:.875rem; }
+        #tabelDataFile_wrapper .dataTables_info, #tabelDataFile_wrapper .dataTables_paginate { font-size:.875rem; }
+        #tabelDataFile_wrapper .paginate_button { border-radius:.375rem !important; }
+    </style>
     <div class="card-body p-0">
         <div class="table-responsive">
             <table id="tabelDataFile" class="table table-hover align-middle mb-0">
@@ -65,7 +72,7 @@
                         <th class="text-center" style="width:100px">Tipe</th>
                         <th class="text-end" style="width:120px">Ukuran</th>
                         <th style="width:160px">Tanggal Upload</th>
-                        <th class="text-center pe-3" style="width:80px">Aksi</th>
+                        <th class="text-center pe-3" style="width:130px">Aksi</th>
                     </tr>
                 </thead>
                 <tbody id="tbodyFiles">
@@ -109,12 +116,30 @@
                                     <?= !empty($f['created_at']) ? date('d M Y, H:i', strtotime($f['created_at'])) : '—' ?>
                                 </td>
                                 <td class="text-center pe-3">
+                                    <?php
+                                    $serveUrl = base_url("admin/master/datafile/{$f['id']}/serve");
+                                    ?>
+                                    <!-- Salin URL -->
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline-success py-0 px-2 btn-salin-url"
+                                            data-url="<?= esc($serveUrl) ?>"
+                                            title="Salin URL untuk Materi Pelajaran">
+                                        <i class="bi bi-clipboard"></i>
+                                    </button>
+                                    <!-- Preview / Buka -->
+                                    <a href="<?= esc($serveUrl) ?>" target="_blank" rel="noopener"
+                                       class="btn btn-sm btn-outline-primary py-0 px-2"
+                                       title="Buka / Preview file">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <!-- Hapus -->
                                     <form method="post"
                                           action="<?= base_url("admin/master/datafile/{$f['id']}/delete") ?>"
                                           class="d-inline"
                                           onsubmit="return confirm('Hapus file ini secara permanen?')">
                                         <?= csrf_field() ?>
-                                        <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2"
+                                                title="Hapus file">
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </form>
@@ -135,6 +160,9 @@
     </div>
 </div>
 
+<?= $this->endSection() ?>
+
+<?= $this->section('scripts') ?>
 <script>
 (function () {
     // DataTables
@@ -143,6 +171,7 @@
             language: {
                 url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/id.json',
             },
+            dom: '<"px-3 pt-3 d-flex justify-content-between align-items-center flex-wrap gap-2"lf>rt<"px-3 pb-3 d-flex justify-content-between align-items-center flex-wrap gap-2 mt-2"ip>',
             pageLength: 25,
             ordering: true,
             columnDefs: [
@@ -203,6 +232,71 @@
         });
     }
 }());
-</script>
 
+    // ── Salin URL ke clipboard ────────────────────────────────────────────────
+    document.querySelectorAll('.btn-salin-url').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            const url  = this.dataset.url;
+            const self = this;
+
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(url).then(function () {
+                    showSalinFeedback(self);
+                });
+            } else {
+                // Fallback untuk non-HTTPS
+                const ta = document.createElement('textarea');
+                ta.value = url;
+                ta.style.position = 'fixed';
+                ta.style.opacity  = '0';
+                document.body.appendChild(ta);
+                ta.focus();
+                ta.select();
+                try { document.execCommand('copy'); } catch (e) {}
+                document.body.removeChild(ta);
+                showSalinFeedback(self);
+            }
+        });
+    });
+
+    function showSalinFeedback(btn) {
+        const original = btn.innerHTML;
+        btn.innerHTML  = '<i class="bi bi-clipboard-check"></i>';
+        btn.classList.replace('btn-outline-success', 'btn-success');
+        btn.title = 'URL tersalin!';
+
+        // Tampilkan toast
+        showToast('URL file tersalin ke clipboard!');
+
+        setTimeout(function () {
+            btn.innerHTML = original;
+            btn.classList.replace('btn-success', 'btn-outline-success');
+            btn.title = 'Salin URL untuk Materi Pelajaran';
+        }, 2000);
+    }
+
+    // Toast notifikasi ringan
+    function showToast(msg) {
+        let toast = document.getElementById('toastSalin');
+        if (! toast) {
+            toast = document.createElement('div');
+            toast.id = 'toastSalin';
+            toast.style.cssText = [
+                'position:fixed', 'bottom:1.5rem', 'end:1.5rem',
+                'right:1.5rem',   'z-index:9999',
+                'background:#198754', 'color:#fff',
+                'padding:.5rem 1rem', 'border-radius:.5rem',
+                'font-size:.875rem', 'box-shadow:0 4px 12px rgba(0,0,0,.15)',
+                'display:none', 'align-items:center', 'gap:.5rem'
+            ].join(';');
+            document.body.appendChild(toast);
+        }
+        toast.innerHTML = '<i class="bi bi-clipboard-check"></i> ' + msg;
+        toast.style.display = 'flex';
+        clearTimeout(toast._timer);
+        toast._timer = setTimeout(function () {
+            toast.style.display = 'none';
+        }, 2500);
+    }
+</script>
 <?= $this->endSection() ?>

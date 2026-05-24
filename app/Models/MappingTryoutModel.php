@@ -25,16 +25,19 @@ class MappingTryoutModel extends Model
     /**
      * Ambil semua tryout yang di-mapping ke produk tertentu,
      * diurutkan berdasarkan urutan, join tryout untuk nama.
+     * Jumlah soal dihitung dari mapping_soal (bukan kolom jumlah_soal).
      */
     public function getByProduk(int $produkId): array
     {
-        return $this->db->table('mapping_tryout mt')
-            ->select('mt.id, mt.produk_id, mt.tryout_id, mt.urutan, mt.created_at, t.nama AS nama_tryout, t.durasi, t.jumlah_soal')
-            ->join('tryout t', 't.id = mt.tryout_id')
-            ->where('mt.produk_id', $produkId)
-            ->orderBy('mt.urutan', 'ASC')
-            ->get()
-            ->getResultArray();
+        return $this->db->query('
+            SELECT mt.id, mt.produk_id, mt.tryout_id, mt.urutan, mt.created_at,
+                   t.nama AS nama_tryout, t.durasi,
+                   (SELECT COUNT(*) FROM mapping_soal WHERE tryout_id = mt.tryout_id) AS jumlah_soal
+            FROM mapping_tryout mt
+            JOIN tryout t ON t.id = mt.tryout_id
+            WHERE mt.produk_id = ?
+            ORDER BY mt.urutan ASC
+        ', [$produkId])->getResultArray();
     }
 
     /**

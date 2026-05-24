@@ -53,17 +53,21 @@ abstract class BaseController extends Controller
                 . " https://gwk.gopayapi.com"
                 . " https://cdn.jsdelivr.net"
                 . " https://code.jquery.com"
+                . " https://cdn.datatables.net"
                 . " https://cdnjs.cloudflare.com",
             "style-src 'self' 'unsafe-inline'"
                 . " https://cdn.jsdelivr.net"
                 . " https://fonts.googleapis.com"
+                . " https://cdn.datatables.net"
                 . " https://cdnjs.cloudflare.com"
                 . " https://snap-assets.al-pc-id-b-cdn.gtflabs.io",
             "font-src 'self' data:"
                 . " https://fonts.gstatic.com"
                 . " https://cdn.jsdelivr.net"
+                . " https://cdn.datatables.net"
                 . " https://cdnjs.cloudflare.com",
             "img-src 'self' data: blob:"
+                . " https://cdn.datatables.net"
                 . " https://*.midtrans.com"
                 . " https://*.gtflabs.io",
             "connect-src 'self'"

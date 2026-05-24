@@ -4,14 +4,17 @@ namespace App\Controllers\Admin\Master;
 
 use App\Controllers\BaseController;
 use App\Models\ProdukModel;
+use App\Models\ProdukMateriModel;
 
 class ProdukController extends BaseController
 {
-    protected ProdukModel $produkModel;
+    protected ProdukModel       $produkModel;
+    protected ProdukMateriModel $materiModel;
 
     public function __construct()
     {
         $this->produkModel = new ProdukModel();
+        $this->materiModel = new ProdukMateriModel();
     }
 
     private function getMenus(): array
@@ -44,6 +47,7 @@ class ProdukController extends BaseController
     {
         return view('admin/master/produk/form', [
             'produk' => null,
+            'materi' => [],
             'action' => base_url('admin/master/produk/store'),
             'menus'  => $this->getMenus(),
         ]);
@@ -71,13 +75,16 @@ class ProdukController extends BaseController
             $file->move(FCPATH . 'uploads/produk', $thumbnailName);
         }
 
-        $this->produkModel->insert([
+        $produkId = $this->produkModel->insert([
             'nama'      => $this->request->getPost('nama'),
             'deskripsi' => $this->request->getPost('deskripsi') ?? null,
             'thumbnail' => $thumbnailName,
             'harga'     => (float) $this->request->getPost('harga'),
             'is_active' => $this->request->getPost('is_active') ? 1 : 0,
         ]);
+
+        // Simpan materi pelajaran
+        $this->simpanMateri((int) $produkId);
 
         return redirect()->to(base_url('admin/master/produk'))->with('success', 'Produk berhasil ditambahkan.');
     }
@@ -95,6 +102,7 @@ class ProdukController extends BaseController
 
         return view('admin/master/produk/form', [
             'produk' => $produk,
+            'materi' => $this->materiModel->getByProduk($id),
             'action' => base_url("admin/master/produk/{$id}/update"),
             'menus'  => $this->getMenus(),
         ]);
@@ -148,6 +156,10 @@ class ProdukController extends BaseController
             'is_active' => $this->request->getPost('is_active') ? 1 : 0,
         ]);
 
+        // Simpan ulang materi pelajaran (replace all)
+        $this->materiModel->deleteByProduk($id);
+        $this->simpanMateri($id);
+
         return redirect()->to(base_url('admin/master/produk'))->with('success', 'Produk berhasil diperbarui.');
     }
 
@@ -171,5 +183,37 @@ class ProdukController extends BaseController
         $this->produkModel->delete($id);
 
         return redirect()->to(base_url('admin/master/produk'))->with('success', 'Produk berhasil dihapus.');
+    }
+
+    /**
+     * Simpan baris materi dari POST data ke tabel produk_materi.
+     * Data dikirim sebagai array: materi[judul][], materi[tipe_file][], materi[url_file][], materi[urutan][]
+     */
+    private function simpanMateri(int $produkId): void
+    {
+        $judulArr    = $this->request->getPost('materi_judul')    ?? [];
+        $tipeArr     = $this->request->getPost('materi_tipe')     ?? [];
+        $urlArr      = $this->request->getPost('materi_url')      ?? [];
+
+        $tipeValid = ['Gambar', 'Video', 'Dokumen'];
+
+        foreach ($judulArr as $i => $judul) {
+            $judul = trim($judul);
+            $url   = trim($urlArr[$i] ?? '');
+            $tipe  = $tipeArr[$i] ?? '';
+
+            // Lewati baris yang tidak lengkap
+            if ($judul === '' || $url === '' || ! in_array($tipe, $tipeValid, true)) {
+                continue;
+            }
+
+            $this->materiModel->insert([
+                'produk_id' => $produkId,
+                'judul'     => $judul,
+                'tipe_file' => $tipe,
+                'url_file'  => $url,
+                'urutan'    => (int) ($i + 1),
+            ]);
+        }
     }
 }

@@ -15,23 +15,21 @@
 
 <?= $this->section('content') ?>
 
-<!-- SortableJS CDN -->
-<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
-
 <!-- Produk Selector -->
 <div class="card border-0 shadow-sm mb-4">
     <div class="card-body py-2">
         <div class="d-flex align-items-center gap-2 flex-wrap">
-            <label for="produk_select" class="form-label mb-0 text-nowrap fw-medium">Pilih Produk:</label>
-            <select id="produk_select" class="form-select form-select-sm" style="max-width:320px"
-                    onchange="window.location.href='<?= base_url('admin/mapping/tryout') ?>/' + this.value">
-                <option value="0">— Pilih Produk —</option>
-                <?php foreach ($produks as $p): ?>
-                    <option value="<?= $p['id'] ?>" <?= $produkId == $p['id'] ? 'selected' : '' ?>>
-                        <?= esc($p['nama']) ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
+            <label class="form-label mb-0 text-nowrap fw-medium">Pilih Produk:</label>
+            <div style="min-width:320px; max-width:480px; flex:1">
+                <select id="produk_select" class="form-select form-select-sm" style="width:100%">
+                    <option value="0">— Pilih Produk —</option>
+                    <?php foreach ($produks as $p): ?>
+                        <option value="<?= $p['id'] ?>" <?= $produkId == $p['id'] ? 'selected' : '' ?>>
+                            <?= esc($p['nama']) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
         </div>
     </div>
 </div>
@@ -169,13 +167,34 @@
     </div>
 </div>
 
+<?= $this->endSection() ?>
+
+<?= $this->section('scripts') ?>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 <script>
 (function () {
-    const produkId   = <?= (int) $produkId ?>;
-    const csrfName   = '<?= csrf_token() ?>';
-    const csrfHash   = '<?= csrf_hash() ?>';
-    const storeUrl   = '<?= base_url('admin/mapping/tryout/store') ?>';
-    const urutanUrl  = '<?= base_url('admin/mapping/tryout/urutan') ?>';
+    const produkId  = <?= (int) $produkId ?>;
+    const csrfName  = '<?= csrf_token() ?>';
+    const csrfHash  = '<?= csrf_hash() ?>';
+    const storeUrl  = '<?= base_url('admin/mapping/tryout/store') ?>';
+    const urutanUrl = '<?= base_url('admin/mapping/tryout/urutan') ?>';
+
+    // ── Select2: Pilih Produk ─────────────────────────────────────────────────
+    $('#produk_select').select2({
+        theme: 'bootstrap-5',
+        placeholder: '— Pilih Produk —',
+        allowClear: true,
+        width: '100%',
+    });
+
+    $('#produk_select').on('change', function () {
+        const val = this.value;
+        if (val && val !== '0') {
+            window.location.href = '<?= base_url('admin/mapping/tryout') ?>/' + val;
+        } else {
+            window.location.href = '<?= base_url('admin/mapping/tryout') ?>';
+        }
+    });
 
     // ── Toast helper ──────────────────────────────────────────────────────────
     function showToast(message, success) {
@@ -257,5 +276,4 @@
     }
 }());
 </script>
-
 <?= $this->endSection() ?>

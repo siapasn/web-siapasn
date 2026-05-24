@@ -58,7 +58,7 @@ class KategoriController extends BaseController
     {
         return view('admin/master/kategori/form', [
             'kategori' => null,
-            'parents'  => $this->kategoriModel->getParents(),
+            'parents'  => $this->kategoriModel->getAll(),
             'action'   => base_url('admin/master/kategori/store'),
             'menus'    => $this->getMenus(),
         ]);
@@ -72,33 +72,20 @@ class KategoriController extends BaseController
         $rules = [
             'nama'      => 'required|min_length[2]|max_length[100]',
             'parent_id' => 'permit_empty|is_natural_no_zero',
+            'tipe_soal' => 'permit_empty|in_list[SCORE,POINT]',
         ];
 
         if (! $this->validate($rules)) {
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
 
-        $parentId  = $this->request->getPost('parent_id');
-        $tipeSoal  = $this->request->getPost('tipe_soal');
-
-        // Cek kedalaman: jika parent_id dipilih, pastikan parent tersebut tidak punya parent (max 1 level)
-        if ($parentId !== '' && $parentId !== null) {
-            $parentKategori = $this->kategoriModel->find((int) $parentId);
-            if ($parentKategori && $parentKategori['parent_id'] !== null) {
-                return redirect()->back()->withInput()
-                    ->with('errors', ['parent_id' => 'Sub-kategori hanya diperbolehkan 1 tingkat. Kategori yang dipilih sudah merupakan sub-kategori.']);
-            }
-            // Tipe soal wajib jika sub-kategori
-            if (empty($tipeSoal) || ! in_array($tipeSoal, ['SCORE', 'POINT'])) {
-                return redirect()->back()->withInput()
-                    ->with('errors', ['tipe_soal' => 'Tipe Soal wajib dipilih (SCORE atau POINT) untuk sub-kategori.']);
-            }
-        }
+        $parentId = $this->request->getPost('parent_id');
+        $tipeSoal = $this->request->getPost('tipe_soal');
 
         $this->kategoriModel->insert([
             'nama'      => $this->request->getPost('nama'),
             'parent_id' => ($parentId !== '' && $parentId !== null) ? (int) $parentId : null,
-            'tipe_soal' => ($parentId !== '' && $parentId !== null) ? $tipeSoal : null,
+            'tipe_soal' => (! empty($tipeSoal) && in_array($tipeSoal, ['SCORE', 'POINT'])) ? $tipeSoal : null,
         ]);
 
         return redirect()->to(base_url('admin/master/kategori'))->with('success', 'Kategori berhasil ditambahkan.');
@@ -117,7 +104,7 @@ class KategoriController extends BaseController
 
         return view('admin/master/kategori/form', [
             'kategori' => $kategori,
-            'parents'  => $this->kategoriModel->getParents(),
+            'parents'  => $this->kategoriModel->getAll(),
             'action'   => base_url("admin/master/kategori/{$id}/update"),
             'menus'    => $this->getMenus(),
         ]);
@@ -137,6 +124,7 @@ class KategoriController extends BaseController
         $rules = [
             'nama'      => 'required|min_length[2]|max_length[100]',
             'parent_id' => 'permit_empty|is_natural_no_zero',
+            'tipe_soal' => 'permit_empty|in_list[SCORE,POINT]',
         ];
 
         if (! $this->validate($rules)) {
@@ -146,24 +134,10 @@ class KategoriController extends BaseController
         $parentId = $this->request->getPost('parent_id');
         $tipeSoal = $this->request->getPost('tipe_soal');
 
-        // Cek kedalaman: jika parent_id dipilih, pastikan parent tersebut tidak punya parent (max 1 level)
-        if ($parentId !== '' && $parentId !== null) {
-            $parentKategori = $this->kategoriModel->find((int) $parentId);
-            if ($parentKategori && $parentKategori['parent_id'] !== null) {
-                return redirect()->back()->withInput()
-                    ->with('errors', ['parent_id' => 'Sub-kategori hanya diperbolehkan 1 tingkat. Kategori yang dipilih sudah merupakan sub-kategori.']);
-            }
-            // Tipe soal wajib jika sub-kategori
-            if (empty($tipeSoal) || ! in_array($tipeSoal, ['SCORE', 'POINT'])) {
-                return redirect()->back()->withInput()
-                    ->with('errors', ['tipe_soal' => 'Tipe Soal wajib dipilih (SCORE atau POINT) untuk sub-kategori.']);
-            }
-        }
-
         $this->kategoriModel->update($id, [
             'nama'      => $this->request->getPost('nama'),
             'parent_id' => ($parentId !== '' && $parentId !== null) ? (int) $parentId : null,
-            'tipe_soal' => ($parentId !== '' && $parentId !== null) ? $tipeSoal : null,
+            'tipe_soal' => (! empty($tipeSoal) && in_array($tipeSoal, ['SCORE', 'POINT'])) ? $tipeSoal : null,
         ]);
 
         return redirect()->to(base_url('admin/master/kategori'))->with('success', 'Kategori berhasil diperbarui.');
