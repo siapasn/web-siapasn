@@ -45,6 +45,7 @@
                     <tr>
                         <th class="ps-3" style="width:50px">No</th>
                         <th style="width:70px">Cover</th>
+                        <th style="width:110px">Kode</th>
                         <th>Judul</th>
                         <th class="text-center" style="width:80px">Aktif</th>
                         <th class="text-center" style="width:100px">Highlight</th>
@@ -56,17 +57,24 @@
                         <tr>
                             <td class="ps-3 text-muted"><?= $i + 1 ?></td>
                             <td>
-                                <img src="<?= esc($b['url_thumbnail']) ?>"
+                                <img src="<?= esc($b['url_thumbnail'] ?? '') ?>"
                                      alt="" class="rounded"
                                      style="width:50px;height:50px;object-fit:cover"
                                      referrerpolicy="no-referrer"
                                      onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2250%22 height=%2250%22><rect fill=%22%23e2e8f0%22 width=%2250%22 height=%2250%22/></svg>'">
                             </td>
+                            <td>
+                                <span class="badge bg-secondary bg-opacity-10 text-secondary border font-monospace" style="font-size:.75rem">
+                                    <?= esc($b['kode'] ?? '—') ?>
+                                </span>
+                            </td>
                             <td class="fw-medium" style="max-width:300px">
                                 <div class="text-truncate"><?= esc($b['judul']) ?></div>
+                                <?php if (! empty($b['url_shopee'])): ?>
                                 <a href="<?= esc($b['url_shopee']) ?>" target="_blank" class="text-muted small text-decoration-none">
                                     <i class="bi bi-box-arrow-up-right me-1"></i>Shopee
                                 </a>
+                                <?php endif; ?>
                             </td>
                             <td class="text-center">
                                 <div class="form-check form-switch d-flex justify-content-center mb-0">
@@ -126,7 +134,7 @@ $('#tabelBuku').DataTable({
     language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/id.json' },
     dom: '<"px-3 pt-3 d-flex justify-content-between align-items-center flex-wrap gap-2"lf>rt<"px-3 pb-3 d-flex justify-content-between align-items-center flex-wrap gap-2 mt-2"ip>',
     pageLength: 25,
-    columnDefs: [{ orderable: false, targets: [0, 1, 3, 4, 5] }]
+    columnDefs: [{ orderable: false, targets: [0, 1, 4, 5, 6] }]
 });
 
 // AJAX toggle status & highlight

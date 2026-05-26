@@ -96,16 +96,22 @@ $importErrors  = session()->getFlashdata('import_errors') ?? [];
                             <tr><th>Kolom</th><th>Field</th><th>Keterangan</th></tr>
                         </thead>
                         <tbody>
-                            <tr><td class="fw-bold">A</td><td>Judul *</td><td>Judul buku</td></tr>
-                            <tr><td class="fw-bold">B</td><td>URL Thumbnail *</td><td>URL gambar cover</td></tr>
-                            <tr><td class="fw-bold">C</td><td>URL Shopee *</td><td>Link produk Shopee</td></tr>
+                            <tr><td class="fw-bold">A</td><td>No</td><td>Nomor urut (diabaikan)</td></tr>
+                            <tr><td class="fw-bold">B</td><td>Kode *</td><td>Kode buku (wajib)</td></tr>
+                            <tr><td class="fw-bold">C</td><td>Judul Buku *</td><td>Judul buku (wajib)</td></tr>
+                            <tr><td class="fw-bold">D</td><td>ISBN</td><td>Nomor ISBN</td></tr>
+                            <tr><td class="fw-bold">E</td><td>Pengarang</td><td>Nama pengarang</td></tr>
+                            <tr><td class="fw-bold">F</td><td>Penerbit</td><td>Nama penerbit</td></tr>
+                            <tr><td class="fw-bold">G</td><td>Harga</td><td>Harga (angka)</td></tr>
+                            <tr><td class="fw-bold">H</td><td>URL Thumbnail</td><td>URL gambar cover</td></tr>
+                            <tr><td class="fw-bold">I</td><td>URL Shopee</td><td>Link produk Shopee</td></tr>
                         </tbody>
                     </table>
                 </div>
                 <div class="alert alert-info py-2 small mb-0">
                     <i class="bi bi-lightbulb me-1"></i>
-                    Baris pertama boleh berisi header (akan di-skip otomatis jika kolom pertama berisi "Judul" atau "No").
-                    Format alternatif: <strong>No, Judul, URL Thumbnail, URL Shopee</strong> (4 kolom) juga didukung.
+                    Baris pertama (header) akan di-skip otomatis. Yang wajib diisi hanya <strong>Kode</strong> dan <strong>Judul</strong>.
+                    Semua buku yang diimport default <strong>tidak aktif</strong> dan <strong>tidak highlight</strong>.
                 </div>
             </div>
         </div>

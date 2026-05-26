@@ -14,7 +14,12 @@ class KatalogBukuModel extends Model
     protected $protectFields    = true;
 
     protected $allowedFields = [
+        'kode',
         'judul',
+        'isbn',
+        'pengarang',
+        'penerbit',
+        'harga',
         'url_thumbnail',
         'url_shopee',
         'is_active',

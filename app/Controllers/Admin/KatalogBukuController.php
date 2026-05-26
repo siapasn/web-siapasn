@@ -55,9 +55,8 @@ class KatalogBukuController extends BaseController
     public function store()
     {
         $rules = [
-            'judul'         => 'required|max_length[255]',
-            'url_thumbnail' => 'required',
-            'url_shopee'    => 'required',
+            'kode'  => 'required|max_length[50]',
+            'judul' => 'required|max_length[255]',
         ];
 
         if (! $this->validate($rules)) {
@@ -65,9 +64,14 @@ class KatalogBukuController extends BaseController
         }
 
         $this->katalogBukuModel->insert([
+            'kode'          => $this->request->getPost('kode'),
             'judul'         => $this->request->getPost('judul'),
-            'url_thumbnail' => $this->request->getPost('url_thumbnail'),
-            'url_shopee'    => $this->request->getPost('url_shopee'),
+            'isbn'          => $this->request->getPost('isbn') ?: null,
+            'pengarang'     => $this->request->getPost('pengarang') ?: null,
+            'penerbit'      => $this->request->getPost('penerbit') ?: null,
+            'harga'         => $this->request->getPost('harga') ?: null,
+            'url_thumbnail' => $this->request->getPost('url_thumbnail') ?: null,
+            'url_shopee'    => $this->request->getPost('url_shopee') ?: null,
             'is_active'     => $this->request->getPost('is_active') ? 1 : 0,
             'is_highlight'  => $this->request->getPost('is_highlight') ? 1 : 0,
             'urutan'        => (int) ($this->request->getPost('urutan') ?: 0),
@@ -107,9 +111,8 @@ class KatalogBukuController extends BaseController
         }
 
         $rules = [
-            'judul'         => 'required|max_length[255]',
-            'url_thumbnail' => 'required',
-            'url_shopee'    => 'required',
+            'kode'  => 'required|max_length[50]',
+            'judul' => 'required|max_length[255]',
         ];
 
         if (! $this->validate($rules)) {
@@ -117,9 +120,14 @@ class KatalogBukuController extends BaseController
         }
 
         $this->katalogBukuModel->update($id, [
+            'kode'          => $this->request->getPost('kode'),
             'judul'         => $this->request->getPost('judul'),
-            'url_thumbnail' => $this->request->getPost('url_thumbnail'),
-            'url_shopee'    => $this->request->getPost('url_shopee'),
+            'isbn'          => $this->request->getPost('isbn') ?: null,
+            'pengarang'     => $this->request->getPost('pengarang') ?: null,
+            'penerbit'      => $this->request->getPost('penerbit') ?: null,
+            'harga'         => $this->request->getPost('harga') ?: null,
+            'url_thumbnail' => $this->request->getPost('url_thumbnail') ?: null,
+            'url_shopee'    => $this->request->getPost('url_shopee') ?: null,
             'is_active'     => $this->request->getPost('is_active') ? 1 : 0,
             'is_highlight'  => $this->request->getPost('is_highlight') ? 1 : 0,
             'urutan'        => (int) ($this->request->getPost('urutan') ?: 0),
@@ -182,7 +190,16 @@ class KatalogBukuController extends BaseController
 
     /**
      * Proses import CSV.
-     * Format: judul, url_thumbnail, url_shopee
+     * Format kolom (sesuai template):
+     *   A(0) = No
+     *   B(1) = Kode *
+     *   C(2) = Judul Buku *
+     *   D(3) = ISBN
+     *   E(4) = Pengarang
+     *   F(5) = Penerbit
+     *   G(6) = Harga
+     *   H(7) = URL Thumbnail
+     *   I(8) = URL Shopee
      */
     public function importProcess()
     {
@@ -223,45 +240,46 @@ class KatalogBukuController extends BaseController
             // Skip baris kosong
             if (implode('', $cols) === '') continue;
 
-            // Skip header (baris pertama jika kolom 0 bukan URL dan bukan judul valid)
-            $col0 = trim($cols[0] ?? '');
-            if ($rowNum === 1 && (stripos($col0, 'judul') !== false || stripos($col0, 'no') !== false)) {
+            // Skip header (baris pertama jika kolom 0 = "No" atau kolom 1 = "KODE")
+            $col0 = strtolower(trim($cols[0] ?? ''));
+            $col1 = strtolower(trim($cols[1] ?? ''));
+            if ($rowNum === 1 && ($col0 === 'no' || $col1 === 'kode')) {
                 continue;
             }
 
-            // Deteksi format: bisa "judul, url_thumbnail, url_shopee" atau "no, judul, url_thumbnail, url_shopee"
-            if (count($cols) >= 4 && is_numeric(trim($cols[0]))) {
-                // Format: No, Judul, URL Thumbnail, URL Shopee
-                $judul    = trim($cols[1] ?? '');
-                $urlThumb = trim($cols[2] ?? '');
-                $urlShopee = trim($cols[3] ?? '');
-            } elseif (count($cols) >= 3) {
-                // Format: Judul, URL Thumbnail, URL Shopee
-                $judul    = trim($cols[0] ?? '');
-                $urlThumb = trim($cols[1] ?? '');
-                $urlShopee = trim($cols[2] ?? '');
-            } else {
-                $errors[] = "Baris {$rowNum}: Kolom tidak lengkap (minimal 3 kolom).";
+            // Format: No(0), Kode(1), Judul(2), ISBN(3), Pengarang(4), Penerbit(5), Harga(6), URL Thumbnail(7), URL Shopee(8)
+            $no         = trim($cols[0] ?? '');
+            $kode       = trim($cols[1] ?? '');
+            $judul      = trim($cols[2] ?? '');
+            $isbn       = trim($cols[3] ?? '');
+            $pengarang  = trim($cols[4] ?? '');
+            $penerbit   = trim($cols[5] ?? '');
+            $harga      = trim($cols[6] ?? '');
+            $urlThumb   = trim($cols[7] ?? '');
+            $urlShopee  = trim($cols[8] ?? '');
+
+            // Validasi wajib: kode dan judul
+            if ($kode === '') {
+                $errors[] = "Baris {$rowNum}: Kode kosong.";
                 continue;
             }
-
             if ($judul === '') {
                 $errors[] = "Baris {$rowNum}: Judul kosong.";
                 continue;
             }
-            if ($urlThumb === '') {
-                $errors[] = "Baris {$rowNum}: URL Thumbnail kosong.";
-                continue;
-            }
-            if ($urlShopee === '') {
-                $errors[] = "Baris {$rowNum}: URL Shopee kosong.";
-                continue;
-            }
+
+            // Bersihkan harga (hapus koma, titik ribuan)
+            $hargaClean = preg_replace('/[^0-9.]/', '', str_replace(',', '', $harga));
 
             $this->katalogBukuModel->insert([
+                'kode'          => $kode,
                 'judul'         => $judul,
-                'url_thumbnail' => $urlThumb,
-                'url_shopee'    => $urlShopee,
+                'isbn'          => $isbn ?: null,
+                'pengarang'     => $pengarang ?: null,
+                'penerbit'      => $penerbit ?: null,
+                'harga'         => $hargaClean !== '' ? (float) $hargaClean : null,
+                'url_thumbnail' => $urlThumb ?: null,
+                'url_shopee'    => $urlShopee ?: null,
                 'is_active'     => 0,
                 'is_highlight'  => 0,
                 'urutan'        => $imported + 1,

@@ -34,29 +34,67 @@
             <?= csrf_field() ?>
 
             <div class="row g-3">
-                <div class="col-12">
+                <div class="col-12 col-md-4">
+                    <label for="kode" class="form-label">Kode <span class="text-danger">*</span></label>
+                    <input type="text" id="kode" name="kode" class="form-control"
+                           value="<?= esc(old('kode', $buku['kode'] ?? '')) ?>"
+                           placeholder="PB0014011" required>
+                </div>
+
+                <div class="col-12 col-md-8">
                     <label for="judul" class="form-label">Judul Buku <span class="text-danger">*</span></label>
                     <input type="text" id="judul" name="judul" class="form-control"
                            value="<?= esc(old('judul', $buku['judul'] ?? '')) ?>"
                            placeholder="Masukkan judul buku" required>
                 </div>
 
-                <div class="col-12">
-                    <label for="url_thumbnail" class="form-label">URL Thumbnail <span class="text-danger">*</span></label>
+                <div class="col-12 col-md-4">
+                    <label for="isbn" class="form-label">ISBN</label>
+                    <input type="text" id="isbn" name="isbn" class="form-control"
+                           value="<?= esc(old('isbn', $buku['isbn'] ?? '')) ?>"
+                           placeholder="978-xxx-xxx-xxx-x">
+                </div>
+
+                <div class="col-12 col-md-4">
+                    <label for="pengarang" class="form-label">Pengarang</label>
+                    <input type="text" id="pengarang" name="pengarang" class="form-control"
+                           value="<?= esc(old('pengarang', $buku['pengarang'] ?? '')) ?>"
+                           placeholder="Nama pengarang">
+                </div>
+
+                <div class="col-12 col-md-4">
+                    <label for="penerbit" class="form-label">Penerbit</label>
+                    <input type="text" id="penerbit" name="penerbit" class="form-control"
+                           value="<?= esc(old('penerbit', $buku['penerbit'] ?? '')) ?>"
+                           placeholder="Nama penerbit">
+                </div>
+
+                <div class="col-12 col-md-4">
+                    <label for="harga" class="form-label">Harga (Rp)</label>
+                    <div class="input-group">
+                        <span class="input-group-text">Rp</span>
+                        <input type="number" id="harga" name="harga" class="form-control" min="0" step="1"
+                               value="<?= esc(old('harga', $buku['harga'] ?? '')) ?>"
+                               placeholder="0">
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-8">
+                    <label for="url_thumbnail" class="form-label">URL Thumbnail</label>
                     <input type="text" id="url_thumbnail" name="url_thumbnail" class="form-control"
                            value="<?= esc(old('url_thumbnail', $buku['url_thumbnail'] ?? '')) ?>"
-                           placeholder="https://... atau /file/123" required>
+                           placeholder="https://... atau /file/123">
                     <div class="form-text">URL gambar cover buku. Bisa dari Data File (/file/ID) atau URL eksternal.</div>
                 </div>
 
                 <div class="col-12">
-                    <label for="url_shopee" class="form-label">URL Link Produk Shopee <span class="text-danger">*</span></label>
+                    <label for="url_shopee" class="form-label">URL Link Produk Shopee</label>
                     <input type="text" id="url_shopee" name="url_shopee" class="form-control"
                            value="<?= esc(old('url_shopee', $buku['url_shopee'] ?? '')) ?>"
-                           placeholder="https://shopee.co.id/..." required>
+                           placeholder="https://shopee.co.id/...">
                 </div>
 
-                <div class="col-12 col-md-6">
+                <div class="col-12 col-md-4">
                     <label for="urutan" class="form-label">Urutan</label>
                     <input type="number" id="urutan" name="urutan" class="form-control" min="0"
                            value="<?= esc(old('urutan', $buku['urutan'] ?? 0)) ?>">
