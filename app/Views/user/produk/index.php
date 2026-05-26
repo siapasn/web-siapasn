@@ -109,6 +109,92 @@
     padding: 1.25rem;
     box-shadow: 0 2px 12px rgba(0,0,0,.07);
 }
+
+/* ── Search Box ── */
+.search-box {
+    display: flex;
+    align-items: center;
+    background: #fff;
+    border: 2px solid #e2e8f0;
+    border-radius: 3rem;
+    padding: .35rem .5rem .35rem 1rem;
+    transition: all .3s cubic-bezier(.4,0,.2,1);
+    box-shadow: 0 2px 8px rgba(0,0,0,.04);
+    gap: .5rem;
+    width: 320px;
+    max-width: 100%;
+}
+.search-box:focus-within {
+    border-color: #1a3a5c;
+    box-shadow: 0 4px 20px rgba(26,58,92,.15), 0 0 0 4px rgba(26,58,92,.06);
+    transform: translateY(-1px);
+    width: 380px;
+}
+.search-box .search-icon {
+    color: #94a3b8;
+    font-size: 1rem;
+    transition: color .3s, transform .3s;
+    flex-shrink: 0;
+}
+.search-box:focus-within .search-icon {
+    color: #1a3a5c;
+    transform: scale(1.1);
+}
+.search-box input {
+    border: none;
+    outline: none;
+    background: transparent;
+    flex-grow: 1;
+    font-size: .88rem;
+    color: #1e293b;
+    min-width: 0;
+}
+.search-box input::placeholder {
+    color: #94a3b8;
+    transition: opacity .2s;
+}
+.search-box:focus-within input::placeholder { opacity: .5; }
+.search-box .search-btn {
+    background: linear-gradient(135deg, #1a3a5c, #2d6a9f);
+    color: #fff;
+    border: none;
+    border-radius: 2rem;
+    padding: .4rem 1rem;
+    font-size: .8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .2s;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+.search-box .search-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 3px 12px rgba(26,58,92,.3);
+}
+.search-box .search-btn:active { transform: scale(.97); }
+.search-box .reset-btn {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    padding: .3rem;
+    border-radius: 50%;
+    transition: all .2s;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+}
+.search-box .reset-btn:hover {
+    background: #fee2e2;
+    color: #dc2626;
+    transform: rotate(90deg);
+}
+@media (max-width: 576px) {
+    .search-box, .search-box:focus-within { width: 100%; }
+}
 </style>
 
 <!-- Flash -->
@@ -187,31 +273,21 @@
 
                         <!-- Kanan: filter — sudut kanan di desktop, full width di mobile -->
                         <div class="col-12 col-lg-auto ms-lg-auto">
-                            <div class="d-flex gap-2 align-items-stretch justify-content-end">
-                                <div class="input-group flex-grow-1">
-                                    <span class="input-group-text border-end-0"
-                                          style="background:#f0f5ff;border-color:#c5d5f0">
-                                        <i class="bi bi-search" style="color:#1a3a5c"></i>
-                                    </span>
-                                    <input type="text"
-                                           class="form-control border-start-0 filter-produk"
-                                           data-tab="<?= $kat['kat_id'] ?: 'lainnya' ?>"
-                                           placeholder="Cari nama paket..."
-                                           autocomplete="off"
-                                           style="border-color:#c5d5f0;background:#f0f5ff"
-                                           onkeydown="if(event.key==='Enter') doFilterTab('<?= $kat['kat_id'] ?: 'lainnya' ?>')">
-                                </div>
-                                <button type="button"
-                                        class="btn fw-semibold px-3 flex-shrink-0"
-                                        style="background:linear-gradient(135deg,#1a3a5c,#2d6a9f);color:#fff;border:none;border-radius:.5rem;box-shadow:0 3px 10px rgba(26,58,92,.25);white-space:nowrap;font-size:.85rem"
+                            <div class="search-box">
+                                <i class="bi bi-search search-icon"></i>
+                                <input type="text"
+                                       class="filter-produk"
+                                       data-tab="<?= $kat['kat_id'] ?: 'lainnya' ?>"
+                                       placeholder="Cari nama paket..."
+                                       autocomplete="off"
+                                       onkeydown="if(event.key==='Enter') doFilterTab('<?= $kat['kat_id'] ?: 'lainnya' ?>')">
+                                <button type="button" class="search-btn"
                                         onclick="doFilterTab('<?= $kat['kat_id'] ?: 'lainnya' ?>')">
-                                    <i class="bi bi-search me-1"></i>Temukan
+                                    Cari
                                 </button>
-                                <button type="button"
-                                        class="btn fw-semibold px-3 flex-shrink-0"
-                                        style="background:#f8fafc;color:#64748b;border:2px solid #e2e8f0;border-radius:.5rem;white-space:nowrap;font-size:.85rem"
+                                <button type="button" class="reset-btn"
                                         onclick="resetFilterTab('<?= $kat['kat_id'] ?: 'lainnya' ?>')">
-                                    <i class="bi bi-x-circle me-1"></i>Reset
+                                    <i class="bi bi-x-lg"></i>
                                 </button>
                             </div>
                         </div>

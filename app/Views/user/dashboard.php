@@ -83,7 +83,7 @@
                             </div>
                         </div>
                         <div class="card-body p-3 d-flex flex-column">
-                            <p class="mb-3" style="font-size:.85rem;font-weight:500;line-height:1.4;color:#1a3a5c;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">
+                            <p class="mb-3" style="font-size:.85rem;font-weight:600;line-height:1.4;color:#1a3a5c;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">
                                 <?= esc($b['judul']) ?>
                             </p>
                             <div class="mt-auto">
