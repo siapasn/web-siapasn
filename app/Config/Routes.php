@@ -132,6 +132,7 @@ $routes->group('admin', ['filter' => ['auth', 'admin_only']], function ($routes)
     $routes->get('master/tryout/(:num)/edit', 'Admin\Master\TryoutController::edit/$1');
     $routes->post('master/tryout/(:num)/update', 'Admin\Master\TryoutController::update/$1');
     $routes->post('master/tryout/(:num)/delete', 'Admin\Master\TryoutController::delete/$1');
+    $routes->get('master/tryout/(:num)/preview-soal', 'Admin\Master\TryoutController::previewSoal/$1');
 
     // Master Produk
     $routes->get('master/produk', 'Admin\Master\ProdukController::index');

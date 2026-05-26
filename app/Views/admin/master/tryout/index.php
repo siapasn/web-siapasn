@@ -73,6 +73,12 @@
                                 <?php endif; ?>
                             </td>
                             <td class="text-center pe-3">
+                                <a href="<?= base_url("admin/master/tryout/{$t['id']}/preview-soal") ?>"
+                                   target="_blank"
+                                   class="btn btn-sm btn-outline-info py-0 px-2"
+                                   title="Preview Soal & Kunci">
+                                    <i class="bi bi-eye"></i>
+                                </a>
                                 <a href="<?= base_url("admin/master/tryout/{$t['id']}/edit") ?>"
                                    class="btn btn-sm btn-outline-primary py-0 px-2">
                                     <i class="bi bi-pencil"></i>

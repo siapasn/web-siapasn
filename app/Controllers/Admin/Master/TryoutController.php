@@ -166,4 +166,36 @@ class TryoutController extends BaseController
 
         return redirect()->to(base_url('admin/master/tryout'))->with('success', 'Tryout berhasil dihapus.');
     }
+
+    /**
+     * Preview soal beserta kunci jawaban dan pembahasan.
+     * Dibuka di tab baru dari halaman index tryout.
+     */
+    public function previewSoal(int $id)
+    {
+        $tryout = $this->tryoutModel->find($id);
+
+        if (! $tryout) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Tryout tidak ditemukan.');
+        }
+
+        $db = \Config\Database::connect();
+
+        $soalList = $db->table('mapping_soal ms')
+            ->select('ms.urutan, s.id as soal_id, s.pertanyaan,
+                      s.pilihan_a, s.pilihan_b, s.pilihan_c, s.pilihan_d, s.pilihan_e,
+                      s.kunci_jawaban, s.pembahasan,
+                      s.nilai_a, s.nilai_b, s.nilai_c, s.nilai_d, s.nilai_e,
+                      s.kategori_id, k.nama AS kategori_nama, k.tipe_soal')
+            ->join('soal s', 's.id = ms.soal_id')
+            ->join('kategori k', 'k.id = s.kategori_id', 'left')
+            ->where('ms.tryout_id', $id)
+            ->orderBy('ms.urutan', 'ASC')
+            ->get()->getResultArray();
+
+        return view('admin/master/tryout/preview-soal', [
+            'tryout'   => $tryout,
+            'soalList' => $soalList,
+        ]);
+    }
 }
