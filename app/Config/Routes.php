@@ -73,6 +73,9 @@ $routes->group('user', ['filter' => 'auth'], function ($routes) {
 
     // Serve file materi pelajaran — hanya untuk user yang sudah membeli produk terkait
     $routes->get('materi/(:num)/file', 'User\MateriFileController::serve/$1');
+
+    // Payment status — redirect dari Midtrans setelah pembayaran
+    $routes->get('payment/status', 'User\PaymentStatusController::index');
 });
 
 // Webhook Midtrans — publik, tidak memerlukan autentikasi
