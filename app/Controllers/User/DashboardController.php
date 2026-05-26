@@ -35,7 +35,7 @@ class DashboardController extends BaseController
             $builder->whereNotIn('p.id', $produkDimilikiIds);
         }
 
-        $produkRekomendasi = $builder->limit(4)->get()->getResultArray();
+        $produkRekomendasi = $builder->limit(8)->get()->getResultArray();
 
         foreach ($produkRekomendasi as &$p) {
             $p['jumlah_tryout'] = $db->table('mapping_tryout')
