@@ -3,6 +3,7 @@
 namespace App\Controllers\Auth;
 
 use App\Controllers\BaseController;
+use App\Libraries\RateLimiter;
 use App\Models\UserModel;
 use App\Services\EmailService;
 use CodeIgniter\HTTP\RedirectResponse;
@@ -11,11 +12,13 @@ class AuthController extends BaseController
 {
     protected UserModel $userModel;
     protected EmailService $emailService;
+    protected RateLimiter $rateLimiter;
 
     public function __construct()
     {
         $this->userModel    = new UserModel();
         $this->emailService = new EmailService();
+        $this->rateLimiter  = new RateLimiter();
     }
 
     // -------------------------------------------------------------------------
@@ -31,7 +34,11 @@ class AuthController extends BaseController
     // -------------------------------------------------------------------------
     public function register()
     {
-        return view('auth/register');
+        $data = [
+            'captcha' => $this->generateCaptcha(),
+        ];
+
+        return view('auth/register', $data);
     }
 
     // -------------------------------------------------------------------------
@@ -39,6 +46,38 @@ class AuthController extends BaseController
     // -------------------------------------------------------------------------
     public function registerProcess(): RedirectResponse
     {
+        // Rate limiting: max 3 register per menit per IP
+        $ip      = $this->request->getIPAddress();
+        $rateKey = 'register_' . md5($ip);
+
+        if (! $this->rateLimiter->check($rateKey, 3, 1)) {
+            $retryAfter = $this->rateLimiter->getRetryAfter($rateKey);
+            $seconds    = $retryAfter > 0 ? $retryAfter : 60;
+            $this->generateCaptcha();
+            return redirect()->back()->withInput()
+                ->with('error', "Terlalu banyak percobaan registrasi. Silakan coba lagi dalam {$seconds} detik.");
+        }
+
+        // Validasi captcha
+        $captchaError = $this->validateCaptcha();
+        if ($captchaError !== null) {
+            return redirect()->back()->withInput()->with('errors', ['captcha' => $captchaError]);
+        }
+
+        // Validasi nama (custom)
+        $nama = $this->request->getPost('nama');
+        $namaError = $this->validateNama($nama);
+        if ($namaError !== null) {
+            return redirect()->back()->withInput()->with('errors', ['nama' => $namaError]);
+        }
+
+        // Validasi nomor telepon (custom)
+        $telepon = $this->request->getPost('telepon');
+        $teleponError = $this->validateTelepon($telepon);
+        if ($teleponError !== null) {
+            return redirect()->back()->withInput()->with('errors', ['telepon' => $teleponError]);
+        }
+
         $rules = [
             'nama'             => 'required|min_length[3]',
             'email'            => 'required|valid_email|is_unique[users.email]',
@@ -57,6 +96,9 @@ class AuthController extends BaseController
         if (! $this->validate($rules, $messages)) {
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
+
+        // Increment rate limiter setelah validasi lolos
+        $this->rateLimiter->increment($rateKey, 1);
 
         $password = password_hash($this->request->getPost('password'), PASSWORD_BCRYPT);
 
@@ -107,7 +149,11 @@ class AuthController extends BaseController
             return $this->redirectToDashboard(session()->get('role'));
         }
 
-        return view('auth/login');
+        $data = [
+            'captcha' => $this->generateCaptcha(),
+        ];
+
+        return view('auth/login', $data);
     }
 
     // -------------------------------------------------------------------------
@@ -115,6 +161,24 @@ class AuthController extends BaseController
     // -------------------------------------------------------------------------
     public function loginProcess(): RedirectResponse
     {
+        // Rate limiting: max 10 failed login per 15 menit per IP
+        $ip      = $this->request->getIPAddress();
+        $rateKey = 'login_' . md5($ip);
+
+        if (! $this->rateLimiter->check($rateKey, 10, 15)) {
+            $retryAfter = $this->rateLimiter->getRetryAfter($rateKey);
+            $minutes    = ceil($retryAfter / 60);
+            $this->generateCaptcha();
+            return redirect()->back()->withInput()
+                ->with('error', "Terlalu banyak percobaan login. Silakan coba lagi dalam {$minutes} menit.");
+        }
+
+        // Validasi captcha
+        $captchaError = $this->validateCaptcha();
+        if ($captchaError !== null) {
+            return redirect()->back()->withInput()->with('error', $captchaError);
+        }
+
         $rules = [
             'email'    => 'required',
             'password' => 'required',
@@ -128,6 +192,7 @@ class AuthController extends BaseController
         $user  = $this->userModel->findByEmail($email);
 
         if (! $user) {
+            $this->rateLimiter->increment($rateKey, 15);
             return redirect()->back()->withInput()->with('error', 'Email atau password salah.');
         }
 
@@ -141,6 +206,7 @@ class AuthController extends BaseController
         // Verifikasi password
         if (! password_verify($this->request->getPost('password'), $user['password'])) {
             $this->userModel->incrementLoginAttempts($user['id']);
+            $this->rateLimiter->increment($rateKey, 15);
 
             // Ambil ulang data user untuk mendapatkan login_attempts terbaru
             $updatedUser = $this->userModel->find($user['id']);
@@ -155,7 +221,8 @@ class AuthController extends BaseController
             return redirect()->back()->withInput()->with('error', 'Email atau password salah.');
         }
 
-        // Login berhasil
+        // Login berhasil — reset rate limiter
+        $this->rateLimiter->reset($rateKey);
         $this->userModel->resetLoginAttempts($user['id']);
 
         session()->set([
@@ -339,5 +406,123 @@ class AuthController extends BaseController
             'admin', 'super_admin' => redirect()->to('/admin/dashboard'),
             default                => redirect()->to('/user/dashboard'),
         };
+    }
+
+    // =========================================================================
+    // CAPTCHA METHODS
+    // =========================================================================
+
+    /**
+     * Generate math captcha dan simpan jawaban di session
+     */
+    protected function generateCaptcha(): string
+    {
+        $num1 = random_int(1, 20);
+        $num2 = random_int(1, 20);
+
+        $operators = ['+', '-'];
+        $operator  = $operators[array_rand($operators)];
+
+        if ($operator === '-') {
+            if ($num1 < $num2) {
+                [$num1, $num2] = [$num2, $num1];
+            }
+            $answer = $num1 - $num2;
+        } else {
+            $answer = $num1 + $num2;
+        }
+
+        $question = "{$num1} {$operator} {$num2} = ?";
+        session()->set('captcha_answer', $answer);
+
+        return $question;
+    }
+
+    /**
+     * Validasi jawaban captcha dari form
+     */
+    protected function validateCaptcha(): ?string
+    {
+        $userAnswer    = $this->request->getPost('captcha');
+        $correctAnswer = session()->get('captcha_answer');
+
+        // Selalu regenerate captcha setelah validasi
+        $this->generateCaptcha();
+
+        if ($userAnswer === null || $userAnswer === '') {
+            return 'Jawaban captcha wajib diisi.';
+        }
+
+        if ((int) $userAnswer !== (int) $correctAnswer) {
+            return 'Jawaban captcha salah. Silakan coba lagi.';
+        }
+
+        return null;
+    }
+
+    // =========================================================================
+    // CUSTOM VALIDATION METHODS
+    // =========================================================================
+
+    /**
+     * Validasi nama: minimal 3 karakter, harus ada huruf, tidak boleh random
+     */
+    protected function validateNama(?string $nama): ?string
+    {
+        if (empty($nama)) {
+            return null;
+        }
+
+        $nama = trim($nama);
+
+        if (mb_strlen($nama) < 3) {
+            return 'Nama minimal 3 karakter.';
+        }
+
+        if (! preg_match('/[a-zA-Z]/', $nama)) {
+            return 'Nama harus mengandung minimal satu huruf.';
+        }
+
+        // Deteksi pola random: 4+ konsonan berturut-turut tanpa vokal
+        $namaLower = strtolower(preg_replace('/[^a-zA-Z]/', '', $nama));
+
+        if (strlen($namaLower) > 0 && preg_match('/[^aeiou]{4,}/', $namaLower)) {
+            return 'Nama tidak valid. Mohon masukkan nama asli Anda.';
+        }
+
+        // Cek rasio konsonan:vokal untuk nama > 4 karakter
+        if (strlen($namaLower) > 4) {
+            $vowels     = preg_match_all('/[aeiou]/', $namaLower);
+            $consonants = strlen($namaLower) - $vowels;
+
+            if ($vowels > 0 && ($consonants / $vowels) > 4) {
+                return 'Nama tidak valid. Mohon masukkan nama asli Anda.';
+            }
+
+            if ($vowels === 0) {
+                return 'Nama tidak valid. Mohon masukkan nama asli Anda.';
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Validasi nomor telepon Indonesia
+     * Format: 08xx, +62xx, atau 62xx (10-15 digit total)
+     */
+    protected function validateTelepon(?string $telepon): ?string
+    {
+        if (empty($telepon)) {
+            return null;
+        }
+
+        $telepon = trim($telepon);
+
+        if (! preg_match('/^(\+62|62|08)[0-9]{8,13}$/', $telepon)) {
+            return 'Format nomor HP tidak valid. Gunakan format 08xx, +62xx, atau 62xx (10-15 digit).';
+        }
+
+        return null;
     }
 }

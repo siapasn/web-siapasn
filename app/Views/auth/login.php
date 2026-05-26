@@ -70,6 +70,22 @@
         </div>
     </div>
 
+    <div class="mb-3">
+        <label for="captcha" class="form-label">Captcha: <strong><?= esc($captcha) ?></strong></label>
+        <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-shield-check"></i></span>
+            <input
+                type="number"
+                class="form-control"
+                id="captcha"
+                name="captcha"
+                placeholder="Masukkan jawaban"
+                required
+                autocomplete="off"
+            >
+        </div>
+    </div>
+
     <div class="d-flex justify-content-end mb-3">
         <a href="<?= base_url('reset-password') ?>" class="text-decoration-none small">Lupa password?</a>
     </div>

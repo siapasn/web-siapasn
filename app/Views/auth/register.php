@@ -4,6 +4,14 @@
 
 <h5 class="text-center mb-4 fw-semibold">Buat Akun Baru</h5>
 
+<?php if (session()->getFlashdata('error')): ?>
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-1"></i>
+        <?= esc(session()->getFlashdata('error')) ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
+    </div>
+<?php endif; ?>
+
 <?php if (session()->getFlashdata('errors')): ?>
     <div class="alert alert-danger alert-dismissible fade show" role="alert">
         <ul class="mb-0 ps-3">
@@ -99,6 +107,22 @@
                 placeholder="Ulangi password"
                 required
                 autocomplete="new-password"
+            >
+        </div>
+    </div>
+
+    <div class="mb-4">
+        <label for="captcha" class="form-label">Captcha: <strong><?= esc($captcha) ?></strong> <span class="text-danger">*</span></label>
+        <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-shield-check"></i></span>
+            <input
+                type="number"
+                class="form-control"
+                id="captcha"
+                name="captcha"
+                placeholder="Masukkan jawaban"
+                required
+                autocomplete="off"
             >
         </div>
     </div>
