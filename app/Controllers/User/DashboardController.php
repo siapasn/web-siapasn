@@ -21,23 +21,23 @@ class DashboardController extends BaseController
             ->get()->getResultArray();
         $produkDimilikiIds = array_column($produkDimiliki, 'produk_id');
 
-        // Ambil produk aktif yang punya tryout dan belum dibeli
-        $produkTerbaru = $db->table('produk p')
+        // Rekomendasi Tryout — ambil produk yang di-highlight, aktif, punya tryout, belum dibeli
+        $builder = $db->table('produk p')
             ->select('p.*')
             ->join('mapping_tryout mt', 'mt.produk_id = p.id', 'inner')
             ->where('p.is_active', 1)
+            ->where('p.is_highlight', 1)
             ->groupBy('p.id')
             ->having('COUNT(mt.id) >', 0)
-            ->orderBy('p.id', 'DESC')
-            ->limit(4)
-            ->get()->getResultArray();
+            ->orderBy('p.id', 'DESC');
 
-        // Filter yang belum dibeli dan tambah info
-        $produkTerbaru = array_filter($produkTerbaru, function($p) use ($produkDimilikiIds) {
-            return ! in_array($p['id'], $produkDimilikiIds);
-        });
+        if (! empty($produkDimilikiIds)) {
+            $builder->whereNotIn('p.id', $produkDimilikiIds);
+        }
 
-        foreach ($produkTerbaru as &$p) {
+        $produkRekomendasi = $builder->limit(4)->get()->getResultArray();
+
+        foreach ($produkRekomendasi as &$p) {
             $p['jumlah_tryout'] = $db->table('mapping_tryout')
                 ->where('produk_id', $p['id'])
                 ->countAllResults();
@@ -64,7 +64,6 @@ class DashboardController extends BaseController
             $p['promosi'] = $promosi;
         }
         unset($p);
-        $produkTerbaru = array_values($produkTerbaru);
 
         // 5 riwayat tryout terakhir
         $riwayatTryout = [];
@@ -97,11 +96,11 @@ class DashboardController extends BaseController
         $bukuHighlight    = $katalogBukuModel->getHighlighted();
 
         return view('user/dashboard', [
-            'produkTerbaru' => $produkTerbaru,
-            'riwayatTryout' => $riwayatTryout,
-            'avgSkor'       => $avgSkor,
-            'bukuHighlight' => $bukuHighlight,
-            'menus'         => $menus,
+            'produkRekomendasi' => $produkRekomendasi,
+            'riwayatTryout'     => $riwayatTryout,
+            'avgSkor'           => $avgSkor,
+            'bukuHighlight'     => $bukuHighlight,
+            'menus'             => $menus,
         ]);
     }
 }

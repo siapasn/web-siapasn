@@ -22,8 +22,8 @@
                     <i class="bi bi-box-seam fs-4 text-primary"></i>
                 </div>
                 <div>
-                    <div class="text-muted small">Produk Tersedia</div>
-                    <div class="fs-4 fw-bold"><?= count($produkTerbaru) ?></div>
+                    <div class="text-muted small">Rekomendasi</div>
+                    <div class="fs-4 fw-bold"><?= count($produkRekomendasi) ?></div>
                 </div>
             </div>
         </div>
@@ -103,47 +103,42 @@
 </div>
 <?php endif; ?>
 
-<!-- Produk Terbaru (belum dibeli) -->
+<!-- Rekomendasi Tryout (produk highlight, belum dibeli) -->
 <div class="card border-0 shadow-sm mb-4">
     <div class="card-header bg-white border-bottom d-flex align-items-center justify-content-between">
-        <h6 class="mb-0"><i class="bi bi-shop me-2 text-primary"></i>Produk Terbaru</h6>
+        <h6 class="mb-0"><i class="bi bi-star-fill me-2 text-warning"></i>Rekomendasi Tryout</h6>
         <a href="<?= base_url('user/produk') ?>" class="btn btn-sm btn-outline-primary">
             <i class="bi bi-grid me-1"></i>Lihat Semua
         </a>
     </div>
     <div class="card-body">
-        <?php if (empty($produkTerbaru)): ?>
+        <?php if (empty($produkRekomendasi)): ?>
             <div class="text-center py-4 text-muted">
                 <i class="bi bi-check-circle fs-2 d-block mb-2 text-success"></i>
-                Anda sudah memiliki semua paket yang tersedia.
+                Anda sudah memiliki semua paket yang direkomendasikan.
                 <a href="<?= base_url('user/tryout') ?>" class="btn btn-success btn-sm ms-2">Mulai Tryout</a>
             </div>
         <?php else: ?>
             <div class="row g-3">
-                <?php foreach ($produkTerbaru as $p):
+                <?php foreach ($produkRekomendasi as $p):
                     $thumb = ! empty($p['thumbnail'])
                         ? base_url('uploads/produk/' . $p['thumbnail'])
                         : base_url('assets/images/thumbnail/product-default.png');
                 ?>
                     <div class="col-md-6 col-lg-3">
                         <div class="card border-0 shadow-sm h-100" style="border-radius:.75rem;overflow:hidden;transition:transform .18s,box-shadow .18s">
-                            <!-- Thumbnail -->
                             <div style="aspect-ratio:1/1;overflow:hidden;background:#e8f0fe">
                                 <img src="<?= $thumb ?>" alt="<?= esc($p['nama']) ?>"
                                      class="w-100 h-100" style="object-fit:cover;object-position:center">
                             </div>
-
                             <div class="card-body p-3 d-flex flex-column">
                                 <h6 class="fw-bold mb-2" style="color:#1a3a5c;font-size:.95rem;line-height:1.3">
                                     <?= esc($p['nama']) ?>
                                 </h6>
-
                                 <div class="d-flex align-items-center gap-1 mb-2 text-muted" style="font-size:.78rem">
                                     <i class="bi bi-journal-text"></i>
                                     <span><?= $p['jumlah_tryout'] ?> sesi tryout</span>
                                 </div>
-
-                                <!-- Harga -->
                                 <div class="mb-3 mt-auto">
                                     <?php if ($p['harga_promo'] !== null): ?>
                                         <div class="text-decoration-line-through text-muted" style="font-size:.78rem">
@@ -152,18 +147,12 @@
                                         <div class="fw-bold text-danger" style="font-size:1.05rem">
                                             Rp <?= number_format($p['harga_promo'], 0, ',', '.') ?>
                                         </div>
-                                        <?php foreach ($p['promosi'] as $pr): ?>
-                                            <span class="badge bg-danger bg-opacity-10 text-danger border border-danger-subtle" style="font-size:.65rem">
-                                                <i class="bi bi-tag me-1"></i><?= esc($pr['nama']) ?>
-                                            </span>
-                                        <?php endforeach; ?>
                                     <?php else: ?>
                                         <div class="fw-bold text-primary" style="font-size:1.05rem">
                                             Rp <?= number_format($p['harga'], 0, ',', '.') ?>
                                         </div>
                                     <?php endif; ?>
                                 </div>
-
                                 <div class="d-flex flex-column gap-2">
                                     <a href="<?= base_url('user/produk/' . $p['id']) ?>"
                                        class="btn btn-outline-primary btn-sm fw-semibold">
