@@ -147,6 +147,7 @@ $routes->group('admin', ['filter' => ['auth', 'admin_only']], function ($routes)
     $routes->get('master/produk/(:num)/edit', 'Admin\Master\ProdukController::edit/$1');
     $routes->post('master/produk/(:num)/update', 'Admin\Master\ProdukController::update/$1');
     $routes->post('master/produk/(:num)/delete', 'Admin\Master\ProdukController::delete/$1');
+    $routes->post('master/produk/toggle', 'Admin\Master\ProdukController::toggle');
 
     // Mapping Soal
     $routes->get('mapping/soal', 'Admin\Mapping\MappingSoalController::index');

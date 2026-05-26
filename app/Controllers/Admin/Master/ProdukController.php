@@ -204,6 +204,29 @@ class ProdukController extends BaseController
     }
 
     /**
+     * AJAX: Toggle field is_active atau is_highlight.
+     */
+    public function toggle()
+    {
+        $id    = (int) $this->request->getPost('id');
+        $field = $this->request->getPost('field');
+        $value = (int) $this->request->getPost('value');
+
+        if (! in_array($field, ['is_active', 'is_highlight'], true)) {
+            return $this->response->setJSON(['status' => false, 'message' => 'Field tidak valid.']);
+        }
+
+        $produk = $this->produkModel->find($id);
+        if (! $produk) {
+            return $this->response->setJSON(['status' => false, 'message' => 'Produk tidak ditemukan.']);
+        }
+
+        $this->produkModel->update($id, [$field => $value ? 1 : 0]);
+
+        return $this->response->setJSON(['status' => true]);
+    }
+
+    /**
      * Simpan baris materi dari POST data ke tabel produk_materi.
      * Data dikirim sebagai array: materi[judul][], materi[tipe_file][], materi[url_file][], materi[urutan][]
      */

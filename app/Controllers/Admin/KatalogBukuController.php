@@ -262,7 +262,8 @@ class KatalogBukuController extends BaseController
                 'judul'         => $judul,
                 'url_thumbnail' => $urlThumb,
                 'url_shopee'    => $urlShopee,
-                'is_active'     => 1,
+                'is_active'     => 0,
+                'is_highlight'  => 0,
                 'urutan'        => $imported + 1,
             ]);
             $imported++;

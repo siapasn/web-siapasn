@@ -48,27 +48,18 @@
                 <thead class="table-light">
                     <tr>
                         <th class="ps-3" style="width:50px">No</th>
-                        <th style="width:80px">Thumbnail</th>
                         <th>Nama Produk</th>
                         <th>Kategori</th>
                         <th class="text-end">Harga</th>
-                        <th class="text-center">Status</th>
-                        <th class="text-center pe-3" style="width:130px">Aksi</th>
+                        <th class="text-center" style="width:80px">Aktif</th>
+                        <th class="text-center" style="width:100px">Highlight</th>
+                        <th class="text-center pe-3" style="width:100px">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php foreach ($produks as $i => $p): ?>
                         <tr>
                             <td class="ps-3 text-muted"><?= $i + 1 ?></td>
-                            <td>
-                                <?php
-                                $thumb = $p['thumbnail']
-                                    ? base_url('uploads/produk/' . $p['thumbnail'])
-                                    : base_url('assets/images/thumbnail/product-default.png');
-                                ?>
-                                <img src="<?= $thumb ?>" alt="<?= esc($p['nama']) ?>"
-                                     class="rounded" style="width:60px;height:60px;object-fit:cover;object-position:center;">
-                            </td>
                             <td class="fw-medium"><?= esc($p['nama']) ?></td>
                             <td>
                                 <?php if (! empty($p['kategori_nama'])): ?>
@@ -81,11 +72,18 @@
                             </td>
                             <td class="text-end">Rp <?= number_format((float) $p['harga'], 0, ',', '.') ?></td>
                             <td class="text-center">
-                                <?php if ($p['is_active']): ?>
-                                    <span class="badge bg-success rounded-pill">Aktif</span>
-                                <?php else: ?>
-                                    <span class="badge bg-secondary rounded-pill">Nonaktif</span>
-                                <?php endif; ?>
+                                <div class="form-check form-switch d-flex justify-content-center mb-0">
+                                    <input class="form-check-input toggle-produk" type="checkbox"
+                                           data-id="<?= $p['id'] ?>" data-field="is_active"
+                                           <?= $p['is_active'] ? 'checked' : '' ?>>
+                                </div>
+                            </td>
+                            <td class="text-center">
+                                <div class="form-check form-switch d-flex justify-content-center mb-0">
+                                    <input class="form-check-input toggle-produk" type="checkbox"
+                                           data-id="<?= $p['id'] ?>" data-field="is_highlight"
+                                           <?= ($p['is_highlight'] ?? 0) ? 'checked' : '' ?>>
+                                </div>
                             </td>
                             <td class="text-center pe-3">
                                 <a href="<?= base_url("admin/master/produk/{$p['id']}/edit") ?>"
@@ -131,9 +129,44 @@ $('#tabelProduk').DataTable({
     ordering: true,
     order: [],
     columnDefs: [
-        { orderable: false, targets: [0, 1, 6] },
-        { searchable: false, targets: [0, 1, 6] },
+        { orderable: false, targets: [0, 4, 5, 6] },
+        { searchable: false, targets: [0, 4, 5, 6] },
     ]
+});
+
+// AJAX toggle status & highlight produk
+document.querySelectorAll('.toggle-produk').forEach(function (toggle) {
+    toggle.addEventListener('change', function () {
+        const id    = this.dataset.id;
+        const field = this.dataset.field;
+        const value = this.checked ? 1 : 0;
+        const self  = this;
+
+        fetch('<?= base_url('admin/master/produk/toggle') ?>', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: new URLSearchParams({
+                '<?= csrf_token() ?>': '<?= csrf_hash() ?>',
+                id: id,
+                field: field,
+                value: value,
+            }),
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (! data.status) {
+                self.checked = ! self.checked;
+                alert(data.message || 'Gagal mengubah status.');
+            }
+        })
+        .catch(() => {
+            self.checked = ! self.checked;
+            alert('Terjadi kesalahan jaringan.');
+        });
+    });
 });
 <?php endif; ?>
 </script>

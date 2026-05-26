@@ -20,6 +20,7 @@ class ProdukModel extends Model
         'thumbnail',
         'harga',
         'is_active',
+        'is_highlight',
     ];
 
     protected $useTimestamps = true;
