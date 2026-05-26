@@ -43,7 +43,7 @@ class DataFileController extends BaseController
      */
     public function upload()
     {
-        $allowedTypes = ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx'];
+        $allowedTypes = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'pdf', 'doc', 'docx', 'xls', 'xlsx'];
         $maxSizeMB    = 5;
 
         $file = $this->request->getFile('file');

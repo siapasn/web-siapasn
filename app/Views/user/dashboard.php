@@ -56,6 +56,53 @@
     </div>
 </div>
 
+<!-- Buku Highlight -->
+<?php if (! empty($bukuHighlight)): ?>
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white border-bottom d-flex align-items-center justify-content-between">
+        <h6 class="mb-0"><i class="bi bi-star-fill me-2 text-warning"></i>Rekomendasi Buku</h6>
+        <a href="<?= base_url('user/katalog-buku') ?>" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-book me-1"></i>Lihat Semua
+        </a>
+    </div>
+    <div class="card-body">
+        <div class="row g-3">
+            <?php foreach ($bukuHighlight as $b): ?>
+                <div class="col-6 col-md-4 col-lg-3">
+                    <div class="card border-0 shadow-sm h-100" style="border-radius:.75rem;overflow:hidden;transition:transform .18s,box-shadow .18s">
+                        <div style="aspect-ratio:1/1;overflow:hidden;background:#f1f5f9;display:flex;align-items:center;justify-content:center">
+                            <img src="<?= esc($b['url_thumbnail']) ?>"
+                                 alt="<?= esc($b['judul']) ?>"
+                                 style="width:100%;height:100%;object-fit:contain"
+                                 referrerpolicy="no-referrer"
+                                 loading="lazy"
+                                 onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                            <div style="display:none;flex-direction:column;align-items:center;color:#94a3b8;font-size:.8rem">
+                                <i class="bi bi-book" style="font-size:2rem;margin-bottom:.3rem"></i>
+                                <span>Gambar</span>
+                            </div>
+                        </div>
+                        <div class="card-body p-3 d-flex flex-column">
+                            <p class="mb-3" style="font-size:.85rem;font-weight:500;line-height:1.4;color:#1a3a5c;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">
+                                <?= esc($b['judul']) ?>
+                            </p>
+                            <div class="mt-auto">
+                                <a href="<?= esc($b['url_shopee']) ?>"
+                                   target="_blank" rel="noopener noreferrer"
+                                   class="btn btn-sm w-100 fw-semibold"
+                                   style="background:linear-gradient(135deg,#ee4d2d,#ff6633);color:#fff;border:none;border-radius:.5rem">
+                                    <i class="bi bi-cart3 me-1"></i>Beli di Shopee
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
+
 <!-- Produk Terbaru (belum dibeli) -->
 <div class="card border-0 shadow-sm mb-4">
     <div class="card-header bg-white border-bottom d-flex align-items-center justify-content-between">

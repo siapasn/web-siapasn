@@ -28,9 +28,9 @@
                 <div class="col-12 col-md-7">
                     <label for="file" class="form-label">Pilih File</label>
                     <input type="file" id="file" name="file" class="form-control"
-                           accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx,.xls,.xlsx" required>
+                           accept=".jpg,.jpeg,.png,.gif,.webp,.pdf,.doc,.docx,.xls,.xlsx" required>
                     <div class="form-text">
-                        Tipe yang diizinkan: JPG, JPEG, PNG, GIF, PDF, DOC, DOCX, XLS, XLSX.
+                        Tipe yang diizinkan: JPG, JPEG, PNG, GIF, WEBP, PDF, DOC, DOCX, XLS, XLSX.
                         Maks. 5 MB.
                     </div>
                 </div>
@@ -117,13 +117,14 @@
                                 </td>
                                 <td class="text-center pe-3">
                                     <?php
-                                    $serveUrl = base_url("admin/master/datafile/{$f['id']}/serve");
+                                    $publicFileUrl = base_url("file/{$f['id']}");
+                                    $serveUrl      = base_url("admin/master/datafile/{$f['id']}/serve");
                                     ?>
-                                    <!-- Salin URL -->
+                                    <!-- Salin URL Publik -->
                                     <button type="button"
                                             class="btn btn-sm btn-outline-success py-0 px-2 btn-salin-url"
-                                            data-url="<?= esc($serveUrl) ?>"
-                                            title="Salin URL untuk Materi Pelajaran">
+                                            data-url="<?= esc($publicFileUrl) ?>"
+                                            title="Salin URL Publik">
                                         <i class="bi bi-clipboard"></i>
                                     </button>
                                     <!-- Preview / Buka -->

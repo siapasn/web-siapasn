@@ -76,10 +76,16 @@ $routes->group('user', ['filter' => 'auth'], function ($routes) {
 
     // Payment status — redirect dari Midtrans setelah pembayaran
     $routes->get('payment/status', 'User\PaymentStatusController::index');
+
+    // Katalog Buku
+    $routes->get('katalog-buku', 'User\KatalogBukuController::index');
 });
 
 // Webhook Midtrans — publik, tidak memerlukan autentikasi
 $routes->post('/webhook/midtrans', 'WebhookController::midtrans');
+
+// Serve file publik dari datafile (untuk katalog buku thumbnail, dll.)
+$routes->get('/file/(:num)', 'FileServeController::index/$1');
 
 // Cron Jobs — diamankan dengan API key (X-Cron-Key header atau ?key=...)
 $routes->get('/cron/sync-payment-status', 'CronController::syncPaymentStatus');
@@ -199,6 +205,18 @@ $routes->group('admin', ['filter' => ['auth', 'admin_only']], function ($routes)
     $routes->get('konten/(:num)/edit', 'Admin\KontenController::edit/$1');
     $routes->post('konten/(:num)/update', 'Admin\KontenController::update/$1');
     $routes->post('konten/(:num)/delete', 'Admin\KontenController::delete/$1');
+
+    // Katalog Buku
+    $routes->get('katalog-buku', 'Admin\KatalogBukuController::index');
+    $routes->get('katalog-buku/create', 'Admin\KatalogBukuController::create');
+    $routes->post('katalog-buku/store', 'Admin\KatalogBukuController::store');
+    $routes->get('katalog-buku/import', 'Admin\KatalogBukuController::import');
+    $routes->post('katalog-buku/import', 'Admin\KatalogBukuController::importProcess');
+    $routes->get('katalog-buku/(:num)/edit', 'Admin\KatalogBukuController::edit/$1');
+    $routes->post('katalog-buku/(:num)/update', 'Admin\KatalogBukuController::update/$1');
+    $routes->post('katalog-buku/(:num)/delete', 'Admin\KatalogBukuController::delete/$1');
+    $routes->post('katalog-buku/toggle', 'Admin\KatalogBukuController::toggle');
+
 });
 
 // Route Super Admin — dilindungi oleh AuthFilter + SuperAdminFilter (super_admin saja)

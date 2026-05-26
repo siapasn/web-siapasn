@@ -92,10 +92,15 @@ class DashboardController extends BaseController
             ->orderBy('urutan', 'ASC')
             ->get()->getResultArray();
 
+        // Buku highlight untuk ditampilkan di dashboard
+        $katalogBukuModel = new \App\Models\KatalogBukuModel();
+        $bukuHighlight    = $katalogBukuModel->getHighlighted();
+
         return view('user/dashboard', [
             'produkTerbaru' => $produkTerbaru,
             'riwayatTryout' => $riwayatTryout,
             'avgSkor'       => $avgSkor,
+            'bukuHighlight' => $bukuHighlight,
             'menus'         => $menus,
         ]);
     }
