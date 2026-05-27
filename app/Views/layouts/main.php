@@ -105,12 +105,19 @@
             box-shadow: 0 1px 4px rgba(0,0,0,0.06);
         }
 
-        /* Content area */
+       /* ---- Content ---- */
         .content-area {
             flex: 1;
             padding: 1.5rem;
         }
 
+        /* Mobile Version */
+        @media (max-width: 768px) {
+            .content-area {
+                padding: 0.5rem;
+            }
+        }
+        
         /* Page Header Banner */
         .page-header-banner {
             background: linear-gradient(135deg, var(--sa-primary-dk) 0%, var(--sa-primary) 60%, #1e5080 100%);

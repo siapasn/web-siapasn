@@ -79,7 +79,7 @@
                         ? base_url('uploads/produk/' . $p['thumbnail'])
                         : base_url('assets/images/thumbnail/product-default.png');
                 ?>
-                    <div class="col-6 col-md-4 col-lg-3">
+                    <div class="col-12 col-md-4 col-lg-3">
                         <div class="card border-0 shadow-sm h-100" style="border-radius:.75rem;overflow:hidden;transition:transform .18s,box-shadow .18s;border:1px solid #e2e8f0">
                             <div style="aspect-ratio:1/1;overflow:hidden;background:#e8f0fe">
                                 <img src="<?= $thumb ?>" alt="<?= esc($p['nama']) ?>"

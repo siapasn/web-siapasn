@@ -122,13 +122,14 @@
 
                     <?php
                     $groups = [
-                        'QRIS & E-Wallet' => ['qris', 'gopay', 'shopeepay'],
+                        'QRIS & E-Wallet' => ['qris', 'gopay', 'shopeepay', 'dana'],
                         'Transfer Bank'   => ['mandiri', 'bni', 'bri', 'permata'],
                     ];
                     $bgColors = [
                         'qris'      => '#e31e24',
                         'gopay'     => '#00aed6',
                         'shopeepay' => '#ee4d2d',
+                        'dana'      => '#108ee9',
                         'mandiri'   => '#003d79',
                         'bni'       => '#f68b1e',
                         'bri'       => '#005baa',
@@ -138,6 +139,7 @@
                         'qris'      => 'QR',
                         'gopay'     => 'GP',
                         'shopeepay' => 'SP',
+                        'dana'      => 'DN',
                         'mandiri'   => 'MDR',
                         'bni'       => 'BNI',
                         'bri'       => 'BRI',

@@ -186,6 +186,13 @@
             padding: 1.5rem;
         }
 
+        /* Mobile Version */
+        @media (max-width: 768px) {
+            .content-area {
+                padding: 0.5rem;
+            }
+        }
+        
         /* ---- Page Header Banner ---- */
         .page-header-banner {
             background: linear-gradient(135deg, var(--sa-primary-dk) 0%, var(--sa-primary) 60%, #1e5080 100%);

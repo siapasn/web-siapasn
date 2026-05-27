@@ -36,6 +36,13 @@ class MidtransService
             'enabled'  => ['shopeepay'],
             'color'    => '#ee4d2d',
         ],
+        'dana' => [
+            'label'    => 'DANA',
+            'icon'     => 'dana',
+            'desc'     => 'Bayar dengan saldo DANA',
+            'enabled'  => ['dana'],
+            'color'    => '#108ee9',
+        ],
         'mandiri' => [
             'label'    => 'Bank Transfer Mandiri',
             'icon'     => 'mandiri',
@@ -223,6 +230,10 @@ class MidtransService
             case 'shopeepay':
                 $method  = 'shopeepay';
                 $channel = 'shopeepay';
+                break;
+            case 'dana':
+                $method  = 'dana';
+                $channel = 'dana';
                 break;
             case 'echannel': // Mandiri Bill
                 $method  = 'mandiri';
