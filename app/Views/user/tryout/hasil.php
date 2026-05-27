@@ -89,26 +89,52 @@ if (! empty($hasil['detail_passing_grade'])) {
                 <i class="bi bi-bar-chart-fill me-1 text-primary"></i> Ringkasan Jawaban
             </div>
             <div class="card-body">
-                <div class="row g-3 text-center">
-                    <div class="col-4">
-                        <div class="p-3 rounded bg-success bg-opacity-10">
-                            <div class="fs-3 fw-bold text-success"><?= (int) ($hasil['jumlah_benar'] ?? 0) ?></div>
-                            <div class="small text-muted">Benar</div>
+                <?php
+                // Cek apakah semua soal bertipe POINT (tidak ada benar/salah)
+                $semuaPoint = true;
+                foreach ($detailKategori as $dk) {
+                    if (($dk['tipe_soal'] ?? '') !== 'POINT') { $semuaPoint = false; break; }
+                }
+                ?>
+                <?php if ($semuaPoint): ?>
+                    <!-- Tipe POINT: tidak ada benar/salah -->
+                    <div class="row g-3 text-center">
+                        <div class="col-6">
+                            <div class="p-3 rounded bg-primary bg-opacity-10">
+                                <div class="fs-3 fw-bold text-primary"><?= (int) ($hasil['total_nilai'] ?? 0) ?></div>
+                                <div class="small text-muted">Total Nilai</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-3 rounded bg-secondary bg-opacity-10">
+                                <div class="fs-3 fw-bold text-secondary"><?= (int) ($hasil['jumlah_kosong'] ?? 0) ?></div>
+                                <div class="small text-muted">Kosong</div>
+                            </div>
                         </div>
                     </div>
-                    <div class="col-4">
-                        <div class="p-3 rounded bg-danger bg-opacity-10">
-                            <div class="fs-3 fw-bold text-danger"><?= (int) ($hasil['jumlah_salah'] ?? 0) ?></div>
-                            <div class="small text-muted">Salah</div>
+                <?php else: ?>
+                    <!-- Tipe SCORE: ada benar/salah -->
+                    <div class="row g-3 text-center">
+                        <div class="col-4">
+                            <div class="p-3 rounded bg-success bg-opacity-10">
+                                <div class="fs-3 fw-bold text-success"><?= (int) ($hasil['jumlah_benar'] ?? 0) ?></div>
+                                <div class="small text-muted">Benar</div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="p-3 rounded bg-danger bg-opacity-10">
+                                <div class="fs-3 fw-bold text-danger"><?= (int) ($hasil['jumlah_salah'] ?? 0) ?></div>
+                                <div class="small text-muted">Salah</div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="p-3 rounded bg-secondary bg-opacity-10">
+                                <div class="fs-3 fw-bold text-secondary"><?= (int) ($hasil['jumlah_kosong'] ?? 0) ?></div>
+                                <div class="small text-muted">Kosong</div>
+                            </div>
                         </div>
                     </div>
-                    <div class="col-4">
-                        <div class="p-3 rounded bg-secondary bg-opacity-10">
-                            <div class="fs-3 fw-bold text-secondary"><?= (int) ($hasil['jumlah_kosong'] ?? 0) ?></div>
-                            <div class="small text-muted">Kosong</div>
-                        </div>
-                    </div>
-                </div>
+                <?php endif; ?>
             </div>
         </div>
 
@@ -199,9 +225,9 @@ if (! empty($hasil['detail_passing_grade'])) {
                                 <div class="d-flex align-items-center gap-2 flex-wrap">
                                     <span class="fw-semibold"><?= esc($kat['sub_kategori_nama'] ?? $kat['kategori_nama']) ?></span>
                                     <?php if ($tipeSoal === 'SCORE'): ?>
-                                        <span class="badge bg-warning text-dark" style="font-size:.65rem">SCORE</span>
+                                        <span class="badge bg-info text-dark" style="font-size:.65rem">SCORE</span>
                                     <?php else: ?>
-                                        <span class="badge bg-primary bg-opacity-75" style="font-size:.65rem">POINT</span>
+                                        <span class="badge bg-warning text-dark" style="font-size:.65rem">POINT</span>
                                     <?php endif; ?>
                                     <?php if ($pgStatus === true): ?>
                                         <span class="badge bg-success-subtle text-success border border-success-subtle" style="font-size:.65rem">
@@ -235,9 +261,9 @@ if (! empty($hasil['detail_passing_grade'])) {
                                 <div class="progress-bar <?= $barClass ?>" style="width:<?= $barPct ?>%"></div>
                             </div>
 
-                            <!-- Info detail — SCORE tidak tampilkan Benar/Salah -->
+                            <!-- Info detail -->
                             <div class="small text-muted">
-                                <?php if ($tipeSoal === 'SCORE'): ?>
+                                <?php if ($tipeSoal === 'POINT'): ?>
                                     Nilai dipilih: <?= $totalNilaiKat ?> poin
                                     &nbsp;|&nbsp; Total soal: <?= (int) $kat['total'] ?>
                                     &nbsp;|&nbsp; Kosong: <?= (int) $kat['kosong'] ?>

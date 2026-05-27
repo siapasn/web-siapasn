@@ -31,10 +31,10 @@
         $nomorSoal   = $index + 1;
         $jawabanUser = $soal['jawaban_user'] ?? null;
         $kunci       = $soal['kunci_jawaban'] ?? null;
-        $tipeSoal    = $soal['tipe_soal'] ?? 'POINT';
+        $tipeSoal    = $soal['tipe_soal'] ?? 'SCORE';
         $isKosong    = ($jawabanUser === null || $jawabanUser === '');
 
-        // Nilai per pilihan untuk SCORE
+        // Nilai per pilihan
         $nilaiMap = [
             'a' => (int)($soal['nilai_a'] ?? 0),
             'b' => (int)($soal['nilai_b'] ?? 0),
@@ -43,22 +43,25 @@
             'e' => (int)($soal['nilai_e'] ?? 0),
         ];
 
-        // Fallback SCORE → POINT jika nilai_a–e semua NULL/0
-        // (sama dengan logika di TryoutScoringService)
-        if ($tipeSoal === 'SCORE') {
-            $adaNilaiScore = false;
-            foreach ($nilaiMap as $n) {
-                if ($n > 0) { $adaNilaiScore = true; break; }
-            }
-            if (! $adaNilaiScore) {
-                $tipeSoal = 'POINT';
-            }
+        // Resolve tipe berdasarkan data aktual (sama dengan TryoutScoringService)
+        $adaNilai = false;
+        foreach ($nilaiMap as $n) { if ($n > 0) { $adaNilai = true; break; } }
+        $adaKunci = ! empty($kunci);
+
+        if ($tipeSoal === 'POINT' && $adaNilai) {
+            $tipeSoal = 'POINT'; // benar
+        } elseif ($tipeSoal === 'SCORE' && $adaKunci) {
+            $tipeSoal = 'SCORE'; // benar
+        } elseif ($adaNilai && ! $adaKunci) {
+            $tipeSoal = 'POINT';
+        } elseif ($adaKunci && ! $adaNilai) {
+            $tipeSoal = 'SCORE';
         }
 
-        // Cari pilihan dengan nilai tertinggi (untuk SCORE)
+        // Cari pilihan dengan nilai tertinggi (untuk POINT)
         $nilaiTertinggi = 0;
         $pilihanTerbaik = null;
-        if ($tipeSoal === 'SCORE') {
+        if ($tipeSoal === 'POINT') {
             foreach ($nilaiMap as $huruf => $nilai) {
                 if ($nilai > $nilaiTertinggi) {
                     $nilaiTertinggi = $nilai;
@@ -68,7 +71,7 @@
         }
 
         // Status badge
-        if ($tipeSoal === 'SCORE') {
+        if ($tipeSoal === 'POINT') {
             $nilaiDipilih = $isKosong ? 0 : ($nilaiMap[$jawabanUser] ?? 0);
             if ($isKosong) {
                 $statusBadge = '<span class="badge bg-secondary">Tidak Dijawab · 0 poin</span>';
@@ -98,10 +101,10 @@
             <div class="card-header bg-white d-flex justify-content-between align-items-center border-bottom">
                 <span class="fw-semibold">Soal <?= $nomorSoal ?></span>
                 <div class="d-flex align-items-center gap-2">
-                    <?php if ($tipeSoal === 'SCORE'): ?>
-                        <span class="badge bg-warning text-dark" style="font-size:.68rem">SCORE</span>
+                    <?php if ($tipeSoal === 'POINT'): ?>
+                        <span class="badge bg-warning text-dark" style="font-size:.68rem">POINT</span>
                     <?php else: ?>
-                        <span class="badge bg-primary bg-opacity-75" style="font-size:.68rem">POINT</span>
+                        <span class="badge bg-info text-dark" style="font-size:.68rem">SCORE</span>
                     <?php endif; ?>
                     <?= $statusBadge ?>
                 </div>
@@ -120,8 +123,8 @@
                         <?php
                         $isUserAnswer = ($jawabanUser === $huruf);
 
-                        if ($tipeSoal === 'SCORE') {
-                            // SCORE: tidak ada benar/salah
+                        if ($tipeSoal === 'POINT') {
+                            // POINT: tidak ada benar/salah, tampilkan nilai per pilihan
                             $nilaiPilihan = $nilaiMap[$huruf] ?? 0;
                             $isTerbaik    = ($huruf === $pilihanTerbaik);
 
@@ -148,7 +151,7 @@
                                     : '';
                             }
                         } else {
-                            // POINT: benar/salah
+                            // SCORE: benar/salah
                             $isCorrect = ($kunci === $huruf);
                             if ($isCorrect && $isUserAnswer) {
                                 $rowClass = 'border-success bg-success bg-opacity-10';

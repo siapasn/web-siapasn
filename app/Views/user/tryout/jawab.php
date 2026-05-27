@@ -230,7 +230,7 @@ $csrfHash     = csrf_hash();
                     <i class="bi bi-check-circle-fill me-1"></i>Tersimpan
                 </span>
             </div>
-            <div style="font-size:1rem;line-height:1.75">
+            <div style="font-size:1.1rem;line-height:1.75">
                 <?= $soalSaatIni['pertanyaan'] ?>
             </div>
         </div>

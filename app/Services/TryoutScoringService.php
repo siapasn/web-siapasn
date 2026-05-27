@@ -69,36 +69,52 @@ class TryoutScoringService
         $detailKategori = [];
 
         foreach ($jawaban as $j) {
-            $tipeSoal = $j['kategori_tipe'] ?? 'POINT';
+            $tipeSoal = $j['kategori_tipe'] ?? 'SCORE';
             $isKosong = ($j['jawaban'] === null || $j['jawaban'] === '');
 
-            // ── Deteksi apakah soal SCORE benar-benar punya nilai per pilihan ──
-            // Jika tipe SCORE tapi semua nilai_a–e NULL/0, fallback ke mode POINT
-            $adaNilaiScore = false;
-            if ($tipeSoal === 'SCORE') {
-                foreach (['nilai_a','nilai_b','nilai_c','nilai_d','nilai_e'] as $kol) {
-                    if (isset($j[$kol]) && $j[$kol] !== null && (int)$j[$kol] > 0) {
-                        $adaNilaiScore = true;
-                        break;
-                    }
-                }
-                if (! $adaNilaiScore) {
-                    $tipeSoal = 'POINT'; // fallback: tidak ada nilai per pilihan, pakai POINT
+            // ── Deteksi tipe soal berdasarkan data aktual ──
+            // POINT = setiap pilihan punya nilai 1-5 (TKP), tidak ada benar/salah
+            // SCORE = ada kunci jawaban benar/salah (TWK, TIU, SKB), benar = 5 poin
+            //
+            // Fallback: jika tipe SCORE tapi tidak ada kunci_jawaban dan ada nilai_a–e → treat as POINT
+            //           jika tipe POINT tapi tidak ada nilai_a–e dan ada kunci → treat as SCORE
+            $adaNilai = false;
+            foreach (['nilai_a','nilai_b','nilai_c','nilai_d','nilai_e'] as $kol) {
+                if (isset($j[$kol]) && $j[$kol] !== null && (int)$j[$kol] > 0) {
+                    $adaNilai = true;
+                    break;
                 }
             }
+            $adaKunci = ! empty($j['kunci_jawaban']);
+
+            // Resolve tipe berdasarkan data aktual
+            if ($tipeSoal === 'POINT' && $adaNilai) {
+                // Benar: POINT dengan nilai per pilihan
+                $tipeSoal = 'POINT';
+            } elseif ($tipeSoal === 'SCORE' && $adaKunci) {
+                // Benar: SCORE dengan kunci jawaban
+                $tipeSoal = 'SCORE';
+            } elseif ($adaNilai && ! $adaKunci) {
+                // Data punya nilai tapi tidak ada kunci → POINT
+                $tipeSoal = 'POINT';
+            } elseif ($adaKunci && ! $adaNilai) {
+                // Data punya kunci tapi tidak ada nilai → SCORE
+                $tipeSoal = 'SCORE';
+            }
+            // Jika keduanya ada atau keduanya tidak ada, pakai tipe dari kategori
 
             // ── Hitung nilai per soal ────────────────────────────────────────
-            if ($tipeSoal === 'SCORE') {
-                // TKP: ambil nilai dari field nilai_a–nilai_e
+            if ($tipeSoal === 'POINT') {
+                // POINT (TKP): ambil nilai dari field nilai_a–nilai_e
                 $nilaiSoal = 0;
                 if (! $isKosong) {
                     $map        = ['a'=>'nilai_a','b'=>'nilai_b','c'=>'nilai_c','d'=>'nilai_d','e'=>'nilai_e'];
                     $kolom      = $map[$j['jawaban']] ?? null;
                     $nilaiSoal  = $kolom ? (int)($j[$kolom] ?? 0) : 0;
                 }
-                $isBenar = false; // SCORE tidak punya konsep benar/salah biner
+                $isBenar = false; // POINT tidak punya konsep benar/salah
             } else {
-                // POINT: benar = 5, salah/kosong = 0
+                // SCORE (TWK/TIU/SKB): benar = 5, salah/kosong = 0
                 $isBenar   = (! $isKosong && $j['jawaban'] === $j['kunci_jawaban']);
                 $nilaiSoal = $isBenar ? 5 : 0;
             }
@@ -111,11 +127,12 @@ class TryoutScoringService
 
             if ($isKosong) {
                 $jumlahKosong++;
-            } elseif ($tipeSoal === 'POINT' && $isBenar) {
+            } elseif ($tipeSoal === 'SCORE' && $isBenar) {
                 $jumlahBenar++;
-            } elseif ($tipeSoal === 'POINT') {
+            } elseif ($tipeSoal === 'SCORE') {
                 $jumlahSalah++;
             }
+            // POINT: tidak menambah jumlahBenar/jumlahSalah
 
             // ── Akumulasi per kategori ───────────────────────────────────────
             $groupId   = $j['kategori_id'];
@@ -143,15 +160,16 @@ class TryoutScoringService
             $detailKategori[$groupId]['total_nilai'] += $nilaiSoal;
 
             if ($groupTipe === 'POINT') {
-                $detailKategori[$groupId]['max_nilai'] += 5; // max per soal POINT = 5
+                // POINT (TKP): max per soal = 5, tidak ada benar/salah
+                $detailKategori[$groupId]['max_nilai'] += 5;
+                if ($isKosong) $detailKategori[$groupId]['kosong']++;
+                else           $detailKategori[$groupId]['benar']++; // "benar" = ada jawaban (untuk counter)
+            } else {
+                // SCORE (TWK/TIU/SKB): max per soal = 5, ada benar/salah
+                $detailKategori[$groupId]['max_nilai'] += 5;
                 if ($isKosong)       $detailKategori[$groupId]['kosong']++;
                 elseif ($isBenar)    $detailKategori[$groupId]['benar']++;
                 else                 $detailKategori[$groupId]['salah']++;
-            } else {
-                // SCORE: max nilai per soal = 5 (nilai tertinggi TKP)
-                $detailKategori[$groupId]['max_nilai'] += 5;
-                if ($isKosong) $detailKategori[$groupId]['kosong']++;
-                else           $detailKategori[$groupId]['benar']++; // "benar" = ada jawaban
             }
         }
 
