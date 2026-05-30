@@ -229,6 +229,11 @@ $routes->group('admin', ['filter' => ['auth', 'admin_only']], function ($routes)
     $routes->post('katalog-buku/(:num)/delete', 'Admin\KatalogBukuController::delete/$1');
     $routes->post('katalog-buku/toggle', 'Admin\KatalogBukuController::toggle');
 
+    // Blast Email
+    $routes->get('blast-email', 'Admin\BlastEmailController::index');
+    $routes->post('blast-email/send', 'Admin\BlastEmailController::send');
+    $routes->get('blast-email/(:num)/preview', 'Admin\BlastEmailController::preview/$1');
+
 });
 
 // Route Super Admin — dilindungi oleh AuthFilter + SuperAdminFilter (super_admin saja)
