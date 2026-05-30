@@ -268,33 +268,6 @@
             <?php endif; ?>
 
         </div>
-
-        <!-- Jam Operasional -->
-        <hr class="my-4">
-        <h5 class="fw-bold mb-3" style="color:var(--sa-primary);">
-            <i class="bi bi-clock me-2" style="color:var(--sa-accent)"></i>Jam Operasional
-        </h5>
-        <div class="row g-2">
-            <div class="col-sm-6">
-                <div class="d-flex justify-content-between p-2 rounded" style="background:var(--sa-body-bg);">
-                    <span class="text-muted">Senin – Jumat</span>
-                    <span class="fw-semibold">08.00 – 17.00 WIB</span>
-                </div>
-            </div>
-            <div class="col-sm-6">
-                <div class="d-flex justify-content-between p-2 rounded" style="background:var(--sa-body-bg);">
-                    <span class="text-muted">Sabtu</span>
-                    <span class="fw-semibold">09.00 – 14.00 WIB</span>
-                </div>
-            </div>
-            <div class="col-sm-6">
-                <div class="d-flex justify-content-between p-2 rounded" style="background:var(--sa-body-bg);">
-                    <span class="text-muted">Minggu & Hari Libur</span>
-                    <span class="fw-semibold text-danger">Tutup</span>
-                </div>
-            </div>
-        </div>
-
     </div>
 </div>
 
