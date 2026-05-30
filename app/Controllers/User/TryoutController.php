@@ -78,22 +78,25 @@ class TryoutController extends BaseController
         $paketList = [];
 
         if ($db->tableExists('mapping_tryout') && $db->tableExists('user_produk')) {
-            // Ambil semua produk yang dimiliki user (aktif)
+            // Ambil semua produk yang pernah dibeli user (termasuk yang sudah expired)
             $produkList = $db->table('user_produk up')
                 ->select('p.id, p.nama, p.thumbnail, p.deskripsi, p.kategori_id, k.nama AS kategori_nama, up.expired_at')
                 ->join('produk p', 'p.id = up.produk_id')
                 ->join('kategori k', 'k.id = p.kategori_id', 'left')
                 ->where('up.user_id', $userId)
-                ->groupStart()
-                    ->where('up.expired_at IS NULL', null, false)
-                    ->orWhere('up.expired_at >', date('Y-m-d H:i:s'))
-                ->groupEnd()
                 ->groupBy('p.id')
                 ->orderBy('k.id', 'ASC')
                 ->orderBy('p.nama', 'ASC')
                 ->get()->getResultArray();
 
             foreach ($produkList as $produk) {
+                // Tentukan apakah produk sudah expired
+                $isExpired = false;
+                if (! empty($produk['expired_at']) && strtotime($produk['expired_at']) <= time()) {
+                    $isExpired = true;
+                }
+                $produk['is_expired'] = $isExpired;
+
                 // Ambil semua tryout dalam produk ini
                 $tryouts = $db->table('mapping_tryout mt')
                     ->select('t.id, t.nama, t.durasi, t.is_active, mt.urutan')

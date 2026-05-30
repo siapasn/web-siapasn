@@ -312,6 +312,10 @@
                                         <span class="badge bg-success position-absolute" style="top:.6rem;right:.6rem;font-size:.68rem;z-index:1">
                                             <i class="bi bi-check-circle me-1"></i>Selesai
                                         </span>
+                                    <?php elseif (! empty($produk['is_expired'])): ?>
+                                        <span class="badge bg-danger position-absolute" style="top:.6rem;right:.6rem;font-size:.68rem;z-index:1">
+                                            <i class="bi bi-clock-history me-1"></i>Expired
+                                        </span>
                                     <?php elseif ($item['jumlah_selesai'] > 0): ?>
                                         <span class="badge bg-warning text-dark position-absolute" style="top:.6rem;right:.6rem;font-size:.68rem;z-index:1">
                                             <i class="bi bi-play-circle me-1"></i>Berlangsung
@@ -342,20 +346,23 @@
                                             $expiredTime = strtotime($produk['expired_at']);
                                             $now = time();
                                             $sisaHari = (int) ceil(($expiredTime - $now) / 86400);
-                                            if ($sisaHari <= 30) {
+                                            if ($sisaHari <= 0) {
                                                 $expBadgeClass = 'bg-danger bg-opacity-10 text-danger border-danger-subtle';
+                                                $expLabel = 'Akses berakhir ' . date('d M Y', $expiredTime);
+                                            } elseif ($sisaHari <= 30) {
+                                                $expBadgeClass = 'bg-danger bg-opacity-10 text-danger border-danger-subtle';
+                                                $expLabel = 'Akses s/d ' . date('d M Y', $expiredTime) . ' (' . $sisaHari . ' hari lagi)';
                                             } elseif ($sisaHari <= 90) {
                                                 $expBadgeClass = 'bg-warning bg-opacity-10 text-warning border-warning-subtle';
+                                                $expLabel = 'Akses s/d ' . date('d M Y', $expiredTime);
                                             } else {
                                                 $expBadgeClass = 'bg-secondary bg-opacity-10 text-secondary border-secondary-subtle';
+                                                $expLabel = 'Akses s/d ' . date('d M Y', $expiredTime);
                                             }
                                         ?>
                                         <div class="mb-2">
                                             <span class="badge <?= $expBadgeClass ?> border" style="font-size:.65rem">
-                                                <i class="bi bi-calendar-event me-1"></i>Akses s/d <?= date('d M Y', $expiredTime) ?>
-                                                <?php if ($sisaHari <= 30): ?>
-                                                    <span class="ms-1">(<?= $sisaHari ?> hari lagi)</span>
-                                                <?php endif; ?>
+                                                <i class="bi bi-calendar-event me-1"></i><?= $expLabel ?>
                                             </span>
                                         </div>
                                         <?php endif; ?>
@@ -371,16 +378,25 @@
                                         </div>
 
                                         <div class="d-flex flex-column gap-2 mt-auto">
-                                            <a href="<?= base_url('user/tryout/' . $tryout_id_item . '/sesi') ?>"
-                                               class="btn btn-outline-primary btn-sm"
-                                               style="border-radius:.5rem;font-weight:600;font-size:.8rem">
-                                                <i class="bi bi-list-ul me-1"></i>Lihat Sesi (<?= $item['jumlah_tryout'] ?>)
-                                            </a>
-                                            <a href="<?= base_url('user/produk/' . $produk['id']) ?>"
-                                               class="btn btn-outline-secondary btn-sm"
-                                               style="border-radius:.5rem;font-weight:600;font-size:.8rem">
-                                                <i class="bi bi-box-seam me-1"></i>Detail Produk
-                                            </a>
+                                            <?php if (! empty($produk['is_expired'])): ?>
+                                                <!-- Expired: hanya bisa lihat riwayat -->
+                                                <a href="<?= base_url('user/tryout/' . $tryout_id_item . '/sesi') ?>"
+                                                   class="btn btn-outline-secondary btn-sm"
+                                                   style="border-radius:.5rem;font-weight:600;font-size:.8rem">
+                                                    <i class="bi bi-clock-history me-1"></i>Lihat Riwayat
+                                                </a>
+                                            <?php else: ?>
+                                                <a href="<?= base_url('user/tryout/' . $tryout_id_item . '/sesi') ?>"
+                                                   class="btn btn-outline-primary btn-sm"
+                                                   style="border-radius:.5rem;font-weight:600;font-size:.8rem">
+                                                    <i class="bi bi-list-ul me-1"></i>Lihat Sesi (<?= $item['jumlah_tryout'] ?>)
+                                                </a>
+                                                <a href="<?= base_url('user/produk/' . $produk['id']) ?>"
+                                                   class="btn btn-outline-secondary btn-sm"
+                                                   style="border-radius:.5rem;font-weight:600;font-size:.8rem">
+                                                    <i class="bi bi-box-seam me-1"></i>Detail Produk
+                                                </a>
+                                            <?php endif; ?>
                                         </div>
                                     </div>
                                 </div>
@@ -422,7 +438,17 @@
                                                                     </div>
                                                                 </div>
                                                                 <div class="flex-shrink-0">
-                                                                    <?php if ($t['sesi_aktif_id']): ?>
+                                                                    <?php if (! empty($produk['is_expired'])): ?>
+                                                                        <!-- Expired: hanya tampilkan riwayat -->
+                                                                        <?php if (! empty($t['riwayat'])): ?>
+                                                                        <a href="<?= base_url('user/tryout/' . $t['id'] . '/sesi') ?>"
+                                                                           class="btn btn-outline-primary btn-sm py-1 px-2" style="font-size:.72rem">
+                                                                            <i class="bi bi-clock-history me-1"></i>Riwayat
+                                                                        </a>
+                                                                        <?php else: ?>
+                                                                        <span class="badge bg-secondary bg-opacity-10 text-secondary" style="font-size:.7rem">Expired</span>
+                                                                        <?php endif; ?>
+                                                                    <?php elseif ($t['sesi_aktif_id']): ?>
                                                                         <a href="<?= base_url('user/tryout/sesi/' . $t['sesi_aktif_id'] . '/soal/1') ?>"
                                                                            class="btn btn-warning btn-sm py-1 px-2 fw-semibold" style="font-size:.75rem">
                                                                             <i class="bi bi-play-circle me-1"></i>Lanjut
