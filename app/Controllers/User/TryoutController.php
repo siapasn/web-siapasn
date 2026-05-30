@@ -66,6 +66,23 @@ class TryoutController extends BaseController
         return $count > 0;
     }
 
+    /**
+     * Cek apakah user pernah memiliki akses ke tryout (tanpa cek expired).
+     * Digunakan untuk riwayat dan pembahasan yang tetap bisa diakses meskipun expired.
+     */
+    private function userEverOwnedTryout(int $userId, int $tryoutId): bool
+    {
+        $db = \Config\Database::connect();
+
+        $count = $db->table('user_produk up')
+            ->join('mapping_tryout mt', 'mt.produk_id = up.produk_id')
+            ->where('up.user_id', $userId)
+            ->where('mt.tryout_id', $tryoutId)
+            ->countAllResults();
+
+        return $count > 0;
+    }
+
     // -------------------------------------------------------------------------
     // index() — daftar paket produk yang dimiliki user, beserta tryout di dalamnya
     // -------------------------------------------------------------------------
@@ -508,7 +525,7 @@ class TryoutController extends BaseController
         $userId = (int) session()->get('user_id');
         $db     = \Config\Database::connect();
 
-        if (! $this->userHasAccessToTryout($userId, $tryoutId)) {
+        if (! $this->userEverOwnedTryout($userId, $tryoutId)) {
             return redirect()->to(base_url('user/tryout'))
                 ->with('error', 'Anda tidak memiliki akses ke tryout ini.');
         }
@@ -534,6 +551,9 @@ class TryoutController extends BaseController
 
         // Cek sesi aktif
         $sesiAktif = $this->sesiModel->getAktif($userId, $tryoutId);
+
+        // Cek apakah akses sudah expired (untuk hide tombol mulai)
+        $isExpired = ! $this->userHasAccessToTryout($userId, $tryoutId);
 
         // Statistik ringkasan — gunakan total_nilai (poin) bukan persentase
         $totalSesi     = count($riwayat);
@@ -563,6 +583,7 @@ class TryoutController extends BaseController
             'tryout'       => $tryout,
             'riwayat'      => $riwayat,
             'sesiAktif'    => $sesiAktif,
+            'isExpired'    => $isExpired,
             'chartLabels'  => $chartLabels,
             'chartData'    => $chartData,
             'totalSesi'    => $totalSesi,

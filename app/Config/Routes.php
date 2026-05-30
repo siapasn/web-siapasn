@@ -71,6 +71,10 @@ $routes->group('user', ['filter' => 'auth'], function ($routes) {
     // Detail sesi tryout (riwayat + chart)
     $routes->get('tryout/(:num)/sesi', 'User\TryoutController::detailSesi/$1');
 
+    // Ranking / Leaderboard
+    $routes->get('ranking', 'User\RankingController::index');
+    $routes->get('ranking/(:num)', 'User\RankingController::leaderboard/$1');
+
     // Serve file materi pelajaran — hanya untuk user yang sudah membeli produk terkait
     $routes->get('materi/(:num)/file', 'User\MateriFileController::serve/$1');
 

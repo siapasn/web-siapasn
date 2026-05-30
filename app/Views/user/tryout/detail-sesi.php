@@ -76,7 +76,11 @@
     <div class="col-12">
         <div class="d-flex justify-content-between align-items-center">
             <h6 class="fw-bold mb-0">Riwayat Sesi (<?= $totalSesi ?>)</h6>
-            <?php if ($sesiAktif): ?>
+            <?php if (! empty($isExpired)): ?>
+                <span class="badge bg-danger bg-opacity-10 text-danger border border-danger-subtle">
+                    <i class="bi bi-clock-history me-1"></i>Akses Expired
+                </span>
+            <?php elseif ($sesiAktif): ?>
                 <a href="<?= base_url('user/tryout/jawab/' . $sesiAktif['id'] . '?soal_index=1') ?>"
                    class="btn btn-warning btn-sm fw-semibold">
                     <i class="bi bi-play-circle me-1"></i>Lanjutkan Sesi Aktif
