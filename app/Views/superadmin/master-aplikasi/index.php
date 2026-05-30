@@ -418,6 +418,37 @@ $errors = session()->getFlashdata('errors') ?? [];
                     Sesi yang sedang aktif tidak akan terpengaruh secara langsung.
                 </div>
             </div>
+
+            <hr class="my-4">
+
+            <!-- Masa Aktif Produk -->
+            <h6 class="fw-semibold mb-3 text-primary">
+                <i class="bi bi-clock-history me-1"></i> Masa Aktif Produk
+            </h6>
+
+            <div class="mb-3" style="max-width: 400px;">
+                <label for="produk_expired_days" class="form-label">
+                    Masa Aktif Produk (hari) <span class="text-danger">*</span>
+                </label>
+                <div class="input-group">
+                    <input type="number"
+                           id="produk_expired_days"
+                           name="produk_expired_days"
+                           class="form-control <?= isset($errors['produk_expired_days']) ? 'is-invalid' : '' ?>"
+                           value="<?= esc(old('produk_expired_days', $configs['produk_expired_days'] ?? '365')) ?>"
+                           min="1"
+                           max="3650"
+                           required>
+                    <span class="input-group-text">hari</span>
+                    <?php if (isset($errors['produk_expired_days'])): ?>
+                        <div class="invalid-feedback"><?= esc($errors['produk_expired_days']) ?></div>
+                    <?php endif; ?>
+                </div>
+                <div class="form-text">
+                    Durasi akses produk setelah pembelian berhasil. Default: <strong>365 hari</strong> (1 tahun).
+                    Setelah masa aktif habis, user tidak bisa memulai tryout baru tetapi masih bisa melihat riwayat dan pembahasan.
+                </div>
+            </div>
         </div>
 
         <!-- ============================================================ -->
@@ -570,6 +601,7 @@ $errors = session()->getFlashdata('errors') ?? [];
             'email_from':           'tab-email',
             'email_from_name':      'tab-email',
             'session_timeout':      'tab-sesi',
+            'produk_expired_days':  'tab-sesi',
             'redis_socket':         'tab-redis',
             'redis_host':           'tab-redis',
             'redis_port':           'tab-redis',

@@ -194,10 +194,26 @@
             <div class="card-body">
                 <?php if ($sudahBeli): ?>
                     <!-- Sudah beli: sembunyikan harga dan form beli -->
-                    <div class="alert alert-success py-2 mb-0">
+                    <div class="alert alert-success py-2 mb-3">
                         <i class="bi bi-check-circle-fill me-1"></i>
                         Anda sudah memiliki akses ke paket ini.
                     </div>
+
+                    <?php if (! empty($expiredAt)): ?>
+                    <?php
+                        $expiredTime = strtotime($expiredAt);
+                        $sisaHari = (int) ceil(($expiredTime - time()) / 86400);
+                    ?>
+                    <div class="alert <?= $sisaHari <= 30 ? 'alert-warning' : 'alert-info' ?> py-2 mb-0">
+                        <i class="bi bi-calendar-event me-1"></i>
+                        <strong>Masa aktif:</strong> sampai <?= date('d M Y', $expiredTime) ?>
+                        <?php if ($sisaHari <= 30): ?>
+                            <br><small class="text-danger fw-semibold"><i class="bi bi-exclamation-triangle me-1"></i><?= $sisaHari ?> hari lagi</small>
+                        <?php elseif ($sisaHari <= 90): ?>
+                            <br><small class="text-muted">(<?= $sisaHari ?> hari lagi)</small>
+                        <?php endif; ?>
+                    </div>
+                    <?php endif; ?>
                 <?php else: ?>
                     <!-- Belum beli: tampilkan harga dan tombol beli -->
                     <div class="mb-3">

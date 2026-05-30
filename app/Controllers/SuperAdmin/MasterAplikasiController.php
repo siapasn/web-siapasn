@@ -126,6 +126,14 @@ class MasterAplikasiController extends BaseController
                     'less_than_equal_to'    => 'Session timeout maksimal 1440 menit.',
                 ],
             ],
+            'produk_expired_days' => [
+                'label' => 'Masa Aktif Produk',
+                'rules' => 'required|integer|greater_than_equal_to[1]|less_than_equal_to[3650]',
+                'errors' => [
+                    'greater_than_equal_to' => 'Masa aktif produk minimal 1 hari.',
+                    'less_than_equal_to'    => 'Masa aktif produk maksimal 3650 hari (10 tahun).',
+                ],
+            ],
         ];
 
         if (! $this->validate($rules)) {
@@ -157,6 +165,9 @@ class MasterAplikasiController extends BaseController
 
             // Kebijakan Sesi
             'session_timeout'      => $this->request->getPost('session_timeout'),
+
+            // Masa Aktif Produk
+            'produk_expired_days'  => $this->request->getPost('produk_expired_days'),
 
             // Redis
             'redis_socket'         => $this->request->getPost('redis_socket') ?? '',

@@ -337,6 +337,29 @@
                                             </span>
                                         </div>
 
+                                        <?php if (! empty($produk['expired_at'])): ?>
+                                        <?php
+                                            $expiredTime = strtotime($produk['expired_at']);
+                                            $now = time();
+                                            $sisaHari = (int) ceil(($expiredTime - $now) / 86400);
+                                            if ($sisaHari <= 30) {
+                                                $expBadgeClass = 'bg-danger bg-opacity-10 text-danger border-danger-subtle';
+                                            } elseif ($sisaHari <= 90) {
+                                                $expBadgeClass = 'bg-warning bg-opacity-10 text-warning border-warning-subtle';
+                                            } else {
+                                                $expBadgeClass = 'bg-secondary bg-opacity-10 text-secondary border-secondary-subtle';
+                                            }
+                                        ?>
+                                        <div class="mb-2">
+                                            <span class="badge <?= $expBadgeClass ?> border" style="font-size:.65rem">
+                                                <i class="bi bi-calendar-event me-1"></i>Akses s/d <?= date('d M Y', $expiredTime) ?>
+                                                <?php if ($sisaHari <= 30): ?>
+                                                    <span class="ms-1">(<?= $sisaHari ?> hari lagi)</span>
+                                                <?php endif; ?>
+                                            </span>
+                                        </div>
+                                        <?php endif; ?>
+
                                         <div class="mb-3">
                                             <div class="d-flex justify-content-between mb-1" style="font-size:.7rem;color:#6c757d">
                                                 <span><?= $item['jumlah_selesai'] ?>/<?= $item['jumlah_tryout'] ?> selesai</span>

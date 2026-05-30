@@ -44,9 +44,15 @@ class UserProdukModel extends Model
     /**
      * Aktifkan atau perbarui akses user ke produk.
      * Jika sudah ada, update; jika belum, insert.
+     * expired_at dihitung otomatis dari config 'produk_expired_days' di master_aplikasi.
      */
     public function aktivasiAkses(int $userId, int $produkId, int $transaksiId, ?string $expiredAt = null): void
     {
+        // Jika expiredAt tidak diberikan, hitung dari config
+        if ($expiredAt === null) {
+            $expiredAt = $this->hitungExpiredAt();
+        }
+
         $existing = $this->where('user_id', $userId)
             ->where('produk_id', $produkId)
             ->first();
@@ -67,6 +73,29 @@ class UserProdukModel extends Model
             $data['created_at'] = date('Y-m-d H:i:s');
             $this->db->table('user_produk')->insert($data);
         }
+    }
+
+    /**
+     * Hitung expired_at berdasarkan config 'produk_expired_days' di master_aplikasi.
+     * Default: 365 hari dari sekarang.
+     */
+    private function hitungExpiredAt(): string
+    {
+        $days = 365; // default 1 tahun
+
+        try {
+            $row = $this->db->table('master_aplikasi')
+                ->where('config_key', 'produk_expired_days')
+                ->get()->getRowArray();
+
+            if ($row && is_numeric($row['config_value']) && (int) $row['config_value'] > 0) {
+                $days = (int) $row['config_value'];
+            }
+        } catch (\Throwable $e) {
+            // Gunakan default jika gagal
+        }
+
+        return date('Y-m-d H:i:s', strtotime("+{$days} days"));
     }
 
     /**

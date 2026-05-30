@@ -230,6 +230,17 @@ class ProdukController extends BaseController
 
         $sudahBeli = $this->userProdukModel->hasAccess($userId, $id);
 
+        // Ambil expired_at jika sudah beli
+        $expiredAt = null;
+        if ($sudahBeli) {
+            $userProduk = $db->table('user_produk')
+                ->select('expired_at')
+                ->where('user_id', $userId)
+                ->where('produk_id', $id)
+                ->get()->getRowArray();
+            $expiredAt = $userProduk['expired_at'] ?? null;
+        }
+
         // Jika sudah beli, tambahkan status sesi per tryout
         if ($sudahBeli) {
             $sesiModel = new \App\Models\SesiTryoutModel();
@@ -279,6 +290,7 @@ class ProdukController extends BaseController
             'tryouts'     => $tryouts,
             'promosi'     => $promosi,
             'sudahBeli'   => $sudahBeli,
+            'expiredAt'   => $expiredAt,
             'materi'      => $sudahBeli ? $this->materiModel->getByProduk($id) : [],
             'menus'       => $menus,
         ]);
