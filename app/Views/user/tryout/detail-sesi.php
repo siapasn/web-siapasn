@@ -48,9 +48,17 @@
         <div class="card border-0 shadow-sm text-center">
             <div class="card-body py-3">
                 <div class="fs-2 fw-bold <?= $jumlahLulus > 0 ? 'text-success' : 'text-secondary' ?>">
-                    <?= $jumlahLulus ?>
+                    <?= $jumlahLulus ?><span class="text-muted fw-normal" style="font-size:1rem">/<?= $totalSesi ?></span>
                 </div>
                 <div class="text-muted small">Kali Lulus</div>
+                <?php if ($totalSesi > 0): ?>
+                <div class="mt-1">
+                    <div class="progress" style="height:4px;border-radius:2px">
+                        <div class="progress-bar bg-success" style="width:<?= round(($jumlahLulus / $totalSesi) * 100) ?>%"></div>
+                    </div>
+                    <div class="text-muted" style="font-size:.65rem"><?= round(($jumlahLulus / $totalSesi) * 100) ?>% tingkat kelulusan</div>
+                </div>
+                <?php endif; ?>
             </div>
         </div>
     </div>

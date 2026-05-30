@@ -238,10 +238,6 @@ class TryoutScoringService
             ->select('pg.*, k.nama AS nama_kategori, sk.nama AS nama_sub_kategori')
             ->join('kategori k',  'k.id  = pg.kategori_id',    'left')
             ->join('kategori sk', 'sk.id = pg.sub_kategori_id','left')
-            ->groupStart()
-                ->where('pg.tryout_id IS NULL', null, false)
-                ->orWhere('pg.tryout_id', $tryoutId)
-            ->groupEnd()
             ->get()->getResultArray();
 
         if (empty($pgRows)) {
@@ -262,10 +258,15 @@ class TryoutScoringService
 
             if ($subKatId !== null) {
                 foreach ($detailKategori as $kat) {
-                    if ((int)($kat['sub_kategori_id'] ?? 0) === (int)$subKatId) {
-                        $totalNilaiAktual = $kat['total_nilai'];
+                    // Match: sub_kategori_id di PG cocok dengan sub_kategori_id di detail
+                    // ATAU: sub_kategori_id di PG cocok dengan kategori_id di detail
+                    //       (karena soal bisa langsung terhubung ke sub-kategori sebagai kategori_id)
+                    $matchBySub = (int)($kat['sub_kategori_id'] ?? 0) === (int)$subKatId;
+                    $matchByKat = (int)($kat['kategori_id'] ?? 0) === (int)$subKatId;
+
+                    if ($matchBySub || $matchByKat) {
+                        $totalNilaiAktual = ($totalNilaiAktual ?? 0) + (int) $kat['total_nilai'];
                         $tipeSoal         = $kat['tipe_soal'];
-                        break;
                     }
                 }
                 $label = ($pg['nama_sub_kategori'] ?? '') ?: ($pg['nama_kategori'] ?? 'Sub Kategori');

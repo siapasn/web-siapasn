@@ -123,7 +123,6 @@ class PassingGradeController extends BaseController
         }
 
         $this->passingGradeModel->insert([
-            'tryout_id'       => null,
             'kategori_id'     => $kategoriId,
             'sub_kategori_id' => $subKategoriId,
             'nilai_minimum'   => $nilaiMinimum,
@@ -183,7 +182,6 @@ class PassingGradeController extends BaseController
         $nilaiMinimumRaw = $this->request->getPost('nilai_minimum');
 
         $this->passingGradeModel->update($id, [
-            'tryout_id'       => null,
             'kategori_id'     => $kategoriId,
             'sub_kategori_id' => ($subKategoriId !== '' && $subKategoriId !== null) ? (int) $subKategoriId : null,
             'nilai_minimum'   => ($nilaiMinimumRaw !== '' && $nilaiMinimumRaw !== null) ? (float) $nilaiMinimumRaw : null,

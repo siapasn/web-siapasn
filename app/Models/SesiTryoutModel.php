@@ -96,6 +96,11 @@ class SesiTryoutModel extends Model
             'selesai_at' => date('Y-m-d H:i:s'),
             'status'     => $status,
         ]);
+
+        // Update status peserta event jika sesi ini terkait event
+        $this->db->table('tryout_event_peserta')
+            ->where('sesi_tryout_id', $sesiId)
+            ->update(['status' => 'completed']);
     }
 
     /**

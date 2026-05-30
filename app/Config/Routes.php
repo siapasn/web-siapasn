@@ -75,6 +75,13 @@ $routes->group('user', ['filter' => 'auth'], function ($routes) {
     $routes->get('ranking', 'User\RankingController::index');
     $routes->get('ranking/(:num)', 'User\RankingController::leaderboard/$1');
 
+    // Tryout Event
+    $routes->get('tryout-event', 'User\TryoutEventController::index');
+    $routes->get('tryout-event/(:num)', 'User\TryoutEventController::detail/$1');
+    $routes->post('tryout-event/(:num)/daftar', 'User\TryoutEventController::daftar/$1');
+    $routes->post('tryout-event/(:num)/mulai', 'User\TryoutEventController::mulai/$1');
+    $routes->get('tryout-event/(:num)/leaderboard', 'User\TryoutEventController::leaderboard/$1');
+
     // Serve file materi pelajaran — hanya untuk user yang sudah membeli produk terkait
     $routes->get('materi/(:num)/file', 'User\MateriFileController::serve/$1');
 
@@ -237,6 +244,15 @@ $routes->group('admin', ['filter' => ['auth', 'admin_only']], function ($routes)
     $routes->get('blast-email', 'Admin\BlastEmailController::index');
     $routes->post('blast-email/send', 'Admin\BlastEmailController::send');
     $routes->get('blast-email/(:num)/preview', 'Admin\BlastEmailController::preview/$1');
+
+    // Tryout Event / Nasional
+    $routes->get('tryout-event', 'Admin\TryoutEventController::index');
+    $routes->get('tryout-event/create', 'Admin\TryoutEventController::create');
+    $routes->post('tryout-event/store', 'Admin\TryoutEventController::store');
+    $routes->get('tryout-event/(:num)/edit', 'Admin\TryoutEventController::edit/$1');
+    $routes->post('tryout-event/(:num)/update', 'Admin\TryoutEventController::update/$1');
+    $routes->post('tryout-event/(:num)/delete', 'Admin\TryoutEventController::delete/$1');
+    $routes->get('tryout-event/(:num)/peserta', 'Admin\TryoutEventController::peserta/$1');
 
 });
 

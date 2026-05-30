@@ -51,35 +51,19 @@ if (! empty($hasil['detail_passing_grade'])) {
                     <?= $totalNilai ?>
                 </div>
                 <div class="text-muted small mb-1">Total Poin</div>
-                <!-- <?php if ($maxNilai > 0): ?>
-                    <div class="text-muted" style="font-size:.8rem">
-                        dari <?= $maxNilai ?> poin maksimum
-                        <span class="ms-1 badge bg-secondary bg-opacity-10 text-secondary border" style="font-size:.72rem">
-                            <?= number_format($skor, 1) ?>%
-                        </span>
-                    </div>
-                <?php endif; ?> -->
 
-                <!-- Status Lulus -->
+                <!-- Status Lulus — Banner besar -->
                 <?php if ($statusLulus === 'lulus'): ?>
-                    <div class="alert alert-success py-2 mb-3">
-                        <i class="bi bi-patch-check-fill me-1"></i>
-                        <strong>LULUS</strong> — Memenuhi semua passing grade
+                    <div class="alert alert-success py-3 mb-3 mt-3">
+                        <div class="fs-5 fw-bold"><i class="bi bi-patch-check-fill me-2"></i>LULUS</div>
+                        <div class="small mt-1">Selamat! Semua nilai sub kategori memenuhi passing grade.</div>
                     </div>
                 <?php elseif ($statusLulus === 'tidak_lulus'): ?>
-                    <div class="alert alert-danger py-2 mb-3">
-                        <i class="bi bi-x-circle-fill me-1"></i>
-                        <strong>TIDAK LULUS</strong> — Belum memenuhi passing grade
+                    <div class="alert alert-danger py-3 mb-3 mt-3">
+                        <div class="fs-5 fw-bold"><i class="bi bi-x-circle-fill me-2"></i>TIDAK LULUS</div>
+                        <div class="small mt-1">Ada sub kategori yang belum memenuhi passing grade.</div>
                     </div>
                 <?php endif; ?>
-
-                <!-- Peringkat -->
-                <!-- <?php if (! empty($hasil['peringkat'])): ?>
-                    <span class="badge bg-primary fs-6 px-3 py-2">
-                        <i class="bi bi-award-fill me-1"></i>
-                        Peringkat #<?= (int) $hasil['peringkat'] ?>
-                    </span>
-                <?php endif; ?> -->
             </div>
         </div>
 
@@ -206,8 +190,10 @@ if (! empty($hasil['detail_passing_grade'])) {
                             $matchSub = ! empty($kat['sub_kategori_id'])
                                 && (int)($pg['sub_kategori_id'] ?? 0) === (int)$kat['sub_kategori_id'];
                             $matchKat = empty($kat['sub_kategori_id'])
+                                && (int)($pg['sub_kategori_id'] ?? 0) === (int)$kat['kategori_id'];
+                            $matchKatDirect = empty($kat['sub_kategori_id'])
                                 && (int)($pg['kategori_id'] ?? 0) === (int)$kat['kategori_id'];
-                            if ($matchSub || $matchKat) {
+                            if ($matchSub || $matchKat || $matchKatDirect) {
                                 $pgNilaiMin = (int) $pg['nilai_minimum'];
                                 $pgStatus   = $pg['lulus'];
                                 break;

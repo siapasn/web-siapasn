@@ -14,7 +14,6 @@ class PassingGradeModel extends Model
     protected $protectFields    = true;
 
     protected $allowedFields = [
-        'tryout_id',
         'kategori_id',
         'sub_kategori_id',
         'nilai_minimum',

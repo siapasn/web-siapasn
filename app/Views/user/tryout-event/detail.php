@@ -1,0 +1,204 @@
+<?= $this->extend('layouts/main') ?>
+
+<?= $this->section('page_header') ?>
+<div class="d-flex align-items-center gap-3">
+    <div class="ph-icon"><i class="bi bi-calendar-event"></i></div>
+    <div>
+        <div class="ph-title"><?= esc($event['nama']) ?></div>
+        <div class="ph-subtitle">Detail Event Tryout</div>
+        <div class="ph-accent-line"></div>
+    </div>
+</div>
+<?= $this->endSection() ?>
+
+<?= $this->section('content') ?>
+
+<div class="mb-3">
+    <a href="<?= base_url('user/tryout-event') ?>" class="btn btn-sm btn-outline-primary">
+        <i class="bi bi-arrow-left me-1"></i>Kembali
+    </a>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <!-- Banner -->
+        <?php if (! empty($event['banner_url'])): ?>
+        <div class="card border-0 shadow-sm mb-4" style="border-radius:.75rem;overflow:hidden">
+            <img src="<?= base_url($event['banner_url']) ?>" alt="<?= esc($event['nama']) ?>" class="w-100" style="max-height:300px;object-fit:cover">
+        </div>
+        <?php endif; ?>
+
+        <!-- Info Event -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white border-bottom">
+                <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>Informasi Event</h6>
+            </div>
+            <div class="card-body">
+                <?php if (! empty($event['deskripsi'])): ?>
+                    <p><?= esc($event['deskripsi']) ?></p>
+                <?php endif; ?>
+
+                <div class="row g-3">
+                    <div class="col-6 col-md-3">
+                        <div class="text-muted small">Tryout</div>
+                        <div class="fw-semibold"><?= esc($tryout['nama']) ?></div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="text-muted small">Durasi</div>
+                        <div class="fw-semibold"><?= (int) $tryout['durasi'] ?> menit</div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="text-muted small">Jumlah Soal</div>
+                        <div class="fw-semibold"><?= (int) $tryout['jumlah_soal'] ?> soal</div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="text-muted small">Max Percobaan</div>
+                        <div class="fw-semibold"><?= (int) $event['max_percobaan'] ?>x</div>
+                    </div>
+                </div>
+
+                <hr>
+
+                <div class="row g-3">
+                    <div class="col-12 col-md-6">
+                        <div class="text-muted small mb-1"><i class="bi bi-pencil-square me-1"></i>Pendaftaran</div>
+                        <div class="small">
+                            <?= date('d M Y H:i', strtotime($event['mulai_pendaftaran'])) ?>
+                            — <?= date('d M Y H:i', strtotime($event['tutup_pendaftaran'])) ?>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <div class="text-muted small mb-1"><i class="bi bi-play-circle me-1"></i>Pelaksanaan</div>
+                        <div class="small">
+                            <?= date('d M Y H:i', strtotime($event['mulai_pelaksanaan'])) ?>
+                            — <?= date('d M Y H:i', strtotime($event['tutup_pelaksanaan'])) ?>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Leaderboard link -->
+        <a href="<?= base_url("user/tryout-event/{$event['id']}/leaderboard") ?>"
+           class="btn btn-outline-warning w-100 fw-semibold mb-4">
+            <i class="bi bi-trophy me-1"></i>Lihat Leaderboard Event
+        </a>
+    </div>
+
+    <!-- Sidebar Aksi -->
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm sticky-top" style="top:80px;border-radius:.75rem">
+            <div class="card-body">
+                <!-- Status -->
+                <div class="text-center mb-3">
+                    <?php
+                    switch ($fase) {
+                        case 'belum_buka':
+                            echo '<span class="badge bg-dark px-3 py-2">Pendaftaran Belum Dibuka</span>';
+                            break;
+                        case 'pendaftaran':
+                            echo '<span class="badge bg-info px-3 py-2">Pendaftaran Dibuka</span>';
+                            break;
+                        case 'menunggu':
+                            echo '<span class="badge bg-warning text-dark px-3 py-2">Menunggu Pelaksanaan</span>';
+                            break;
+                        case 'pelaksanaan':
+                            echo '<span class="badge bg-success px-3 py-2">Sedang Berlangsung</span>';
+                            break;
+                        case 'selesai':
+                            echo '<span class="badge bg-secondary px-3 py-2">Event Selesai</span>';
+                            break;
+                    }
+                    ?>
+                </div>
+
+                <div class="text-center mb-3">
+                    <div class="fs-3 fw-bold" style="color:#1a3a5c"><?= $totalPeserta ?></div>
+                    <div class="text-muted small">Peserta Terdaftar</div>
+                </div>
+
+                <hr>
+
+                <?php if (! $peserta): ?>
+                    <!-- Belum daftar -->
+                    <?php if ($fase === 'pendaftaran'): ?>
+                        <form method="post" action="<?= base_url("user/tryout-event/{$event['id']}/daftar") ?>">
+                            <?= csrf_field() ?>
+                            <button type="submit" class="btn btn-primary w-100 fw-semibold">
+                                <i class="bi bi-person-plus me-1"></i>Daftar Sekarang (Gratis)
+                            </button>
+                        </form>
+                        <div class="text-muted small text-center mt-2">
+                            <i class="bi bi-info-circle me-1"></i>Pendaftaran gratis, tanpa biaya.
+                        </div>
+                    <?php elseif ($fase === 'belum_buka'): ?>
+                        <div class="alert alert-info py-2 text-center small mb-0">
+                            <i class="bi bi-clock me-1"></i>Pendaftaran dibuka mulai<br>
+                            <strong><?= date('d M Y H:i', strtotime($event['mulai_pendaftaran'])) ?></strong>
+                        </div>
+                    <?php else: ?>
+                        <div class="alert alert-secondary py-2 text-center small mb-0">
+                            Pendaftaran sudah ditutup.
+                        </div>
+                    <?php endif; ?>
+
+                <?php else: ?>
+                    <!-- Sudah daftar -->
+                    <div class="alert alert-success py-2 mb-3 text-center">
+                        <i class="bi bi-check-circle-fill me-1"></i>Anda sudah terdaftar!
+                    </div>
+
+                    <?php if ($fase === 'pelaksanaan'): ?>
+                        <?php if ($userPercobaan >= (int) $event['max_percobaan']): ?>
+                            <div class="alert alert-warning py-2 text-center small">
+                                <i class="bi bi-exclamation-triangle me-1"></i>
+                                Anda sudah menggunakan semua percobaan (<?= $event['max_percobaan'] ?>x).
+                            </div>
+                        <?php elseif ($sesiAktif): ?>
+                            <a href="<?= base_url('user/tryout/jawab/' . $sesiAktif['id'] . '?soal_index=1') ?>"
+                               class="btn btn-warning w-100 fw-semibold">
+                                <i class="bi bi-play-circle me-1"></i>Lanjutkan Tryout
+                            </a>
+                        <?php else: ?>
+                            <form method="post" action="<?= base_url("user/tryout-event/{$event['id']}/mulai") ?>">
+                                <?= csrf_field() ?>
+                                <button type="submit" class="btn btn-success w-100 fw-semibold"
+                                        onclick="return confirm('Mulai tryout sekarang? Timer akan langsung berjalan.')">
+                                    <i class="bi bi-play-fill me-1"></i>Mulai Tryout
+                                </button>
+                            </form>
+                            <div class="text-muted small text-center mt-2">
+                                Percobaan: <?= $userPercobaan ?>/<?= $event['max_percobaan'] ?>
+                            </div>
+                        <?php endif; ?>
+                    <?php elseif ($fase === 'menunggu'): ?>
+                        <div class="alert alert-info py-2 text-center small mb-0">
+                            <i class="bi bi-clock me-1"></i>Pelaksanaan dimulai<br>
+                            <strong><?= date('d M Y H:i', strtotime($event['mulai_pelaksanaan'])) ?></strong>
+                        </div>
+                    <?php elseif ($fase === 'selesai'): ?>
+                        <div class="alert alert-secondary py-2 text-center small mb-0">
+                            Event sudah selesai.
+                        </div>
+                    <?php endif; ?>
+
+                    <!-- Hasil user -->
+                    <?php if ($hasilUser): ?>
+                    <hr>
+                    <div class="text-center">
+                        <div class="text-muted small mb-1">Skor Terbaik Anda</div>
+                        <div class="fs-3 fw-bold text-success"><?= (int) ($hasilUser['total_nilai'] ?: $hasilUser['skor_total']) ?></div>
+                        <?php if ($hasilUser['status_lulus'] === 'lulus'): ?>
+                            <span class="badge bg-success">Lulus</span>
+                        <?php elseif ($hasilUser['status_lulus'] === 'tidak_lulus'): ?>
+                            <span class="badge bg-danger">Belum Lulus</span>
+                        <?php endif; ?>
+                    </div>
+                    <?php endif; ?>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+</div>
+
+<?= $this->endSection() ?>
