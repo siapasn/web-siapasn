@@ -42,6 +42,16 @@ class DashboardController extends BaseController
                 ->where('produk_id', $p['id'])
                 ->countAllResults();
 
+            // Ambil nama formasi jika ada
+            $p['formasi_nama'] = '';
+            if (! empty($p['formasi_id'])) {
+                $formasi = $db->table('formasi')
+                    ->select('nama')
+                    ->where('id', $p['formasi_id'])
+                    ->get()->getRowArray();
+                $p['formasi_nama'] = $formasi['nama'] ?? '';
+            }
+
             // Promosi aktif
             $promosi = $db->table('promosi')
                 ->where('produk_id', $p['id'])

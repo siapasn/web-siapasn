@@ -36,6 +36,43 @@ class ProdukController extends BaseController
             ->get()->getResultArray();
     }
 
+    private function getKategoriFormasi(): array
+    {
+        return \Config\Database::connect()
+            ->table('kategori_formasi')
+            ->where('is_active', 1)
+            ->orderBy('urutan', 'ASC')
+            ->get()->getResultArray();
+    }
+
+    private function getFormasi(): array
+    {
+        return \Config\Database::connect()
+            ->table('formasi')
+            ->where('is_active', 1)
+            ->orderBy('nama', 'ASC')
+            ->get()->getResultArray();
+    }
+
+    /**
+     * Ambil ID kategori produk yang memerlukan pemilihan formasi.
+     * Kategori yang mengandung kata "SKB" atau "PPPK" dianggap perlu formasi.
+     */
+    private function getKategoriIdsWithFormasi(): array
+    {
+        $db = \Config\Database::connect();
+        $rows = $db->table('kategori')
+            ->select('id')
+            ->where('parent_id IS NULL', null, false)
+            ->groupStart()
+                ->like('nama', 'SKB')
+                ->orLike('nama', 'PPPK')
+            ->groupEnd()
+            ->get()->getResultArray();
+
+        return array_column($rows, 'id');
+    }
+
     /**
      * Daftar semua produk.
      */
@@ -43,8 +80,9 @@ class ProdukController extends BaseController
     {
         $db = \Config\Database::connect();
         $produks = $db->table('produk p')
-            ->select('p.*, k.nama AS kategori_nama')
+            ->select('p.*, k.nama AS kategori_nama, f.nama AS formasi_nama')
             ->join('kategori k', 'k.id = p.kategori_id', 'left')
+            ->join('formasi f', 'f.id = p.formasi_id', 'left')
             ->orderBy('p.id', 'DESC')
             ->get()->getResultArray();
 
@@ -60,11 +98,14 @@ class ProdukController extends BaseController
     public function create()
     {
         return view('admin/master/produk/form', [
-            'produk'    => null,
-            'materi'    => [],
-            'kategoris' => $this->getKategoris(),
-            'action'    => base_url('admin/master/produk/store'),
-            'menus'     => $this->getMenus(),
+            'produk'              => null,
+            'materi'              => [],
+            'kategoris'           => $this->getKategoris(),
+            'kategoriFormasi'     => $this->getKategoriFormasi(),
+            'formasiList'         => $this->getFormasi(),
+            'kategoriWithFormasi' => $this->getKategoriIdsWithFormasi(),
+            'action'              => base_url('admin/master/produk/store'),
+            'menus'               => $this->getMenus(),
         ]);
     }
 
@@ -93,6 +134,7 @@ class ProdukController extends BaseController
         $produkId = $this->produkModel->insert([
             'nama'        => $this->request->getPost('nama'),
             'kategori_id' => $this->request->getPost('kategori_id') ?: null,
+            'formasi_id'  => $this->request->getPost('formasi_id') ?: null,
             'deskripsi'   => $this->request->getPost('deskripsi') ?? null,
             'thumbnail'   => $thumbnailName,
             'harga'       => (float) $this->request->getPost('harga'),
@@ -117,11 +159,14 @@ class ProdukController extends BaseController
         }
 
         return view('admin/master/produk/form', [
-            'produk'    => $produk,
-            'materi'    => $this->materiModel->getByProduk($id),
-            'kategoris' => $this->getKategoris(),
-            'action'    => base_url("admin/master/produk/{$id}/update"),
-            'menus'     => $this->getMenus(),
+            'produk'              => $produk,
+            'materi'              => $this->materiModel->getByProduk($id),
+            'kategoris'           => $this->getKategoris(),
+            'kategoriFormasi'     => $this->getKategoriFormasi(),
+            'formasiList'         => $this->getFormasi(),
+            'kategoriWithFormasi' => $this->getKategoriIdsWithFormasi(),
+            'action'              => base_url("admin/master/produk/{$id}/update"),
+            'menus'               => $this->getMenus(),
         ]);
     }
 
@@ -168,6 +213,7 @@ class ProdukController extends BaseController
         $this->produkModel->update($id, [
             'nama'        => $this->request->getPost('nama'),
             'kategori_id' => $this->request->getPost('kategori_id') ?: null,
+            'formasi_id'  => $this->request->getPost('formasi_id') ?: null,
             'deskripsi'   => $this->request->getPost('deskripsi') ?? null,
             'thumbnail'   => $thumbnailName,
             'harga'       => (float) $this->request->getPost('harga'),

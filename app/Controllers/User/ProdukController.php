@@ -37,6 +37,32 @@ class ProdukController extends BaseController
             ->orderBy('id', 'ASC')
             ->get()->getResultArray();
 
+        // Ambil semua kategori formasi aktif untuk filter
+        $kategoriFormasi = $db->table('kategori_formasi')
+            ->where('is_active', 1)
+            ->orderBy('urutan', 'ASC')
+            ->get()->getResultArray();
+
+        // Ambil semua formasi aktif
+        $formasiList = $db->table('formasi f')
+            ->select('f.*, kf.nama AS kategori_formasi_nama')
+            ->join('kategori_formasi kf', 'kf.id = f.kategori_formasi_id', 'left')
+            ->where('f.is_active', 1)
+            ->orderBy('kf.urutan', 'ASC')
+            ->orderBy('f.nama', 'ASC')
+            ->get()->getResultArray();
+
+        // ID kategori yang memerlukan formasi (SKB, PPPK)
+        $kategoriWithFormasi = $db->table('kategori')
+            ->select('id')
+            ->where('parent_id IS NULL', null, false)
+            ->groupStart()
+                ->like('nama', 'SKB')
+                ->orLike('nama', 'PPPK')
+            ->groupEnd()
+            ->get()->getResultArray();
+        $kategoriWithFormasiIds = array_column($kategoriWithFormasi, 'id');
+
         // Ambil produk aktif yang sudah memiliki minimal 1 tryout ter-mapping
         $produkRaw = $db->table('produk p')
             ->select('p.*, p.kategori_id AS kat_id')
@@ -65,6 +91,21 @@ class ProdukController extends BaseController
             $p['first_tryout_id'] = $firstTryout ? $firstTryout['tryout_id'] : 0;
 
             $p['sudah_beli'] = $this->userProdukModel->hasAccess($userId, $p['id']);
+
+            // Ambil nama formasi jika ada
+            $p['formasi_nama'] = '';
+            $p['kategori_formasi_nama'] = '';
+            $p['kategori_formasi_id'] = '';
+            if (! empty($p['formasi_id'])) {
+                foreach ($formasiList as $fl) {
+                    if ((int)$fl['id'] === (int)$p['formasi_id']) {
+                        $p['formasi_nama'] = $fl['nama'];
+                        $p['kategori_formasi_nama'] = $fl['kategori_formasi_nama'] ?? '';
+                        $p['kategori_formasi_id'] = $fl['kategori_formasi_id'] ?? '';
+                        break;
+                    }
+                }
+            }
 
             $promosi = [];
             if (! $p['sudah_beli'] && $db->tableExists('promosi')) {
@@ -137,8 +178,11 @@ class ProdukController extends BaseController
             ->get()->getResultArray();
 
         return view('user/produk/index', [
-            'produkByKategori' => $produkByKategori,
-            'menus'            => $menus,
+            'produkByKategori'       => $produkByKategori,
+            'kategoriFormasi'        => $kategoriFormasi,
+            'formasiList'            => $formasiList,
+            'kategoriWithFormasiIds' => $kategoriWithFormasiIds,
+            'menus'                  => $menus,
         ]);
     }
 
@@ -153,6 +197,16 @@ class ProdukController extends BaseController
         $produk = $this->produkModel->find($id);
         if (!$produk || !$produk['is_active']) {
             return redirect()->to(base_url('user/produk'))->with('error', 'Produk tidak ditemukan.');
+        }
+
+        // Ambil info formasi jika ada
+        $formasiInfo = null;
+        if (! empty($produk['formasi_id'])) {
+            $formasiInfo = $db->table('formasi f')
+                ->select('f.nama AS formasi_nama, kf.nama AS kategori_formasi_nama, kf.icon AS kategori_formasi_icon')
+                ->join('kategori_formasi kf', 'kf.id = f.kategori_formasi_id', 'left')
+                ->where('f.id', $produk['formasi_id'])
+                ->get()->getRowArray();
         }
 
         // Daftar tryout dalam produk
@@ -220,12 +274,13 @@ class ProdukController extends BaseController
             ->get()->getResultArray();
 
         return view('user/produk/show', [
-            'produk'    => $produk,
-            'tryouts'   => $tryouts,
-            'promosi'   => $promosi,
-            'sudahBeli' => $sudahBeli,
-            'materi'    => $sudahBeli ? $this->materiModel->getByProduk($id) : [],
-            'menus'     => $menus,
+            'produk'      => $produk,
+            'formasiInfo' => $formasiInfo,
+            'tryouts'     => $tryouts,
+            'promosi'     => $promosi,
+            'sudahBeli'   => $sudahBeli,
+            'materi'      => $sudahBeli ? $this->materiModel->getByProduk($id) : [],
+            'menus'       => $menus,
         ]);
     }
 }

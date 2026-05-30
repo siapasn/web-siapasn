@@ -22,6 +22,28 @@
 <div class="row g-4">
     <!-- Detail Produk -->
     <div class="col-lg-8">
+
+        <!-- Info Formasi -->
+        <?php if (! empty($formasiInfo)): ?>
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body py-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center"
+                         style="width:44px;height:44px;background:rgba(13,202,240,.1);flex-shrink:0">
+                        <i class="<?= esc($formasiInfo['kategori_formasi_icon'] ?? 'bi-briefcase') ?>" style="font-size:1.2rem;color:#0dcaf0"></i>
+                    </div>
+                    <div>
+                        <div class="text-muted small">Formasi CPNS</div>
+                        <div class="fw-semibold"><?= esc($formasiInfo['formasi_nama']) ?></div>
+                        <span class="badge bg-info bg-opacity-10 text-info border border-info-subtle" style="font-size:.7rem">
+                            <?= esc($formasiInfo['kategori_formasi_nama']) ?>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <?php endif; ?>
+
         <div class="card border-0 shadow-sm mb-4">
             <div class="card-header bg-white border-bottom">
                 <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>Deskripsi Paket</h6>

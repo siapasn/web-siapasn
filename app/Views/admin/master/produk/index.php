@@ -50,6 +50,7 @@
                         <th class="ps-3" style="width:50px">No</th>
                         <th>Nama Produk</th>
                         <th>Kategori</th>
+                        <th>Formasi</th>
                         <th class="text-end">Harga</th>
                         <th class="text-center" style="width:80px">Aktif</th>
                         <th class="text-center" style="width:100px">Highlight</th>
@@ -65,6 +66,15 @@
                                 <?php if (! empty($p['kategori_nama'])): ?>
                                     <span class="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle">
                                         <?= esc($p['kategori_nama']) ?>
+                                    </span>
+                                <?php else: ?>
+                                    <span class="text-muted small">—</span>
+                                <?php endif; ?>
+                            </td>
+                            <td>
+                                <?php if (! empty($p['formasi_nama'])): ?>
+                                    <span class="badge bg-info bg-opacity-10 text-info border border-info-subtle">
+                                        <?= esc($p['formasi_nama']) ?>
                                     </span>
                                 <?php else: ?>
                                     <span class="text-muted small">—</span>
@@ -129,8 +139,8 @@ $('#tabelProduk').DataTable({
     ordering: true,
     order: [],
     columnDefs: [
-        { orderable: false, targets: [0, 4, 5, 6] },
-        { searchable: false, targets: [0, 4, 5, 6] },
+        { orderable: false, targets: [0, 5, 6, 7] },
+        { searchable: false, targets: [0, 5, 6, 7] },
     ]
 });
 

@@ -163,6 +163,17 @@ $routes->group('admin', ['filter' => ['auth', 'admin_only']], function ($routes)
     $routes->post('mapping/tryout/(:num)/delete', 'Admin\Mapping\MappingTryoutController::delete/$1');
     $routes->post('mapping/tryout/urutan', 'Admin\Mapping\MappingTryoutController::updateUrutan');
 
+    // Master Kategori Formasi
+    $routes->get('master/kategori-formasi', 'Admin\Master\KategoriFormasiController::index');
+    $routes->get('master/kategori-formasi/create', 'Admin\Master\KategoriFormasiController::create');
+    $routes->post('master/kategori-formasi/store', 'Admin\Master\KategoriFormasiController::store');
+    $routes->get('master/kategori-formasi/(:num)/edit', 'Admin\Master\KategoriFormasiController::edit/$1');
+    $routes->post('master/kategori-formasi/(:num)/update', 'Admin\Master\KategoriFormasiController::update/$1');
+    $routes->post('master/kategori-formasi/(:num)/delete', 'Admin\Master\KategoriFormasiController::delete/$1');
+    $routes->get('master/kategori-formasi/(:num)/detail', 'Admin\Master\KategoriFormasiController::detail/$1');
+    $routes->post('master/kategori-formasi/(:num)/formasi/store', 'Admin\Master\KategoriFormasiController::storeFormasi/$1');
+    $routes->post('master/kategori-formasi/(:num)/formasi/(:num)/delete', 'Admin\Master\KategoriFormasiController::deleteFormasi/$1/$2');
+
     // Master Passing Grade
     $routes->get('master/passing-grade', 'Admin\Master\PassingGradeController::index');
     $routes->get('master/passing-grade/create', 'Admin\Master\PassingGradeController::create');

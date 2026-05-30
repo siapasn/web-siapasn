@@ -93,6 +93,13 @@
                                     <i class="bi bi-journal-text"></i>
                                     <span><?= $p['jumlah_tryout'] ?> sesi tryout</span>
                                 </div>
+                                <?php if (! empty($p['formasi_nama'])): ?>
+                                <div class="mb-2">
+                                    <span class="badge bg-info bg-opacity-10 text-info border border-info-subtle" style="font-size:.65rem">
+                                        <i class="bi bi-briefcase me-1"></i><?= esc($p['formasi_nama']) ?>
+                                    </span>
+                                </div>
+                                <?php endif; ?>
                                 <div class="mb-3 mt-auto">
                                     <?php if ($p['harga_promo'] !== null): ?>
                                         <div class="text-decoration-line-through text-muted" style="font-size:.75rem">

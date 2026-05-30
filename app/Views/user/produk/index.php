@@ -214,6 +214,32 @@
     </div>
 <?php else: ?>
 
+    <!-- ── Filter Formasi ── -->
+    <?php if (! empty($kategoriFormasi)): ?>
+    <div class="card border-0 shadow-sm rounded-3 mb-3" id="filterFormasiCard" style="display:none">
+        <div class="card-body py-3">
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <span class="fw-semibold text-muted small"><i class="bi bi-briefcase me-1"></i>Filter Formasi:</span>
+                <select id="filterKategoriFormasi" class="form-select form-select-sm" style="width:auto;min-width:180px">
+                    <option value="">Semua Kategori Formasi</option>
+                    <?php foreach ($kategoriFormasi as $kf): ?>
+                        <option value="<?= $kf['id'] ?>"><?= esc($kf['nama']) ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <select id="filterFormasi" class="form-select form-select-sm" style="width:auto;min-width:200px">
+                    <option value="">Semua Formasi</option>
+                    <?php foreach ($formasiList as $f): ?>
+                        <option value="<?= $f['id'] ?>" data-kategori="<?= $f['kategori_formasi_id'] ?>"><?= esc($f['nama']) ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <button type="button" id="resetFilterFormasi" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-x-lg"></i> Reset
+                </button>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
+
     <!-- ── Tab Header ── -->
     <ul class="nav katalog-tabs mb-0 mt-2 flex-nowrap overflow-auto" id="katalogTab" role="tablist"
         style="scrollbar-width:none">
@@ -223,6 +249,7 @@
                         id="tab-<?= $kat['kat_id'] ?: 'lainnya' ?>-btn"
                         data-bs-toggle="tab"
                         data-bs-target="#tab-<?= $kat['kat_id'] ?: 'lainnya' ?>"
+                        data-kat-id="<?= $kat['kat_id'] ?>"
                         type="button" role="tab">
                     <?= esc($kat['kat_nama']) ?>
                     <span class="badge badge-count ms-1">
@@ -304,7 +331,9 @@
                                 : base_url('assets/images/thumbnail/product-default.png');
                             ?>
                             <div class="col-12 col-md-4 col-lg-3 produk-item"
-                                 data-nama="<?= strtolower(esc($p['nama'])) ?>">
+                                 data-nama="<?= strtolower(esc($p['nama'])) ?>"
+                                 data-formasi-id="<?= esc($p['formasi_id'] ?? '') ?>"
+                                 data-kategori-formasi-id="<?= esc($p['kategori_formasi_id'] ?? '') ?>">
                                 <div class="card border-0 shadow-sm h-100 produk-card position-relative">
 
                                     <?php if ($p['sudah_beli']): ?>
@@ -324,6 +353,14 @@
                                             <i class="bi bi-journal-text"></i>
                                             <span><?= $p['jumlah_tryout'] ?> sesi tryout</span>
                                         </div>
+
+                                        <?php if (! empty($p['formasi_nama'])): ?>
+                                        <div class="mb-2">
+                                            <span class="badge bg-info bg-opacity-10 text-info border border-info-subtle" style="font-size:.68rem">
+                                                <i class="bi bi-briefcase me-1"></i><?= esc($p['formasi_nama']) ?>
+                                            </span>
+                                        </div>
+                                        <?php endif; ?>
 
                                         <div class="mb-3 mt-auto">
                                             <?php if ($p['harga_promo'] !== null): ?>
@@ -506,10 +543,27 @@
         const pane  = grid.closest('.tab-pane');
         const empty = pane ? pane.querySelector('.empty-filter') : null;
 
+        // Ambil filter formasi global
+        const formasiId = document.getElementById('filterFormasi') ? document.getElementById('filterFormasi').value : '';
+        const katFormasiId = document.getElementById('filterKategoriFormasi') ? document.getElementById('filterKategoriFormasi').value : '';
+
         let visible = 0;
         grid.querySelectorAll('.produk-item').forEach(function (el) {
             const nama = el.dataset.nama || '';
-            const show = !q || nama.includes(q);
+            const elFormasiId = el.dataset.formasiId || '';
+            const elKatFormasiId = el.dataset.kategoriFormasiId || '';
+
+            let show = true;
+
+            // Filter nama
+            if (q && !nama.includes(q)) show = false;
+
+            // Filter formasi spesifik
+            if (show && formasiId && elFormasiId !== formasiId) show = false;
+
+            // Filter kategori formasi (jika formasi spesifik tidak dipilih)
+            if (show && !formasiId && katFormasiId && elKatFormasiId !== katFormasiId) show = false;
+
             el.style.display = show ? '' : 'none';
             if (show) visible++;
         });
@@ -535,6 +589,101 @@
         const empty = pane ? pane.querySelector('.empty-filter') : null;
         if (empty) empty.classList.add('d-none');
     };
+}());
+
+// ── Filter Formasi Global ──
+(function () {
+    const katFormasiSelect = document.getElementById('filterKategoriFormasi');
+    const formasiSelect    = document.getElementById('filterFormasi');
+    const resetBtn         = document.getElementById('resetFilterFormasi');
+    const filterCard       = document.getElementById('filterFormasiCard');
+
+    if (!katFormasiSelect || !formasiSelect || !filterCard) return;
+
+    // ID kategori yang memerlukan filter formasi (SKB, PPPK)
+    const kategoriWithFormasi = <?= json_encode(array_map('intval', $kategoriWithFormasiIds)) ?>;
+
+    const allFormasiOptions = Array.from(formasiSelect.querySelectorAll('option[data-kategori]'));
+
+    // Show/hide filter berdasarkan tab aktif
+    function toggleFilterByTab() {
+        const activeBtn = document.querySelector('#katalogTab .nav-link.active');
+        if (!activeBtn) return;
+        const katId = parseInt(activeBtn.dataset.katId) || 0;
+        const show = kategoriWithFormasi.includes(katId);
+        filterCard.style.display = show ? '' : 'none';
+
+        // Reset filter saat pindah tab
+        if (!show) {
+            katFormasiSelect.value = '';
+            formasiSelect.value = '';
+            filterFormasiDropdown();
+        }
+    }
+
+    // Listen tab change
+    document.querySelectorAll('#katalogTab .nav-link').forEach(function (btn) {
+        btn.addEventListener('shown.bs.tab', toggleFilterByTab);
+    });
+
+    function filterFormasiDropdown() {
+        const selectedKf = katFormasiSelect.value;
+        const currentVal = formasiSelect.value;
+
+        // Hapus semua option kecuali placeholder
+        formasiSelect.querySelectorAll('option[data-kategori]').forEach(opt => opt.remove());
+
+        // Tambahkan kembali yang sesuai
+        allFormasiOptions.forEach(opt => {
+            if (!selectedKf || opt.getAttribute('data-kategori') === selectedKf) {
+                formasiSelect.appendChild(opt.cloneNode(true));
+            }
+        });
+
+        // Pertahankan pilihan jika masih ada
+        const stillExists = formasiSelect.querySelector('option[value="' + currentVal + '"]');
+        formasiSelect.value = stillExists ? currentVal : '';
+    }
+
+    function applyFormasiFilter() {
+        // Trigger filter di semua tab yang aktif
+        const activeTab = document.querySelector('.tab-pane.show.active');
+        if (activeTab) {
+            const grid = activeTab.querySelector('.produk-grid');
+            if (grid) {
+                const tabId = grid.id.replace('grid-', '');
+                window.doFilterTab(tabId);
+            }
+        }
+    }
+
+    katFormasiSelect.addEventListener('change', function () {
+        filterFormasiDropdown();
+        applyFormasiFilter();
+    });
+
+    formasiSelect.addEventListener('change', function () {
+        applyFormasiFilter();
+    });
+
+    if (resetBtn) {
+        resetBtn.addEventListener('click', function () {
+            katFormasiSelect.value = '';
+            formasiSelect.value = '';
+            filterFormasiDropdown();
+
+            // Reset semua produk di semua tab
+            document.querySelectorAll('.produk-item').forEach(el => el.style.display = '');
+            document.querySelectorAll('.produk-grid').forEach(el => el.classList.remove('d-none'));
+            document.querySelectorAll('.empty-filter').forEach(el => el.classList.add('d-none'));
+
+            // Reset juga search input
+            document.querySelectorAll('.filter-produk').forEach(input => input.value = '');
+        });
+    }
+
+    filterFormasiDropdown();
+    toggleFilterByTab();
 }());
 </script>
 

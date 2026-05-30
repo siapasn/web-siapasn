@@ -61,6 +61,52 @@
                     <div class="form-text">Digunakan untuk mengelompokkan produk di katalog (tab kategori).</div>
                 </div>
 
+                <!-- Kategori Formasi -->
+                <div class="col-12 col-md-6 formasi-wrapper" id="wrapperKategoriFormasi" style="display:none">
+                    <label for="kategori_formasi_id" class="form-label">Kategori Formasi</label>
+                    <select id="kategori_formasi_id" name="kategori_formasi_id" class="form-select">
+                        <option value="">-- Pilih Kategori Formasi --</option>
+                        <?php
+                        // Tentukan selected kategori formasi: cari dari formasi yang dipilih
+                        $selectedKf = old('kategori_formasi_id', '');
+                        if (! $selectedKf && ! empty($produk['formasi_id'])) {
+                            foreach ($formasiList as $fl) {
+                                if ((int)$fl['id'] === (int)$produk['formasi_id']) {
+                                    $selectedKf = $fl['kategori_formasi_id'];
+                                    break;
+                                }
+                            }
+                        }
+                        ?>
+                        <?php foreach ($kategoriFormasi as $kf): ?>
+                            <option value="<?= $kf['id'] ?>"
+                                <?= (string)$selectedKf === (string)$kf['id'] ? 'selected' : '' ?>>
+                                <?= esc($kf['nama']) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                    <div class="form-text">Pilih kategori formasi untuk memfilter daftar formasi.</div>
+                </div>
+
+                <!-- Formasi -->
+                <div class="col-12 col-md-6 formasi-wrapper" id="wrapperFormasi" style="display:none">
+                    <label for="formasi_id" class="form-label">Formasi</label>
+                    <select id="formasi_id" name="formasi_id" class="form-select">
+                        <option value="">-- Pilih Formasi --</option>
+                        <?php
+                        $selectedFormasi = old('formasi_id', $produk['formasi_id'] ?? '');
+                        foreach ($formasiList as $f):
+                        ?>
+                            <option value="<?= $f['id'] ?>"
+                                    data-kategori="<?= $f['kategori_formasi_id'] ?>"
+                                    <?= (string)$selectedFormasi === (string)$f['id'] ? 'selected' : '' ?>>
+                                <?= esc($f['nama']) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                    <div class="form-text">Formasi CPNS yang ditargetkan oleh produk ini.</div>
+                </div>
+
                 <!-- Deskripsi -->
                 <div class="col-12">
                     <label for="deskripsi" class="form-label">Deskripsi</label>
@@ -276,6 +322,65 @@ if (hapusCheck) {
         }
     });
 }
+
+// ── Cascading Kategori Formasi → Formasi ─────────────────────────────────────
+(function () {
+    const kategoriSelect = document.getElementById('kategori_id');
+    const kategoriFormasiSelect = document.getElementById('kategori_formasi_id');
+    const formasiSelect = document.getElementById('formasi_id');
+    const wrapperKf = document.getElementById('wrapperKategoriFormasi');
+    const wrapperF  = document.getElementById('wrapperFormasi');
+    const allOptions = Array.from(formasiSelect.querySelectorAll('option[data-kategori]'));
+
+    // ID kategori yang memerlukan formasi (SKB, PPPK)
+    const kategoriWithFormasi = <?= json_encode(array_map('intval', $kategoriWithFormasi)) ?>;
+
+    function toggleFormasiVisibility() {
+        const selectedKat = parseInt(kategoriSelect.value) || 0;
+        const show = kategoriWithFormasi.includes(selectedKat);
+
+        wrapperKf.style.display = show ? '' : 'none';
+        wrapperF.style.display  = show ? '' : 'none';
+
+        // Jika disembunyikan, reset value
+        if (!show) {
+            kategoriFormasiSelect.value = '';
+            formasiSelect.value = '';
+        }
+    }
+
+    function filterFormasi() {
+        const selectedKf = kategoriFormasiSelect.value;
+
+        // Simpan value yang sedang dipilih
+        const currentVal = formasiSelect.value;
+
+        // Hapus semua option kecuali placeholder
+        formasiSelect.querySelectorAll('option[data-kategori]').forEach(opt => opt.remove());
+
+        // Tambahkan kembali yang sesuai
+        allOptions.forEach(opt => {
+            if (!selectedKf || opt.getAttribute('data-kategori') === selectedKf) {
+                formasiSelect.appendChild(opt.cloneNode(true));
+            }
+        });
+
+        // Coba pertahankan pilihan sebelumnya
+        const stillExists = formasiSelect.querySelector('option[value="' + currentVal + '"]');
+        if (stillExists) {
+            formasiSelect.value = currentVal;
+        } else {
+            formasiSelect.value = '';
+        }
+    }
+
+    kategoriSelect.addEventListener('change', toggleFormasiVisibility);
+    kategoriFormasiSelect.addEventListener('change', filterFormasi);
+
+    // Jalankan saat load
+    toggleFormasiVisibility();
+    filterFormasi();
+}());
 
 // ── Materi Pelajaran ─────────────────────────────────────────────────────────
 (function () {
