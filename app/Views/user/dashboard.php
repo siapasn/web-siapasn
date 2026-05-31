@@ -56,6 +56,77 @@
     </div>
 </div>
 
+<!-- Event Tryout Aktif -->
+<?php if (! empty($eventAktif)): ?>
+<div class="card border-0 shadow-sm mb-4" style="border-left:4px solid #f5a623">
+    <div class="card-header bg-white border-bottom d-flex align-items-center justify-content-between">
+        <h6 class="mb-0"><i class="bi bi-calendar-event-fill me-2 text-warning"></i>Event Tryout Aktif</h6>
+        <a href="<?= base_url('user/tryout-event') ?>" class="btn btn-sm btn-outline-warning">
+            <i class="bi bi-arrow-right me-1"></i>Lihat Semua
+        </a>
+    </div>
+    <div class="card-body">
+        <div class="row g-3">
+            <?php foreach ($eventAktif as $ev): ?>
+            <div class="col-12 col-md-4">
+                <div class="card border h-100" style="border-radius:.75rem;overflow:hidden;border-color:#fde68a !important">
+                    <?php if (! empty($ev['banner_url'])): ?>
+                    <div style="aspect-ratio:16/7;overflow:hidden">
+                        <img src="<?= base_url($ev['banner_url']) ?>" class="w-100 h-100" style="object-fit:cover">
+                    </div>
+                    <?php else: ?>
+                    <div class="text-center py-3" style="background:linear-gradient(135deg,#1a3a5c,#2d6a9f)">
+                        <i class="bi bi-calendar-event text-white" style="font-size:1.5rem;opacity:.5"></i>
+                    </div>
+                    <?php endif; ?>
+                    <div class="card-body p-3">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <h6 class="fw-bold mb-0" style="font-size:.85rem;color:#1a3a5c"><?= esc($ev['nama']) ?></h6>
+                            <?php
+                            switch ($ev['fase']) {
+                                case 'pendaftaran': $badgeClass = 'bg-info'; $badgeText = 'Pendaftaran'; break;
+                                case 'pelaksanaan': $badgeClass = 'bg-success'; $badgeText = 'Berlangsung'; break;
+                                case 'menunggu': $badgeClass = 'bg-warning text-dark'; $badgeText = 'Segera'; break;
+                                default: $badgeClass = 'bg-secondary'; $badgeText = 'Segera'; break;
+                            }
+                            ?>
+                            <span class="badge <?= $badgeClass ?>" style="font-size:.6rem"><?= $badgeText ?></span>
+                        </div>
+                        <div class="d-flex gap-2 mb-2">
+                            <span class="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle" style="font-size:.6rem">
+                                <i class="bi bi-people me-1"></i><?= (int) $ev['total_peserta'] ?> peserta
+                            </span>
+                            <span class="badge bg-warning bg-opacity-10 text-warning border border-warning-subtle" style="font-size:.6rem">
+                                <i class="bi bi-clock me-1"></i><?= (int) $ev['durasi'] ?> menit
+                            </span>
+                            <?php if ($ev['user_registered']): ?>
+                            <span class="badge bg-success bg-opacity-10 text-success border border-success-subtle" style="font-size:.6rem">
+                                <i class="bi bi-check me-1"></i>Terdaftar
+                            </span>
+                            <?php endif; ?>
+                        </div>
+                        <div class="text-muted mb-2" style="font-size:.7rem">
+                            <i class="bi bi-calendar3 me-1"></i><?= date('d M Y H:i', strtotime($ev['mulai_pelaksanaan'])) ?>
+                        </div>
+                        <a href="<?= base_url('user/tryout-event/' . $ev['id']) ?>"
+                           class="btn btn-warning btn-sm w-100 fw-semibold" style="font-size:.78rem;border-radius:.5rem">
+                            <?php if ($ev['fase'] === 'pendaftaran' && ! $ev['user_registered']): ?>
+                                <i class="bi bi-person-plus me-1"></i>Daftar Gratis
+                            <?php elseif ($ev['fase'] === 'pelaksanaan' && $ev['user_registered']): ?>
+                                <i class="bi bi-play-fill me-1"></i>Kerjakan Sekarang
+                            <?php else: ?>
+                                <i class="bi bi-arrow-right me-1"></i>Lihat Detail
+                            <?php endif; ?>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
+
 <!-- Rekomendasi Tryout (produk highlight, belum dibeli) — max 8 -->
 <?php $produkShow = array_slice($produkRekomendasi, 0, 8); ?>
 <div class="card border-0 shadow-sm mb-4">
