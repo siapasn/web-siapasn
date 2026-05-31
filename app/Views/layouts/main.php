@@ -354,6 +354,66 @@
             sidebar.classList.toggle('show');
         });
     }
+
+    // ── Anti Copy & Anti DevTools ──
+    (function () {
+        // Disable right-click context menu
+        document.addEventListener('contextmenu', function (e) {
+            e.preventDefault();
+        });
+
+        // Disable text selection via CSS (exclude form inputs)
+        document.body.style.userSelect = 'none';
+        document.body.style.webkitUserSelect = 'none';
+        document.body.style.msUserSelect = 'none';
+
+        // Allow selection in form inputs
+        var style = document.createElement('style');
+        style.textContent = 'input, textarea, select, [contenteditable] { user-select: text !important; -webkit-user-select: text !important; }';
+        document.head.appendChild(style);
+
+        // Disable keyboard shortcuts
+        document.addEventListener('keydown', function (e) {
+            var tag = (e.target.tagName || '').toLowerCase();
+            var isInput = (tag === 'input' || tag === 'textarea' || tag === 'select' || e.target.isContentEditable);
+
+            // Ctrl+U (View Source)
+            if (e.ctrlKey && e.key === 'u') { e.preventDefault(); return false; }
+            // Ctrl+S (Save)
+            if (e.ctrlKey && e.key === 's') { e.preventDefault(); return false; }
+            // Ctrl+Shift+I (DevTools)
+            if (e.ctrlKey && e.shiftKey && e.key === 'I') { e.preventDefault(); return false; }
+            // Ctrl+Shift+J (Console)
+            if (e.ctrlKey && e.shiftKey && e.key === 'J') { e.preventDefault(); return false; }
+            // Ctrl+Shift+C (Inspect Element)
+            if (e.ctrlKey && e.shiftKey && e.key === 'C') { e.preventDefault(); return false; }
+            // F12 (DevTools)
+            if (e.key === 'F12') { e.preventDefault(); return false; }
+            // Ctrl+P (Print)
+            if (e.ctrlKey && e.key === 'p') { e.preventDefault(); return false; }
+
+            // Ctrl+A, Ctrl+C — block hanya di luar form input
+            if (!isInput) {
+                if (e.ctrlKey && e.key === 'a') { e.preventDefault(); return false; }
+                if (e.ctrlKey && e.key === 'c') { e.preventDefault(); return false; }
+            }
+        });
+
+        // Disable copy event
+        document.addEventListener('copy', function (e) {
+            e.preventDefault();
+        });
+
+        // Disable cut event
+        document.addEventListener('cut', function (e) {
+            e.preventDefault();
+        });
+
+        // Disable drag
+        document.addEventListener('dragstart', function (e) {
+            e.preventDefault();
+        });
+    }());
 </script>
 
 </body>
