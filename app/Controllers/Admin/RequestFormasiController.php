@@ -81,6 +81,15 @@ class RequestFormasiController extends BaseController
             'updated_at' => date('Y-m-d H:i:s'),
         ]);
 
+        // Notifikasi ke user: request disetujui
+        \App\Models\NotifikasiModel::kirim(
+            (int) $request['user_id'],
+            'request_formasi',
+            'Request Formasi Disetujui!',
+            'Tryout untuk formasi ' . $request['formasi_nama'] . ' sudah tersedia.',
+            'user/produk'
+        );
+
         // Kirim email notifikasi ke user
         try {
             $emailService = new EmailService();
@@ -118,6 +127,23 @@ class RequestFormasiController extends BaseController
             'handled_at' => date('Y-m-d H:i:s'),
             'updated_at' => date('Y-m-d H:i:s'),
         ]);
+
+        // Notifikasi ke user: request ditolak
+        $request2 = $db->table('request_formasi rf')
+            ->select('rf.user_id, f.nama AS formasi_nama')
+            ->join('formasi f', 'f.id = rf.formasi_id')
+            ->where('rf.id', $id)
+            ->get()->getRowArray();
+
+        if ($request2) {
+            \App\Models\NotifikasiModel::kirim(
+                (int) $request2['user_id'],
+                'request_formasi',
+                'Request Formasi Ditolak',
+                'Request tryout ' . $request2['formasi_nama'] . ' belum dapat dipenuhi.' . ($adminNote ? ' Alasan: ' . $adminNote : ''),
+                'user/produk'
+            );
+        }
 
         return redirect()->to(base_url('admin/request-formasi'))
             ->with('success', 'Request berhasil ditolak.');

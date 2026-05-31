@@ -105,6 +105,21 @@ class PaymentStatusController extends BaseController
                         } catch (\Exception $e) {
                             // ignore
                         }
+
+                        $produkNama = \Config\Database::connect()->table('produk')->select('nama')->where('id', $transaksi['produk_id'])->get()->getRowArray()['nama'] ?? 'Produk';
+                        \App\Models\NotifikasiModel::kirim(
+                            (int) $transaksi['user_id'], 'transaksi', 'Pembayaran Berhasil!',
+                            'Pembelian ' . $produkNama . ' berhasil. Selamat belajar!', 'user/tryout'
+                        );
+                    } elseif (in_array($statusFromMidtrans, ['failed', 'expired'])) {
+                        $produkNama = \Config\Database::connect()->table('produk')->select('nama')->where('id', $transaksi['produk_id'])->get()->getRowArray()['nama'] ?? 'Produk';
+                        $judul = $statusFromMidtrans === 'failed' ? 'Pembayaran Gagal' : 'Pembayaran Kedaluwarsa';
+                        $pesan = $statusFromMidtrans === 'failed'
+                            ? 'Pembayaran untuk ' . $produkNama . ' gagal.'
+                            : 'Pembayaran untuk ' . $produkNama . ' telah melewati batas waktu.';
+                        \App\Models\NotifikasiModel::kirim(
+                            (int) $transaksi['user_id'], 'transaksi', $judul, $pesan, 'user/transaksi/' . $transaksi['id']
+                        );
                     }
                 }
             } catch (\Exception $e) {

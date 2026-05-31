@@ -284,6 +284,29 @@
             </span>
 
             <div class="ms-auto d-flex align-items-center gap-2">
+                <!-- Notifikasi -->
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-secondary position-relative" type="button"
+                            id="notifDropdown" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false"
+                            title="Notifikasi">
+                        <i class="bi bi-bell fs-6"></i>
+                        <span id="notif-badge"
+                              class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                              style="font-size:.6rem;display:none">0</span>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-end shadow-sm p-0" style="width:340px;max-height:400px;overflow-y:auto" aria-labelledby="notifDropdown">
+                        <div class="d-flex align-items-center justify-content-between px-3 py-2 border-bottom">
+                            <span class="fw-semibold small">Notifikasi</span>
+                            <button type="button" class="btn btn-link btn-sm text-decoration-none p-0" id="markAllReadBtn" style="font-size:.75rem">
+                                Tandai semua dibaca
+                            </button>
+                        </div>
+                        <div id="notifList" class="py-1">
+                            <div class="text-center text-muted py-3 small">Memuat...</div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Keranjang Belanja -->
                 <?php
                 $cartCount = 0;
@@ -450,6 +473,119 @@
             e.preventDefault();
         });
     }());
+</script>
+
+<script>
+// ── Notifikasi ──
+(function () {
+    const badge    = document.getElementById('notif-badge');
+    const list     = document.getElementById('notifList');
+    const markBtn  = document.getElementById('markAllReadBtn');
+    const dropdown = document.getElementById('notifDropdown');
+
+    if (!badge || !list) return;
+
+    const role = '<?= session()->get('role') ?? 'user' ?>';
+    const baseNotifUrl = role === 'admin' || role === 'super_admin'
+        ? '<?= base_url('admin/notifikasi') ?>'
+        : '<?= base_url('user/notifikasi') ?>';
+
+    function loadNotif() {
+        fetch(baseNotifUrl)
+            .then(r => r.json())
+            .then(data => {
+                // Update badge
+                if (data.unread > 0) {
+                    badge.textContent = data.unread > 99 ? '99+' : data.unread;
+                    badge.style.display = '';
+                } else {
+                    badge.style.display = 'none';
+                }
+
+                // Render list
+                if (!data.notifikasi || data.notifikasi.length === 0) {
+                    list.innerHTML = '<div class="text-center text-muted py-3 small">Belum ada notifikasi</div>';
+                    return;
+                }
+
+                let html = '';
+                data.notifikasi.forEach(function (n) {
+                    const isUnread = parseInt(n.is_read) === 0;
+                    const bg = isUnread ? 'background:#f0f7ff;' : '';
+                    const readUrl = baseNotifUrl + '/' + n.id + '/read';
+                    const timeAgo = n.created_at ? n.created_at.substring(5, 16) : '';
+
+                    html += '<a href="' + readUrl + '" class="dropdown-item px-3 py-2 border-bottom" style="white-space:normal;' + bg + '">';
+                    html += '<div class="d-flex gap-2">';
+                    html += '<i class="bi bi-' + getIcon(n.tipe) + ' mt-1 flex-shrink-0" style="color:' + getColor(n.tipe) + '"></i>';
+                    html += '<div>';
+                    html += '<div class="fw-semibold" style="font-size:.8rem">' + escHtml(n.judul) + '</div>';
+                    if (n.pesan) html += '<div class="text-muted" style="font-size:.72rem">' + escHtml(n.pesan).substring(0, 80) + '</div>';
+                    html += '<div class="text-muted" style="font-size:.65rem">' + timeAgo + '</div>';
+                    html += '</div></div></a>';
+                });
+
+                list.innerHTML = html;
+            })
+            .catch(function () {
+                list.innerHTML = '<div class="text-center text-muted py-3 small">Gagal memuat</div>';
+            });
+    }
+
+    function getIcon(tipe) {
+        switch (tipe) {
+            case 'transaksi': return 'receipt';
+            case 'request_formasi': return 'inbox';
+            case 'event': return 'calendar-event';
+            case 'produk': return 'box-seam';
+            default: return 'bell';
+        }
+    }
+
+    function getColor(tipe) {
+        switch (tipe) {
+            case 'transaksi': return '#198754';
+            case 'request_formasi': return '#f5a623';
+            case 'event': return '#0dcaf0';
+            default: return '#6c757d';
+        }
+    }
+
+    function escHtml(str) {
+        var div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
+    // Load saat dropdown dibuka
+    dropdown.addEventListener('show.bs.dropdown', loadNotif);
+
+    // Mark all read
+    if (markBtn) {
+        markBtn.addEventListener('click', function () {
+            fetch(baseNotifUrl + '/mark-all-read', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: '<?= csrf_token() ?>=<?= csrf_hash() ?>',
+            }).then(function () {
+                badge.style.display = 'none';
+                list.querySelectorAll('.dropdown-item').forEach(function (el) {
+                    el.style.background = '';
+                });
+            });
+        });
+    }
+
+    // Initial badge count
+    fetch(baseNotifUrl)
+        .then(r => r.json())
+        .then(data => {
+            if (data.unread > 0) {
+                badge.textContent = data.unread > 99 ? '99+' : data.unread;
+                badge.style.display = '';
+            }
+        }).catch(function () {});
+}());
 </script>
 
 </body>

@@ -220,6 +220,15 @@ class TransaksiController extends BaseController
                 ->with('error', 'Gagal menghubungi payment gateway. Silakan coba lagi dari halaman transaksi.');
         }
 
+        // Notifikasi: menunggu pembayaran
+        \App\Models\NotifikasiModel::kirim(
+            $userId,
+            'transaksi',
+            'Menunggu Pembayaran',
+            'Segera selesaikan pembayaran untuk ' . $produk['nama'],
+            'user/transaksi/' . $transaksiId
+        );
+
         return redirect()->to(base_url('user/transaksi/' . $transaksiId));
     }
 

@@ -78,6 +78,11 @@ $routes->group('user', ['filter' => 'auth'], function ($routes) {
     // Request Formasi
     $routes->post('request-formasi', 'User\RequestFormasiController::store');
 
+    // Notifikasi
+    $routes->get('notifikasi', 'User\NotifikasiController::get');
+    $routes->post('notifikasi/mark-all-read', 'User\NotifikasiController::markAllRead');
+    $routes->get('notifikasi/(:num)/read', 'User\NotifikasiController::read/$1');
+
     // Tryout Event
     $routes->get('tryout-event', 'User\TryoutEventController::index');
     $routes->get('tryout-event/(:num)', 'User\TryoutEventController::detail/$1');
@@ -262,6 +267,11 @@ $routes->group('admin', ['filter' => ['auth', 'admin_only']], function ($routes)
     $routes->get('request-formasi', 'Admin\RequestFormasiController::index');
     $routes->post('request-formasi/(:num)/approve', 'Admin\RequestFormasiController::approve/$1');
     $routes->post('request-formasi/(:num)/reject', 'Admin\RequestFormasiController::reject/$1');
+
+    // Notifikasi (admin)
+    $routes->get('notifikasi', 'User\NotifikasiController::get');
+    $routes->post('notifikasi/mark-all-read', 'User\NotifikasiController::markAllRead');
+    $routes->get('notifikasi/(:num)/read', 'User\NotifikasiController::read/$1');
 
 });
 

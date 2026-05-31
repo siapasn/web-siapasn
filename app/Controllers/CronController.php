@@ -138,6 +138,24 @@ class CronController extends BaseController
                             $transaksi['produk_id'],
                             $transaksi['id']
                         );
+
+                        $produkNama = $db->table('produk')->select('nama')->where('id', $transaksi['produk_id'])->get()->getRowArray()['nama'] ?? 'Produk';
+                        \App\Models\NotifikasiModel::kirim(
+                            (int) $transaksi['user_id'], 'transaksi', 'Pembayaran Berhasil!',
+                            'Pembelian ' . $produkNama . ' berhasil. Selamat belajar!', 'user/tryout'
+                        );
+                    } elseif ($newStatus === 'failed') {
+                        $produkNama = $db->table('produk')->select('nama')->where('id', $transaksi['produk_id'])->get()->getRowArray()['nama'] ?? 'Produk';
+                        \App\Models\NotifikasiModel::kirim(
+                            (int) $transaksi['user_id'], 'transaksi', 'Pembayaran Gagal',
+                            'Pembayaran untuk ' . $produkNama . ' gagal.', 'user/transaksi/' . $transaksi['id']
+                        );
+                    } elseif ($newStatus === 'expired') {
+                        $produkNama = $db->table('produk')->select('nama')->where('id', $transaksi['produk_id'])->get()->getRowArray()['nama'] ?? 'Produk';
+                        \App\Models\NotifikasiModel::kirim(
+                            (int) $transaksi['user_id'], 'transaksi', 'Pembayaran Kedaluwarsa',
+                            'Pembayaran untuk ' . $produkNama . ' telah melewati batas waktu.', 'user/transaksi/' . $transaksi['id']
+                        );
                     }
 
                     $updated++;

@@ -230,6 +230,11 @@ class TryoutEventController extends BaseController
             'status'        => 'registered',
         ]);
 
+        // Notifikasi ke admin: peserta baru
+        $userName = session()->get('nama') ?? 'User';
+        \App\Models\NotifikasiModel::kirimKeRole('admin', 'event', 'Peserta Event Baru', $userName . ' mendaftar event: ' . $event['nama'], 'admin/tryout-event/' . $eventId . '/peserta');
+        \App\Models\NotifikasiModel::kirimKeRole('super_admin', 'event', 'Peserta Event Baru', $userName . ' mendaftar event: ' . $event['nama'], 'admin/tryout-event/' . $eventId . '/peserta');
+
         return redirect()->to(base_url("user/tryout-event/{$eventId}"))
             ->with('success', 'Berhasil mendaftar! Anda dapat mengerjakan tryout saat periode pelaksanaan dimulai.');
     }

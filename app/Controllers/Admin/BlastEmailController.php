@@ -133,6 +133,37 @@ class BlastEmailController extends BaseController
             $msg .= ", {$totalFailed} gagal";
         }
 
+        // Notifikasi ke user yang menerima blast email
+        if ($tipe === 'all') {
+            $allUserIds = $db->table('users')
+                ->select('id')
+                ->where('role', 'user')
+                ->where('is_active', 1)
+                ->where('email_verified_at IS NOT NULL', null, false)
+                ->get()->getResultArray();
+
+            $now2 = date('Y-m-d H:i:s');
+            $batch = [];
+            foreach ($allUserIds as $u) {
+                $batch[] = [
+                    'user_id'    => $u['id'],
+                    'tipe'       => 'info',
+                    'judul'      => 'Pesan dari Admin',
+                    'pesan'      => $subject,
+                    'url'        => null,
+                    'is_read'    => 0,
+                    'created_at' => $now2,
+                ];
+            }
+            if (! empty($batch)) {
+                $db->table('notifikasi')->insertBatch($batch);
+            }
+        } elseif ($tipe === 'single' && $targetUserId) {
+            \App\Models\NotifikasiModel::kirim(
+                $targetUserId, 'info', 'Pesan dari Admin', $subject, null
+            );
+        }
+
         return redirect()->to(base_url('admin/blast-email'))->with('success', $msg);
     }
 

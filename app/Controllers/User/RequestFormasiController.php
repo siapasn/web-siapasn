@@ -57,6 +57,23 @@ class RequestFormasiController extends BaseController
             'updated_at' => date('Y-m-d H:i:s'),
         ]);
 
+        // Notifikasi ke admin & super_admin
+        $userName = session()->get('nama') ?? 'User';
+        \App\Models\NotifikasiModel::kirimKeRole(
+            'admin',
+            'request_formasi',
+            'Request Formasi Baru',
+            $userName . ' request tryout: ' . $formasi['nama'],
+            'admin/request-formasi'
+        );
+        \App\Models\NotifikasiModel::kirimKeRole(
+            'super_admin',
+            'request_formasi',
+            'Request Formasi Baru',
+            $userName . ' request tryout: ' . $formasi['nama'],
+            'admin/request-formasi'
+        );
+
         return redirect()->back()->with('success', 'Request berhasil dikirim! Admin akan meninjau permintaan Anda.');
     }
 }

@@ -404,6 +404,10 @@ class AuthController extends BaseController
         // Hapus token setelah digunakan
         $db->table('password_resets')->where('token', $token)->delete();
 
+        // Notifikasi ke admin: user baru terdaftar
+        \App\Models\NotifikasiModel::kirimKeRole('admin', 'user', 'User Baru Terdaftar', $user['nama'] . ' (' . $user['email'] . ') telah verifikasi email.', 'admin/master/user');
+        \App\Models\NotifikasiModel::kirimKeRole('super_admin', 'user', 'User Baru Terdaftar', $user['nama'] . ' (' . $user['email'] . ') telah verifikasi email.', 'admin/master/user');
+
         return redirect()->to('/login')
             ->with('success', 'Email berhasil diverifikasi. Silakan login.');
     }

@@ -97,6 +97,32 @@ class TryoutEventController extends BaseController
             'is_active'          => $this->request->getPost('is_active') ? 1 : 0,
         ]);
 
+        // Notifikasi ke semua user: event baru
+        $namaEvent = $this->request->getPost('nama');
+        $db2 = \Config\Database::connect();
+        $allUsers = $db2->table('users')
+            ->select('id')
+            ->where('role', 'user')
+            ->where('is_active', 1)
+            ->get()->getResultArray();
+
+        $now2 = date('Y-m-d H:i:s');
+        $batch = [];
+        foreach ($allUsers as $u) {
+            $batch[] = [
+                'user_id'    => $u['id'],
+                'tipe'       => 'event',
+                'judul'      => 'Event Tryout Baru!',
+                'pesan'      => $namaEvent . ' — Daftar sekarang, gratis!',
+                'url'        => 'user/tryout-event',
+                'is_read'    => 0,
+                'created_at' => $now2,
+            ];
+        }
+        if (! empty($batch)) {
+            $db2->table('notifikasi')->insertBatch($batch);
+        }
+
         return redirect()->to(base_url('admin/tryout-event'))->with('success', 'Event tryout berhasil dibuat.');
     }
 

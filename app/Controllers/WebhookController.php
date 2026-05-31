@@ -142,10 +142,60 @@ class WebhookController extends BaseController
                         'diskon'         => $transaksi['diskon'],
                         'harga_bayar'    => $transaksi['harga_bayar'],
                     ]);
+
+                    // Notifikasi ke user: pembayaran berhasil
+                    \App\Models\NotifikasiModel::kirim(
+                        (int) $transaksi['user_id'],
+                        'transaksi',
+                        'Pembayaran Berhasil!',
+                        'Pembelian ' . $produk['nama'] . ' berhasil. Selamat belajar!',
+                        'user/tryout'
+                    );
+
+                    // Notifikasi ke admin: ada transaksi baru
+                    \App\Models\NotifikasiModel::kirimKeRole(
+                        'admin',
+                        'transaksi',
+                        'Transaksi Baru',
+                        $user['nama'] . ' membeli ' . $produk['nama'],
+                        'admin/laporan/transaksi'
+                    );
+                    \App\Models\NotifikasiModel::kirimKeRole(
+                        'super_admin',
+                        'transaksi',
+                        'Transaksi Baru',
+                        $user['nama'] . ' membeli ' . $produk['nama'],
+                        'admin/laporan/transaksi'
+                    );
                 }
             } catch (\Exception $e) {
                 log_message('error', 'WebhookController: Gagal kirim email konfirmasi: ' . $e->getMessage());
                 // Tidak gagalkan webhook karena email gagal
+            }
+        }
+
+        // Notifikasi untuk status gagal/expired ke user
+        if (in_array($newStatus, ['failed', 'expired'])) {
+            $db     = \Config\Database::connect();
+            $produk = $db->table('produk')->where('id', $transaksi['produk_id'])->get()->getRowArray();
+            $namaProduk = $produk['nama'] ?? 'Produk';
+
+            if ($newStatus === 'failed') {
+                \App\Models\NotifikasiModel::kirim(
+                    (int) $transaksi['user_id'],
+                    'transaksi',
+                    'Pembayaran Gagal',
+                    'Pembayaran untuk ' . $namaProduk . ' gagal. Silakan coba lagi.',
+                    'user/transaksi/' . $transaksi['id']
+                );
+            } elseif ($newStatus === 'expired') {
+                \App\Models\NotifikasiModel::kirim(
+                    (int) $transaksi['user_id'],
+                    'transaksi',
+                    'Pembayaran Kedaluwarsa',
+                    'Pembayaran untuk ' . $namaProduk . ' telah melewati batas waktu.',
+                    'user/transaksi/' . $transaksi['id']
+                );
             }
         }
 
