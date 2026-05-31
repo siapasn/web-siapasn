@@ -76,86 +76,6 @@
     <?php endforeach; ?>
 </div>
 
-<!-- Tabel Kategori Formasi -->
-<div class="card border-0 shadow-sm">
-    <div class="card-header bg-white border-bottom d-flex align-items-center gap-2 py-3">
-        <i class="bi bi-table text-muted"></i>
-        <span class="fw-semibold" style="font-size:.9rem">Daftar Lengkap Kategori Formasi</span>
-    </div>
-    <style>
-        #tabelKategoriFormasi_wrapper .dataTables_length label,
-        #tabelKategoriFormasi_wrapper .dataTables_filter label { margin-bottom:0; font-size:.875rem; }
-        #tabelKategoriFormasi_wrapper .dataTables_filter input { margin-left:.4rem; border-radius:.375rem; border:1px solid #dee2e6; padding:.25rem .5rem; font-size:.875rem; }
-        #tabelKategoriFormasi_wrapper .dataTables_info, #tabelKategoriFormasi_wrapper .dataTables_paginate { font-size:.875rem; }
-        #tabelKategoriFormasi_wrapper .paginate_button { border-radius:.375rem !important; }
-    </style>
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table id="tabelKategoriFormasi" class="table table-hover align-middle mb-0" style="width:100%">
-                <thead class="table-light">
-                    <tr>
-                        <th class="ps-3" style="width:50px">No</th>
-                        <th>Kategori Formasi</th>
-                        <th>Deskripsi</th>
-                        <th class="text-center">Jumlah Formasi</th>
-                        <th class="text-center">Urutan</th>
-                        <th class="text-center">Status</th>
-                        <th class="text-center pe-3" style="width:150px">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($kategoris as $i => $k): ?>
-                        <tr>
-                            <td class="ps-3 text-muted"><?= $i + 1 ?></td>
-                            <td>
-                                <div class="d-flex align-items-center gap-2">
-                                    <i class="<?= esc($k['icon'] ?? 'bi-folder') ?> text-primary"></i>
-                                    <span class="fw-medium"><?= esc($k['nama']) ?></span>
-                                </div>
-                            </td>
-                            <td class="text-muted small"><?= esc($k['deskripsi'] ?? '-') ?></td>
-                            <td class="text-center">
-                                <?php if ((int)$k['jumlah_formasi'] > 0): ?>
-                                    <span class="badge bg-info text-dark rounded-pill"><?= (int)$k['jumlah_formasi'] ?></span>
-                                <?php else: ?>
-                                    <span class="text-muted">0</span>
-                                <?php endif; ?>
-                            </td>
-                            <td class="text-center"><?= (int)$k['urutan'] ?></td>
-                            <td class="text-center">
-                                <?php if ((int)$k['is_active'] === 1): ?>
-                                    <span class="badge bg-success rounded-pill">Aktif</span>
-                                <?php else: ?>
-                                    <span class="badge bg-secondary rounded-pill">Nonaktif</span>
-                                <?php endif; ?>
-                            </td>
-                            <td class="text-center pe-3">
-                                <a href="<?= base_url("admin/master/kategori-formasi/{$k['id']}/detail") ?>"
-                                   class="btn btn-sm btn-outline-info py-0 px-2" title="Lihat Formasi">
-                                    <i class="bi bi-eye"></i>
-                                </a>
-                                <a href="<?= base_url("admin/master/kategori-formasi/{$k['id']}/edit") ?>"
-                                   class="btn btn-sm btn-outline-primary py-0 px-2" title="Edit">
-                                    <i class="bi bi-pencil"></i>
-                                </a>
-                                <form method="post"
-                                      action="<?= base_url("admin/master/kategori-formasi/{$k['id']}/delete") ?>"
-                                      class="d-inline"
-                                      onsubmit="return confirm('Hapus kategori formasi ini?')">
-                                    <?= csrf_field() ?>
-                                    <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2" title="Hapus">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </form>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-
 <?php else: ?>
 <div class="card border-0 shadow-sm">
     <div class="card-body text-center py-5">
@@ -166,24 +86,4 @@
 </div>
 <?php endif; ?>
 
-<?= $this->endSection() ?>
-
-<?= $this->section('scripts') ?>
-<?php if (!empty($kategoris)): ?>
-<script>
-$(document).ready(function () {
-    $('#tabelKategoriFormasi').DataTable({
-        language: {
-            url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/id.json',
-        },
-        dom: '<"px-3 pt-3 d-flex justify-content-between align-items-center flex-wrap gap-2"lf>rt<"px-3 pb-3 d-flex justify-content-between align-items-center flex-wrap gap-2 mt-2"ip>',
-        pageLength: 25,
-        ordering: true,
-        columnDefs: [
-            { orderable: false, targets: [0, 6] }
-        ]
-    });
-});
-</script>
-<?php endif; ?>
 <?= $this->endSection() ?>
