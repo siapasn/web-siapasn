@@ -65,17 +65,23 @@
         <form method="post" action="<?= base_url("admin/master/kategori-formasi/{$kategori['id']}/formasi/store") ?>">
             <?= csrf_field() ?>
             <div class="row g-3 align-items-end">
-                <div class="col-12 col-md-5">
+                <div class="col-12 col-md-4">
                     <label for="nama" class="form-label">Nama Formasi <span class="text-danger">*</span></label>
                     <input type="text" id="nama" name="nama" class="form-control"
                            value="<?= esc(old('nama', '')) ?>"
                            placeholder="Contoh: Pranata Komputer" required>
                 </div>
-                <div class="col-12 col-md-5">
+                <div class="col-12 col-md-3">
                     <label for="deskripsi" class="form-label">Deskripsi <span class="text-muted small">(opsional)</span></label>
                     <input type="text" id="deskripsi" name="deskripsi" class="form-control"
                            value="<?= esc(old('deskripsi', '')) ?>"
                            placeholder="Deskripsi singkat formasi">
+                </div>
+                <div class="col-12 col-md-3">
+                    <label for="referensi" class="form-label">Referensi <span class="text-muted small">(ID/Kode)</span></label>
+                    <input type="number" id="referensi" name="referensi" class="form-control"
+                           value="<?= esc(old('referensi', '')) ?>"
+                           placeholder="Contoh: 1" min="0">
                 </div>
                 <div class="col-12 col-md-2">
                     <button type="submit" class="btn btn-primary w-100">
@@ -105,6 +111,7 @@
                         <th class="ps-3" style="width:50px">No</th>
                         <th>Nama Formasi</th>
                         <th>Deskripsi</th>
+                        <th class="text-center">Referensi</th>
                         <th class="text-center">Status</th>
                         <th class="text-center pe-3" style="width:80px">Aksi</th>
                     </tr>
@@ -115,6 +122,13 @@
                             <td class="ps-3 text-muted"><?= $i + 1 ?></td>
                             <td class="fw-medium"><?= esc($f['nama']) ?></td>
                             <td class="text-muted small"><?= esc($f['deskripsi'] ?? '-') ?></td>
+                            <td class="text-center">
+                                <?php if (! empty($f['referensi'])): ?>
+                                    <span class="badge bg-info bg-opacity-10 text-info border border-info-subtle"><?= esc($f['referensi']) ?></span>
+                                <?php else: ?>
+                                    <span class="text-muted small">—</span>
+                                <?php endif; ?>
+                            </td>
                             <td class="text-center">
                                 <?php if ((int)$f['is_active'] === 1): ?>
                                     <span class="badge bg-success rounded-pill">Aktif</span>

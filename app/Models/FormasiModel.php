@@ -17,6 +17,7 @@ class FormasiModel extends Model
         'kategori_formasi_id',
         'nama',
         'deskripsi',
+        'referensi',
         'is_active',
     ];
 

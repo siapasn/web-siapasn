@@ -197,6 +197,7 @@ class KategoriFormasiController extends BaseController
         $rules = [
             'nama'      => 'required|min_length[2]|max_length[255]',
             'deskripsi' => 'permit_empty|max_length[500]',
+            'referensi' => 'permit_empty|is_natural',
         ];
 
         if (! $this->validate($rules)) {
@@ -208,6 +209,7 @@ class KategoriFormasiController extends BaseController
             'kategori_formasi_id' => $kategoriId,
             'nama'                => $this->request->getPost('nama'),
             'deskripsi'           => $this->request->getPost('deskripsi') ?: null,
+            'referensi'           => $this->request->getPost('referensi') ?: null,
             'is_active'           => 1,
             'created_at'          => date('Y-m-d H:i:s'),
             'updated_at'          => date('Y-m-d H:i:s'),

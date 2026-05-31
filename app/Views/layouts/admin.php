@@ -48,6 +48,34 @@
             --sa-border:      #dde3ea;
         }
 
+        /* ── Select2 Global Small Size ── */
+        .select2-container--bootstrap-5 .select2-selection--single {
+            font-size: .8rem !important;
+            min-height: 32px !important;
+            padding: 2px 8px;
+            display: flex !important;
+            align-items: center !important;
+        }
+        .select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered {
+            font-size: .8rem !important;
+            line-height: 1;
+            padding-top: 0;
+            padding-bottom: 0;
+        }
+        .select2-container--bootstrap-5 .select2-selection--single .select2-selection__arrow {
+            height: 100%;
+            display: flex;
+            align-items: center;
+        }
+        .select2-container--bootstrap-5 .select2-dropdown .select2-results__option {
+            font-size: .8rem !important;
+            padding: 5px 10px;
+        }
+        .select2-container--bootstrap-5 .select2-search--dropdown .select2-search__field {
+            font-size: .8rem !important;
+            padding: 4px 8px;
+        }
+
         body {
             background-color: var(--sa-body-bg);
             font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;

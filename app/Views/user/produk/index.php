@@ -197,13 +197,7 @@
 }
 </style>
 
-<!-- Flash -->
-<?php if (session()->getFlashdata('success')): ?>
-    <div class="alert alert-success alert-dismissible fade show mt-0 mb-3">
-        <?= esc(session()->getFlashdata('success')) ?>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-<?php endif; ?>
+<!-- Flash messages handled by layout -->
 
 <?php if (empty($produkByKategori)): ?>
     <div class="card border-0 shadow-sm rounded-3">
@@ -216,22 +210,26 @@
 
     <!-- ── Filter Formasi ── -->
     <?php if (! empty($kategoriFormasi)): ?>
-    <div class="card border-0 shadow-sm rounded-3 mb-3" id="filterFormasiCard" style="display:none">
+    <div class="card border-0 shadow-sm rounded-3 mb-3" id="filterFormasiCard">
         <div class="card-body py-3">
             <div class="d-flex align-items-center gap-2 flex-wrap">
                 <span class="fw-semibold text-muted small"><i class="bi bi-briefcase me-1"></i>Filter Formasi:</span>
-                <select id="filterKategoriFormasi" class="form-select form-select-sm" style="width:auto;min-width:180px">
-                    <option value="">Semua Kategori Formasi</option>
-                    <?php foreach ($kategoriFormasi as $kf): ?>
-                        <option value="<?= $kf['id'] ?>"><?= esc($kf['nama']) ?></option>
-                    <?php endforeach; ?>
-                </select>
-                <select id="filterFormasi" class="form-select form-select-sm" style="width:auto;min-width:200px">
-                    <option value="">Semua Formasi</option>
-                    <?php foreach ($formasiList as $f): ?>
-                        <option value="<?= $f['id'] ?>" data-kategori="<?= $f['kategori_formasi_id'] ?>"><?= esc($f['nama']) ?></option>
-                    <?php endforeach; ?>
-                </select>
+                <div style="min-width:220px;max-width:280px">
+                    <select id="filterKategoriFormasi" class="form-select form-select-sm">
+                        <option value="">Semua Kategori Formasi</option>
+                        <?php foreach ($kategoriFormasi as $kf): ?>
+                            <option value="<?= $kf['id'] ?>"><?= esc($kf['nama']) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div style="min-width:280px;max-width:380px">
+                    <select id="filterFormasi" class="form-select form-select-sm">
+                        <option value="">Semua Formasi</option>
+                        <?php foreach ($formasiList as $f): ?>
+                            <option value="<?= $f['id'] ?>" data-kategori="<?= $f['kategori_formasi_id'] ?>"><?= esc($f['nama']) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
                 <button type="button" id="resetFilterFormasi" class="btn btn-sm btn-outline-secondary">
                     <i class="bi bi-x-lg"></i> Reset
                 </button>
@@ -418,7 +416,11 @@
                     <!-- Empty state per tab -->
                     <div class="empty-filter d-none text-center py-4 text-muted">
                         <i class="bi bi-search fs-2 d-block mb-2"></i>
-                        <p class="mb-0">Tidak ada paket yang cocok.</p>
+                        <p class="mb-2">Tidak ada paket yang cocok.</p>
+                        <p class="small mb-3">Tryout untuk formasi ini belum tersedia. Kirim request ke admin agar segera dibuatkan.</p>
+                        <button type="button" class="btn btn-outline-primary btn-sm btn-request-formasi">
+                            <i class="bi bi-send me-1"></i>Request Tryout Formasi Ini
+                        </button>
                     </div>
 
                     <!-- Empty state: belum ada produk di kategori ini -->
@@ -458,6 +460,41 @@
 
 <?php endif; ?>
 
+<!-- Modal Request Formasi -->
+<div class="modal fade" id="modalRequestFormasi" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <form method="post" action="<?= base_url('user/request-formasi') ?>">
+                <?= csrf_field() ?>
+                <input type="hidden" name="formasi_id" id="requestFormasiId" value="">
+                <div class="modal-header border-0 pb-0">
+                    <h6 class="modal-title fw-bold" style="color:#1a3a5c">
+                        <i class="bi bi-send me-2"></i>Request Tryout Formasi
+                    </h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="small text-muted mb-3">
+                        Tryout untuk formasi <strong id="requestFormasiNama"></strong> belum tersedia.
+                        Kirim request ke admin agar segera dibuatkan.
+                    </p>
+                    <div class="mb-3">
+                        <label class="form-label small">Pesan / Catatan (opsional):</label>
+                        <textarea name="pesan" class="form-control form-control-sm" rows="3"
+                                  placeholder="Misal: Saya sangat membutuhkan tryout ini untuk persiapan SKB..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary btn-sm">
+                        <i class="bi bi-send me-1"></i>Kirim Request
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <!-- Toast Notifikasi -->
 <div class="position-fixed bottom-0 end-0 p-3" style="z-index:1100">
     <div id="toastCart" class="toast toast-cart align-items-center text-white border-0" role="alert">
@@ -468,6 +505,9 @@
     </div>
 </div>
 
+<?= $this->endSection() ?>
+
+<?= $this->section('scripts') ?>
 <script>
 (function () {
     const csrfName = '<?= csrf_token() ?>';
@@ -600,90 +640,162 @@
 
     if (!katFormasiSelect || !formasiSelect || !filterCard) return;
 
-    // ID kategori yang memerlukan filter formasi (SKB, PPPK)
+    // ID kategori yang memerlukan filter formasi (SKB saja)
     const kategoriWithFormasi = <?= json_encode(array_map('intval', $kategoriWithFormasiIds)) ?>;
 
-    const allFormasiOptions = Array.from(formasiSelect.querySelectorAll('option[data-kategori]'));
+    // Simpan semua option formasi asli sebelum Select2 mengubah DOM
+    const allFormasiData = [];
+    formasiSelect.querySelectorAll('option[data-kategori]').forEach(opt => {
+        allFormasiData.push({ id: opt.value, text: opt.textContent, kategori: opt.getAttribute('data-kategori') });
+    });
 
     // Show/hide filter berdasarkan tab aktif
     function toggleFilterByTab() {
         const activeBtn = document.querySelector('#katalogTab .nav-link.active');
-        if (!activeBtn) return;
+        if (!activeBtn) {
+            filterCard.style.display = 'none';
+            return;
+        }
         const katId = parseInt(activeBtn.dataset.katId) || 0;
         const show = kategoriWithFormasi.includes(katId);
         filterCard.style.display = show ? '' : 'none';
 
-        // Reset filter saat pindah tab
+        // Reset filter saat pindah ke tab non-SKB
         if (!show) {
-            katFormasiSelect.value = '';
-            formasiSelect.value = '';
-            filterFormasiDropdown();
+            $('#filterKategoriFormasi').val(null).trigger('change');
+            $('#filterFormasi').val(null).trigger('change');
+            // Reset produk visibility
+            document.querySelectorAll('.produk-item').forEach(el => el.style.display = '');
+            document.querySelectorAll('.produk-grid').forEach(el => el.classList.remove('d-none'));
+            document.querySelectorAll('.empty-filter').forEach(el => el.classList.add('d-none'));
         }
     }
 
     // Listen tab change
     document.querySelectorAll('#katalogTab .nav-link').forEach(function (btn) {
-        btn.addEventListener('shown.bs.tab', toggleFilterByTab);
+        btn.addEventListener('shown.bs.tab', function () {
+            toggleFilterByTab();
+        });
     });
 
-    function filterFormasiDropdown() {
-        const selectedKf = katFormasiSelect.value;
-        const currentVal = formasiSelect.value;
+    // Rebuild formasi options berdasarkan kategori yang dipilih
+    function rebuildFormasiOptions(selectedKfId) {
+        const $formasi = $('#filterFormasi');
+        $formasi.empty();
+        $formasi.append(new Option('Semua Formasi', '', true, true));
 
-        // Hapus semua option kecuali placeholder
-        formasiSelect.querySelectorAll('option[data-kategori]').forEach(opt => opt.remove());
-
-        // Tambahkan kembali yang sesuai
-        allFormasiOptions.forEach(opt => {
-            if (!selectedKf || opt.getAttribute('data-kategori') === selectedKf) {
-                formasiSelect.appendChild(opt.cloneNode(true));
+        allFormasiData.forEach(function (f) {
+            if (!selectedKfId || f.kategori === selectedKfId) {
+                $formasi.append(new Option(f.text, f.id, false, false));
             }
         });
 
-        // Pertahankan pilihan jika masih ada
-        const stillExists = formasiSelect.querySelector('option[value="' + currentVal + '"]');
-        formasiSelect.value = stillExists ? currentVal : '';
+        $formasi.trigger('change');
     }
 
     function applyFormasiFilter() {
-        // Trigger filter di semua tab yang aktif
+        const formasiId = $('#filterFormasi').val() || '';
+        const katFormasiId = $('#filterKategoriFormasi').val() || '';
+
+        // Filter produk di tab aktif
         const activeTab = document.querySelector('.tab-pane.show.active');
-        if (activeTab) {
-            const grid = activeTab.querySelector('.produk-grid');
-            if (grid) {
-                const tabId = grid.id.replace('grid-', '');
-                window.doFilterTab(tabId);
-            }
+        if (!activeTab) return;
+
+        const grid = activeTab.querySelector('.produk-grid');
+        if (!grid) return;
+
+        const empty = activeTab.querySelector('.empty-filter');
+        const searchInput = activeTab.querySelector('.filter-produk');
+        const q = searchInput ? searchInput.value.trim().toLowerCase() : '';
+
+        let visible = 0;
+        grid.querySelectorAll('.produk-item').forEach(function (el) {
+            const nama = el.dataset.nama || '';
+            const elFormasiId = el.dataset.formasiId || '';
+            const elKatFormasiId = el.dataset.kategoriFormasiId || '';
+
+            let show = true;
+
+            // Filter nama
+            if (q && !nama.includes(q)) show = false;
+
+            // Filter formasi spesifik
+            if (show && formasiId && elFormasiId !== formasiId) show = false;
+
+            // Filter kategori formasi (jika formasi spesifik tidak dipilih)
+            if (show && !formasiId && katFormasiId && elKatFormasiId !== katFormasiId) show = false;
+
+            el.style.display = show ? '' : 'none';
+            if (show) visible++;
+        });
+
+        if (empty) {
+            empty.classList.toggle('d-none', visible > 0);
+            grid.classList.toggle('d-none', visible === 0);
         }
     }
 
-    katFormasiSelect.addEventListener('change', function () {
-        filterFormasiDropdown();
+    // Inisialisasi Select2
+    $('#filterKategoriFormasi').select2({
+        theme: 'bootstrap-5',
+        placeholder: 'Semua Kategori Formasi',
+        allowClear: true,
+        width: '100%',
+    });
+
+    $('#filterFormasi').select2({
+        theme: 'bootstrap-5',
+        placeholder: 'Ketik untuk cari formasi...',
+        allowClear: true,
+        width: '100%',
+    });
+
+    // Event: kategori formasi berubah → rebuild formasi dropdown
+    $('#filterKategoriFormasi').on('change', function () {
+        const val = $(this).val() || '';
+        rebuildFormasiOptions(val);
         applyFormasiFilter();
     });
 
-    formasiSelect.addEventListener('change', function () {
+    // Event: formasi berubah → filter produk
+    $('#filterFormasi').on('change', function () {
         applyFormasiFilter();
     });
 
+    // Reset
     if (resetBtn) {
         resetBtn.addEventListener('click', function () {
-            katFormasiSelect.value = '';
-            formasiSelect.value = '';
-            filterFormasiDropdown();
+            $('#filterKategoriFormasi').val(null).trigger('change');
+            $('#filterFormasi').val(null).trigger('change');
+            rebuildFormasiOptions('');
 
-            // Reset semua produk di semua tab
+            // Reset semua produk
             document.querySelectorAll('.produk-item').forEach(el => el.style.display = '');
             document.querySelectorAll('.produk-grid').forEach(el => el.classList.remove('d-none'));
             document.querySelectorAll('.empty-filter').forEach(el => el.classList.add('d-none'));
-
-            // Reset juga search input
             document.querySelectorAll('.filter-produk').forEach(input => input.value = '');
         });
     }
 
-    filterFormasiDropdown();
+    // Initial state
     toggleFilterByTab();
+
+    // ── Request Formasi Button ──
+    document.querySelectorAll('.btn-request-formasi').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            const formasiId   = $('#filterFormasi').val() || '';
+            const formasiText = $('#filterFormasi option:selected').text().trim() || 'formasi yang dipilih';
+
+            if (!formasiId) {
+                alert('Silakan pilih formasi terlebih dahulu di filter.');
+                return;
+            }
+
+            document.getElementById('requestFormasiId').value = formasiId;
+            document.getElementById('requestFormasiNama').textContent = formasiText;
+            new bootstrap.Modal(document.getElementById('modalRequestFormasi')).show();
+        });
+    });
 }());
 </script>
 

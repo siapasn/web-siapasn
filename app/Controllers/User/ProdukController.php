@@ -43,11 +43,13 @@ class ProdukController extends BaseController
             ->orderBy('urutan', 'ASC')
             ->get()->getResultArray();
 
-        // Ambil semua formasi aktif
+        // Ambil semua formasi aktif (hanya yang punya referensi untuk filter user)
         $formasiList = $db->table('formasi f')
             ->select('f.*, kf.nama AS kategori_formasi_nama')
             ->join('kategori_formasi kf', 'kf.id = f.kategori_formasi_id', 'left')
             ->where('f.is_active', 1)
+            ->where('f.referensi IS NOT NULL', null, false)
+            ->where('f.referensi >', 0)
             ->orderBy('kf.urutan', 'ASC')
             ->orderBy('f.nama', 'ASC')
             ->get()->getResultArray();

@@ -75,6 +75,9 @@ $routes->group('user', ['filter' => 'auth'], function ($routes) {
     $routes->get('ranking', 'User\RankingController::index');
     $routes->get('ranking/(:num)', 'User\RankingController::leaderboard/$1');
 
+    // Request Formasi
+    $routes->post('request-formasi', 'User\RequestFormasiController::store');
+
     // Tryout Event
     $routes->get('tryout-event', 'User\TryoutEventController::index');
     $routes->get('tryout-event/(:num)', 'User\TryoutEventController::detail/$1');
@@ -253,6 +256,11 @@ $routes->group('admin', ['filter' => ['auth', 'admin_only']], function ($routes)
     $routes->post('tryout-event/(:num)/update', 'Admin\TryoutEventController::update/$1');
     $routes->post('tryout-event/(:num)/delete', 'Admin\TryoutEventController::delete/$1');
     $routes->get('tryout-event/(:num)/peserta', 'Admin\TryoutEventController::peserta/$1');
+
+    // Request Formasi
+    $routes->get('request-formasi', 'Admin\RequestFormasiController::index');
+    $routes->post('request-formasi/(:num)/approve', 'Admin\RequestFormasiController::approve/$1');
+    $routes->post('request-formasi/(:num)/reject', 'Admin\RequestFormasiController::reject/$1');
 
 });
 

@@ -16,6 +16,9 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <!-- Select2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css">
 
     <style>
         :root {
@@ -25,6 +28,34 @@
             --sa-sidebar-bg: #0f2744;
             --sa-body-bg:    #f0f4f8;
             --sa-border:     #dde3ea;
+        }
+
+        /* ── Select2 Global Small Size ── */
+        .select2-container--bootstrap-5 .select2-selection--single {
+            font-size: .8rem !important;
+            min-height: 32px !important;
+            padding: 2px 8px;
+            display: flex !important;
+            align-items: center !important;
+        }
+        .select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered {
+            font-size: .8rem !important;
+            line-height: 1;
+            padding-top: 0;
+            padding-bottom: 0;
+        }
+        .select2-container--bootstrap-5 .select2-selection--single .select2-selection__arrow {
+            height: 100%;
+            display: flex;
+            align-items: center;
+        }
+        .select2-container--bootstrap-5 .select2-dropdown .select2-results__option {
+            font-size: .8rem !important;
+            padding: 5px 10px;
+        }
+        .select2-container--bootstrap-5 .select2-search--dropdown .select2-search__field {
+            font-size: .8rem !important;
+            padding: 4px 8px;
         }
 
         body {
@@ -343,6 +374,11 @@
 
 <!-- Bootstrap 5.3 JS Bundle -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- jQuery + Select2 -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<?= $this->renderSection('scripts') ?>
 
 <script>
     // Mobile sidebar toggle
