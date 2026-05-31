@@ -64,7 +64,7 @@
                             <td class="fw-medium"><?= esc($p['nama']) ?></td>
                             <td>
                                 <?php if (! empty($p['kategori_nama'])): ?>
-                                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle">
+                                    <span class="badge bg-success bg-opacity-10 text-dark border border-primary-subtle">
                                         <?= esc($p['kategori_nama']) ?>
                                     </span>
                                 <?php else: ?>
