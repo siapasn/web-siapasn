@@ -177,6 +177,77 @@
         </div>
         <?php endif; ?>
 
+        <!-- ── Ulasan & Penilaian ── -->
+        <div class="card border-0 shadow-sm mt-4">
+            <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">
+                    <i class="bi bi-star-half me-2 text-warning"></i>Ulasan
+                    <?php if ($avgRating > 0): ?>
+                        <span class="ms-2 small text-muted"><?= $avgRating ?>/5 (<?= count($ulasans) ?> ulasan)</span>
+                    <?php endif; ?>
+                </h6>
+            </div>
+            <div class="card-body">
+                <!-- Form ulasan (hanya jika sudah beli & belum pernah review) -->
+                <?php if ($sudahBeli && ! $hasReviewed): ?>
+                <form method="post" action="<?= base_url('user/ulasan') ?>" class="mb-4 pb-3 border-bottom">
+                    <?= csrf_field() ?>
+                    <input type="hidden" name="produk_id" value="<?= $produk['id'] ?>">
+                    <div class="mb-2">
+                        <label class="form-label small fw-semibold">Beri Rating:</label>
+                        <div class="rating-stars d-flex gap-1" id="ratingStars">
+                            <?php for ($s = 1; $s <= 5; $s++): ?>
+                                <i class="bi bi-star fs-4 text-muted" data-value="<?= $s ?>" style="cursor:pointer"></i>
+                            <?php endfor; ?>
+                        </div>
+                        <input type="hidden" name="rating" id="ratingInput" value="0" required>
+                    </div>
+                    <div class="mb-2">
+                        <textarea name="komentar" class="form-control form-control-sm" rows="3"
+                                  placeholder="Tulis ulasan Anda tentang paket tryout ini... (opsional)"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-sm" id="btnSubmitUlasan" disabled>
+                        <i class="bi bi-send me-1"></i>Kirim Ulasan
+                    </button>
+                </form>
+                <?php elseif ($sudahBeli && $hasReviewed): ?>
+                <div class="alert alert-success py-2 mb-3 small">
+                    <i class="bi bi-check-circle me-1"></i>Anda sudah memberikan ulasan untuk produk ini.
+                </div>
+                <?php endif; ?>
+
+                <!-- Daftar ulasan -->
+                <?php if (! empty($ulasans)): ?>
+                    <?php foreach ($ulasans as $ul): ?>
+                    <div class="d-flex gap-3 mb-3 pb-3 <?= $ul !== end($ulasans) ? 'border-bottom' : '' ?>">
+                        <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center flex-shrink-0"
+                             style="width:36px;height:36px">
+                            <i class="bi bi-person text-primary"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <span class="fw-semibold small"><?= esc($ul['user_nama']) ?></span>
+                                <span class="text-muted" style="font-size:.65rem"><?= date('d M Y', strtotime($ul['created_at'])) ?></span>
+                            </div>
+                            <div class="mb-1">
+                                <?php for ($s = 1; $s <= 5; $s++): ?>
+                                    <i class="bi bi-star<?= $s <= (int)$ul['rating'] ? '-fill text-warning' : ' text-muted' ?>" style="font-size:.75rem"></i>
+                                <?php endfor; ?>
+                            </div>
+                            <?php if (! empty($ul['komentar'])): ?>
+                                <p class="mb-0 small text-muted"><?= esc($ul['komentar']) ?></p>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <div class="text-center text-muted small py-2">
+                        <i class="bi bi-chat-left-text me-1"></i>Belum ada ulasan.
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+
     </div><!-- /col-lg-8 -->
     <div class="col-lg-4">
         <div class="card border-0 shadow-sm sticky-top" style="top: 80px;">
@@ -264,4 +335,52 @@
     </div>
 </div>
 
+<?= $this->endSection() ?>
+
+<?= $this->section('scripts') ?>
+<script>
+(function () {
+    const stars    = document.querySelectorAll('#ratingStars i');
+    const input    = document.getElementById('ratingInput');
+    const submitBtn = document.getElementById('btnSubmitUlasan');
+
+    if (!stars.length || !input) return;
+
+    stars.forEach(function (star) {
+        star.addEventListener('click', function () {
+            const val = parseInt(this.dataset.value);
+            input.value = val;
+            if (submitBtn) submitBtn.disabled = false;
+
+            stars.forEach(function (s, idx) {
+                if (idx < val) {
+                    s.classList.remove('bi-star', 'text-muted');
+                    s.classList.add('bi-star-fill', 'text-warning');
+                } else {
+                    s.classList.remove('bi-star-fill', 'text-warning');
+                    s.classList.add('bi-star', 'text-muted');
+                }
+            });
+        });
+
+        star.addEventListener('mouseenter', function () {
+            const val = parseInt(this.dataset.value);
+            stars.forEach(function (s, idx) {
+                if (idx < val) {
+                    s.classList.add('text-warning');
+                }
+            });
+        });
+
+        star.addEventListener('mouseleave', function () {
+            const currentVal = parseInt(input.value) || 0;
+            stars.forEach(function (s, idx) {
+                if (idx >= currentVal) {
+                    s.classList.remove('text-warning');
+                }
+            });
+        });
+    });
+}());
+</script>
 <?= $this->endSection() ?>

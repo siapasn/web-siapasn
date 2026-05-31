@@ -78,6 +78,12 @@ $routes->group('user', ['filter' => 'auth'], function ($routes) {
     // Request Formasi
     $routes->post('request-formasi', 'User\RequestFormasiController::store');
 
+    // Ulasan
+    $routes->post('ulasan', 'User\UlasanController::store');
+
+    // Share hasil tryout
+    $routes->get('share/generate/(:num)', 'ShareController::generateToken/$1');
+
     // Notifikasi
     $routes->get('notifikasi', 'User\NotifikasiController::get');
     $routes->post('notifikasi/mark-all-read', 'User\NotifikasiController::markAllRead');
@@ -105,6 +111,9 @@ $routes->post('/webhook/midtrans', 'WebhookController::midtrans');
 
 // Serve file publik dari datafile (untuk katalog buku thumbnail, dll.)
 $routes->get('/file/(:num)', 'FileServeController::index/$1');
+
+// Share hasil tryout (publik, tanpa login)
+$routes->get('/share/hasil/(:alphanum)', 'ShareController::hasil/$1');
 
 // Cron Jobs — diamankan dengan API key (X-Cron-Key header atau ?key=...)
 $routes->get('/cron/sync-payment-status', 'CronController::syncPaymentStatus');
@@ -267,6 +276,11 @@ $routes->group('admin', ['filter' => ['auth', 'admin_only']], function ($routes)
     $routes->get('request-formasi', 'Admin\RequestFormasiController::index');
     $routes->post('request-formasi/(:num)/approve', 'Admin\RequestFormasiController::approve/$1');
     $routes->post('request-formasi/(:num)/reject', 'Admin\RequestFormasiController::reject/$1');
+
+    // Ulasan
+    $routes->get('ulasan', 'Admin\UlasanController::index');
+    $routes->post('ulasan/(:num)/toggle', 'Admin\UlasanController::toggle/$1');
+    $routes->post('ulasan/(:num)/delete', 'Admin\UlasanController::delete/$1');
 
     // Notifikasi (admin)
     $routes->get('notifikasi', 'User\NotifikasiController::get');

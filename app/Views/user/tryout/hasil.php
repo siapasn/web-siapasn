@@ -161,10 +161,51 @@ if (! empty($hasil['detail_passing_grade'])) {
                class="btn btn-primary">
                 <i class="bi bi-book-fill me-1"></i> Lihat Pembahasan
             </a>
+            <button type="button" class="btn btn-outline-success" id="btnShare" data-sesi-id="<?= $sesi['id'] ?>">
+                <i class="bi bi-share me-1"></i> Share Hasil
+            </button>
             <a href="<?= base_url('user/tryout') ?>"
                class="btn btn-outline-secondary">
                 <i class="bi bi-arrow-left me-1"></i> Kembali ke Paket Saya
             </a>
+        </div>
+
+        <!-- Modal Share -->
+        <div class="modal fade" id="modalShare" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered modal-sm">
+                <div class="modal-content border-0 shadow">
+                    <div class="modal-header border-0 pb-0">
+                        <h6 class="modal-title fw-bold"><i class="bi bi-share me-1"></i>Share Hasil</h6>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body text-center">
+                        <div id="shareLoading" class="py-3">
+                            <div class="spinner-border spinner-border-sm text-primary"></div>
+                            <div class="small text-muted mt-1">Generating link...</div>
+                        </div>
+                        <div id="shareReady" style="display:none">
+                            <input type="text" id="shareUrl" class="form-control form-control-sm mb-3" readonly>
+                            <div class="d-flex flex-wrap gap-2 justify-content-center">
+                                <button class="btn btn-sm btn-outline-primary" id="btnCopyShare">
+                                    <i class="bi bi-clipboard me-1"></i>Copy
+                                </button>
+                                <a id="shareWa" href="#" target="_blank" class="btn btn-sm" style="background:#25D366;color:#fff">
+                                    <i class="bi bi-whatsapp me-1"></i>WA
+                                </a>
+                                <a id="shareTwitter" href="#" target="_blank" class="btn btn-sm" style="background:#1DA1F2;color:#fff">
+                                    <i class="bi bi-twitter-x me-1"></i>X
+                                </a>
+                                <a id="shareOpen" href="#" target="_blank" class="btn btn-sm btn-outline-secondary">
+                                    <i class="bi bi-box-arrow-up-right me-1"></i>Buka
+                                </a>
+                            </div>
+                            <div id="shareCopied" class="text-success small mt-2" style="display:none">
+                                <i class="bi bi-check-circle"></i> Tersalin!
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
     </div>
@@ -275,4 +316,58 @@ if (! empty($hasil['detail_passing_grade'])) {
 
 </div>
 
+<?= $this->endSection() ?>
+
+<?= $this->section('scripts') ?>
+<script>
+(function () {
+    const btnShare = document.getElementById('btnShare');
+    if (!btnShare) return;
+
+    btnShare.addEventListener('click', function () {
+        const sesiId = this.dataset.sesiId;
+        const modal  = new bootstrap.Modal(document.getElementById('modalShare'));
+        modal.show();
+
+        document.getElementById('shareLoading').style.display = '';
+        document.getElementById('shareReady').style.display = 'none';
+
+        fetch('<?= base_url('user/share/generate') ?>/' + sesiId)
+            .then(r => r.json())
+            .then(data => {
+                if (data.status) {
+                    const url = data.url;
+                    document.getElementById('shareUrl').value = url;
+                    document.getElementById('shareOpen').href = url;
+                    document.getElementById('shareWa').href = 'https://wa.me/?text=' + encodeURIComponent('Lihat hasil tryout saya di SiapASN! ' + url);
+                    document.getElementById('shareTwitter').href = 'https://twitter.com/intent/tweet?text=' + encodeURIComponent('Hasil Tryout CPNS saya 🎯 #CPNS #SiapASN') + '&url=' + encodeURIComponent(url);
+
+                    document.getElementById('shareLoading').style.display = 'none';
+                    document.getElementById('shareReady').style.display = '';
+                } else {
+                    alert(data.message || 'Gagal generate link.');
+                    modal.hide();
+                }
+            })
+            .catch(function () {
+                alert('Terjadi kesalahan.');
+                modal.hide();
+            });
+    });
+
+    // Copy link
+    const btnCopy = document.getElementById('btnCopyShare');
+    if (btnCopy) {
+        btnCopy.addEventListener('click', function () {
+            const url = document.getElementById('shareUrl').value;
+            navigator.clipboard.writeText(url).then(function () {
+                document.getElementById('shareCopied').style.display = '';
+                setTimeout(function () {
+                    document.getElementById('shareCopied').style.display = 'none';
+                }, 3000);
+            });
+        });
+    }
+}());
+</script>
 <?= $this->endSection() ?>

@@ -76,6 +76,33 @@ $csrfHash     = csrf_hash();
 .nav-btn.aktif   { background: #1a3a5c; border-color: #1a3a5c; color: #fff; }
 .nav-btn.dijawab { background: #198754; border-color: #198754; color: #fff; }
 
+/* Mobile: navigasi lebih compact */
+@media (max-width: 768px) {
+    .nav-panel .nav-grid {
+        grid-template-columns: repeat(8, 1fr);
+        gap: 3px;
+    }
+    .nav-btn {
+        aspect-ratio: 1;
+        font-size: .65rem;
+        border-radius: .3rem;
+        border-width: 1.5px;
+    }
+    .nav-panel .card-header {
+        padding: .4rem .75rem !important;
+    }
+}
+@media (max-width: 480px) {
+    .nav-panel .nav-grid {
+        grid-template-columns: repeat(10, 1fr);
+        gap: 2px;
+    }
+    .nav-btn {
+        font-size: .6rem;
+        border-radius: .25rem;
+    }
+}
+
 /* ── Pilihan jawaban ── */
 .pilihan-item {
     display: flex;

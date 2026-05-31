@@ -446,6 +446,8 @@
             if (e.ctrlKey && e.shiftKey && e.key === 'J') { e.preventDefault(); return false; }
             // Ctrl+Shift+C (Inspect Element)
             if (e.ctrlKey && e.shiftKey && e.key === 'C') { e.preventDefault(); return false; }
+            // Ctrl+Shift+S (Screenshot Browser)
+            if (e.ctrlKey && e.shiftKey && e.key === 'S') { e.preventDefault(); return false; }
             // F12 (DevTools)
             if (e.key === 'F12') { e.preventDefault(); return false; }
             // Ctrl+P (Print)

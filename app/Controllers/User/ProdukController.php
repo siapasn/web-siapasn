@@ -294,6 +294,9 @@ class ProdukController extends BaseController
             'sudahBeli'   => $sudahBeli,
             'expiredAt'   => $expiredAt,
             'materi'      => $sudahBeli ? $this->materiModel->getByProduk($id) : [],
+            'ulasans'     => (new \App\Models\UlasanModel())->getByProduk($id),
+            'avgRating'   => (new \App\Models\UlasanModel())->getAvgRating($id),
+            'hasReviewed' => $sudahBeli ? (new \App\Models\UlasanModel())->hasReviewed($userId, $id) : true,
             'menus'       => $menus,
         ]);
     }
