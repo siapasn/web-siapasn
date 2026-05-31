@@ -48,6 +48,7 @@
                 <thead class="table-light">
                     <tr>
                         <th class="ps-3" style="width:50px">No</th>
+                        <th style="width:80px">Kode</th>
                         <th>Nama Tryout</th>
                         <th class="text-center">Durasi (menit)</th>
                         <th class="text-center">Jumlah Soal</th>
@@ -59,6 +60,11 @@
                     <?php foreach ($tryouts as $i => $t): ?>
                         <tr>
                             <td class="ps-3 text-muted"><?= $i + 1 ?></td>
+                            <td>
+                                <span class="badge bg-dark bg-opacity-10 text-dark border font-monospace" style="font-size:.78rem">
+                                    <?= str_pad($t['id'], 3, '0', STR_PAD_LEFT) ?>
+                                </span>
+                            </td>
                             <td class="fw-medium"><?= esc($t['nama']) ?></td>
                     <td class="text-center"><?= (int) $t['durasi'] ?></td>
                             <td class="text-center">
@@ -124,7 +130,7 @@ $(document).ready(function () {
         pageLength: 25,
         ordering: true,
         columnDefs: [
-            { orderable: false, targets: [0, 5] }
+            { orderable: false, targets: [0, 6] }
         ]
     });
 });
