@@ -100,6 +100,10 @@
             <i class="bi bi-list-ul me-1"></i> Daftar Formasi
             <span class="badge bg-info text-dark rounded-pill ms-1"><?= count($formasiList) ?></span>
         </span>
+        <?php if (!empty($formasiList)): ?>
+        <input type="text" id="searchFormasi" class="form-control form-control-sm" style="max-width:250px"
+               placeholder="Cari formasi..." autocomplete="off">
+        <?php endif; ?>
     </div>
 
     <?php if (!empty($formasiList)): ?>
@@ -113,7 +117,7 @@
                         <th>Deskripsi</th>
                         <th class="text-center">Referensi</th>
                         <th class="text-center">Status</th>
-                        <th class="text-center pe-3" style="width:80px">Aksi</th>
+                        <th class="text-center pe-3" style="width:120px">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -137,6 +141,12 @@
                                 <?php endif; ?>
                             </td>
                             <td class="text-center pe-3">
+                                <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2"
+                                        title="Edit"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#modalEdit<?= $f['id'] ?>">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
                                 <form method="post"
                                       action="<?= base_url("admin/master/kategori-formasi/{$kategori['id']}/formasi/{$f['id']}/delete") ?>"
                                       class="d-inline"
@@ -146,6 +156,55 @@
                                         <i class="bi bi-trash"></i>
                                     </button>
                                 </form>
+
+                                <!-- Modal Edit -->
+                                <div class="modal fade" id="modalEdit<?= $f['id'] ?>" tabindex="-1">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content">
+                                            <form method="post" action="<?= base_url("admin/master/kategori-formasi/{$kategori['id']}/formasi/{$f['id']}/update") ?>">
+                                                <?= csrf_field() ?>
+                                                <div class="modal-header border-0 pb-0">
+                                                    <h6 class="modal-title fw-bold"><i class="bi bi-pencil me-1"></i>Edit Formasi</h6>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                </div>
+                                                <div class="modal-body text-start">
+                                                    <div class="mb-3">
+                                                        <label class="form-label small">Nama Formasi <span class="text-danger">*</span></label>
+                                                        <input type="text" name="nama" class="form-control form-control-sm"
+                                                               value="<?= esc($f['nama']) ?>" required>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label class="form-label small">Deskripsi</label>
+                                                        <input type="text" name="deskripsi" class="form-control form-control-sm"
+                                                               value="<?= esc($f['deskripsi'] ?? '') ?>"
+                                                               placeholder="Deskripsi singkat (opsional)">
+                                                    </div>
+                                                    <div class="row g-3">
+                                                        <div class="col-6">
+                                                            <label class="form-label small">Referensi</label>
+                                                            <input type="number" name="referensi" class="form-control form-control-sm"
+                                                                   value="<?= esc($f['referensi'] ?? '') ?>" min="0"
+                                                                   placeholder="ID/Kode">
+                                                        </div>
+                                                        <div class="col-6">
+                                                            <label class="form-label small">Status</label>
+                                                            <select name="is_active" class="form-select form-select-sm">
+                                                                <option value="1" <?= (int)$f['is_active'] === 1 ? 'selected' : '' ?>>Aktif</option>
+                                                                <option value="0" <?= (int)$f['is_active'] === 0 ? 'selected' : '' ?>>Nonaktif</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer border-0 pt-0">
+                                                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+                                                    <button type="submit" class="btn btn-primary btn-sm">
+                                                        <i class="bi bi-save me-1"></i>Simpan
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
                             </td>
                         </tr>
                     <?php endforeach; ?>
@@ -162,4 +221,23 @@
     <?php endif; ?>
 </div>
 
+<?= $this->endSection() ?>
+
+<?= $this->section('scripts') ?>
+<script>
+(function () {
+    const input = document.getElementById('searchFormasi');
+    if (!input) return;
+
+    input.addEventListener('input', function () {
+        const q = this.value.trim().toLowerCase();
+        document.querySelectorAll('table tbody tr').forEach(function (row) {
+            const nama = row.querySelector('td:nth-child(2)');
+            if (!nama) return;
+            const text = nama.textContent.trim().toLowerCase();
+            row.style.display = (!q || text.includes(q)) ? '' : 'none';
+        });
+    });
+}());
+</script>
 <?= $this->endSection() ?>

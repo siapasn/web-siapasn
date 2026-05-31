@@ -186,6 +186,7 @@ $routes->group('admin', ['filter' => ['auth', 'admin_only']], function ($routes)
     $routes->post('master/kategori-formasi/(:num)/delete', 'Admin\Master\KategoriFormasiController::delete/$1');
     $routes->get('master/kategori-formasi/(:num)/detail', 'Admin\Master\KategoriFormasiController::detail/$1');
     $routes->post('master/kategori-formasi/(:num)/formasi/store', 'Admin\Master\KategoriFormasiController::storeFormasi/$1');
+    $routes->post('master/kategori-formasi/(:num)/formasi/(:num)/update', 'Admin\Master\KategoriFormasiController::updateFormasi/$1/$2');
     $routes->post('master/kategori-formasi/(:num)/formasi/(:num)/delete', 'Admin\Master\KategoriFormasiController::deleteFormasi/$1/$2');
 
     // Master Passing Grade

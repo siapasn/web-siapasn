@@ -241,4 +241,44 @@ class KategoriFormasiController extends BaseController
         return redirect()->to(base_url("admin/master/kategori-formasi/{$kategoriId}/detail"))
             ->with('success', 'Formasi berhasil dihapus.');
     }
+
+    /**
+     * Update formasi.
+     */
+    public function updateFormasi(int $kategoriId, int $formasiId)
+    {
+        $db = \Config\Database::connect();
+
+        $formasi = $db->table('formasi')
+            ->where('id', $formasiId)
+            ->where('kategori_formasi_id', $kategoriId)
+            ->get()
+            ->getRowArray();
+
+        if (! $formasi) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Formasi tidak ditemukan.');
+        }
+
+        $rules = [
+            'nama'      => 'required|min_length[2]|max_length[255]',
+            'deskripsi' => 'permit_empty|max_length[500]',
+            'referensi' => 'permit_empty|is_natural',
+            'is_active' => 'permit_empty|in_list[0,1]',
+        ];
+
+        if (! $this->validate($rules)) {
+            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+        }
+
+        $db->table('formasi')->where('id', $formasiId)->update([
+            'nama'       => $this->request->getPost('nama'),
+            'deskripsi'  => $this->request->getPost('deskripsi') ?: null,
+            'referensi'  => $this->request->getPost('referensi') ?: null,
+            'is_active'  => $this->request->getPost('is_active') ?? 1,
+            'updated_at' => date('Y-m-d H:i:s'),
+        ]);
+
+        return redirect()->to(base_url("admin/master/kategori-formasi/{$kategoriId}/detail"))
+            ->with('success', 'Formasi berhasil diperbarui.');
+    }
 }
