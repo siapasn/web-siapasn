@@ -458,6 +458,165 @@
 </section>
 
 <!-- ================================================================
+     EVENT TRYOUT AKTIF
+================================================================ -->
+<?php if (! empty($eventAktif)): ?>
+<section id="event-tryout" style="padding:60px 0;background:#fff">
+    <div class="container">
+        <div class="text-center mb-4">
+            <h2 style="font-weight:800;color:var(--sa-primary)">
+                <i class="bi bi-calendar-event-fill me-2" style="color:var(--sa-accent)"></i>Event Tryout Gratis
+            </h2>
+            <p class="text-muted">Ikuti event tryout nasional gratis dan ukur kemampuanmu!</p>
+        </div>
+        <div class="row g-3 justify-content-center">
+            <?php foreach ($eventAktif as $ev): ?>
+            <div class="col-12 col-md-4">
+                <div class="card border-0 shadow-sm h-100" style="border-radius:.75rem;overflow:hidden;border-top:3px solid var(--sa-accent)">
+                    <?php if (! empty($ev['banner_url'])): ?>
+                    <div style="aspect-ratio:16/7;overflow:hidden">
+                        <img src="<?= base_url($ev['banner_url']) ?>" class="w-100 h-100" style="object-fit:cover">
+                    </div>
+                    <?php endif; ?>
+                    <div class="card-body p-3">
+                        <h6 class="fw-bold mb-2" style="color:var(--sa-primary)"><?= esc($ev['nama']) ?></h6>
+                        <div class="d-flex gap-2 mb-2">
+                            <span class="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle" style="font-size:.65rem">
+                                <i class="bi bi-people me-1"></i><?= (int) $ev['total_peserta'] ?> peserta
+                            </span>
+                            <span class="badge bg-warning bg-opacity-10 text-warning border border-warning-subtle" style="font-size:.65rem">
+                                <i class="bi bi-clock me-1"></i><?= (int) $ev['durasi'] ?> menit
+                            </span>
+                            <?php
+                            switch ($ev['fase']) {
+                                case 'pendaftaran': $badgeClass = 'bg-info'; $badgeText = 'Pendaftaran Dibuka'; break;
+                                case 'pelaksanaan': $badgeClass = 'bg-success'; $badgeText = 'Berlangsung'; break;
+                                default: $badgeClass = 'bg-secondary'; $badgeText = 'Segera'; break;
+                            }
+                            ?>
+                            <span class="badge <?= $badgeClass ?>" style="font-size:.65rem"><?= $badgeText ?></span>
+                        </div>
+                        <div class="text-muted small mb-3">
+                            <i class="bi bi-calendar3 me-1"></i><?= date('d M Y H:i', strtotime($ev['mulai_pelaksanaan'])) ?>
+                        </div>
+                        <a href="<?= base_url('login?redirect_url=' . urlencode('user/tryout-event/' . $ev['id'])) ?>"
+                           class="btn btn-warning btn-sm w-100 fw-semibold" style="border-radius:.5rem">
+                            <i class="bi bi-person-plus me-1"></i>Daftar & Ikuti Gratis
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+</section>
+<?php endif; ?>
+
+<!-- ================================================================
+     PRODUK REKOMENDASI
+================================================================ -->
+<?php if (! empty($produkRekomendasi)): ?>
+<section id="produk-rekomendasi" style="padding:60px 0;background:var(--sa-body-bg)">
+    <div class="container">
+        <div class="text-center mb-4">
+            <h2 style="font-weight:800;color:var(--sa-primary)">
+                <i class="bi bi-star-fill me-2" style="color:var(--sa-accent)"></i>Paket Tryout Unggulan
+            </h2>
+            <p class="text-muted">Persiapkan dirimu dengan paket tryout terbaik kami</p>
+        </div>
+        <div class="row g-3">
+            <?php foreach (array_slice($produkRekomendasi, 0, 8) as $p):
+                $thumb = ! empty($p['thumbnail'])
+                    ? base_url('uploads/produk/' . $p['thumbnail'])
+                    : base_url('assets/images/thumbnail/product-default.png');
+            ?>
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="card border-0 shadow-sm h-100" style="border-radius:.75rem;overflow:hidden;transition:transform .18s,box-shadow .18s">
+                    <div style="aspect-ratio:1/1;overflow:hidden;background:#e8f0fe">
+                        <img src="<?= $thumb ?>" alt="<?= esc($p['nama']) ?>" class="w-100 h-100" style="object-fit:cover">
+                    </div>
+                    <div class="card-body p-3 d-flex flex-column">
+                        <h6 class="mb-2" style="color:var(--sa-primary);font-size:.85rem;font-weight:600;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">
+                            <?= esc($p['nama']) ?>
+                        </h6>
+                        <div class="text-muted small mb-2">
+                            <i class="bi bi-journal-text me-1"></i><?= $p['jumlah_tryout'] ?> sesi tryout
+                        </div>
+                        <div class="mb-3 mt-auto">
+                            <?php if ($p['harga_promo'] !== null): ?>
+                                <div class="text-decoration-line-through text-muted" style="font-size:.75rem">
+                                    Rp <?= number_format($p['harga'], 0, ',', '.') ?>
+                                </div>
+                                <div class="fw-bold text-danger" style="font-size:1rem">
+                                    Rp <?= number_format($p['harga_promo'], 0, ',', '.') ?>
+                                </div>
+                            <?php else: ?>
+                                <div class="fw-bold" style="font-size:1rem;color:var(--sa-primary)">
+                                    Rp <?= number_format($p['harga'], 0, ',', '.') ?>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                        <a href="<?= base_url('login?redirect_url=' . urlencode('user/produk/' . $p['id'])) ?>"
+                           class="btn btn-primary btn-sm w-100 fw-semibold" style="border-radius:.5rem;background:var(--sa-primary);border-color:var(--sa-primary)">
+                            <i class="bi bi-eye me-1"></i>Lihat Detail
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+</section>
+<?php endif; ?>
+
+<!-- ================================================================
+     KATALOG BUKU
+================================================================ -->
+<?php if (! empty($bukuHighlight)): ?>
+<section id="katalog-buku" style="padding:60px 0;background:#fff">
+    <div class="container">
+        <div class="text-center mb-4">
+            <h2 style="font-weight:800;color:var(--sa-primary)">
+                <i class="bi bi-book-fill me-2" style="color:var(--sa-accent)"></i>Rekomendasi Buku
+            </h2>
+            <p class="text-muted">Buku pendukung persiapan CPNS & PPPK</p>
+        </div>
+        <div class="row g-3 justify-content-center">
+            <?php foreach (array_slice($bukuHighlight, 0, 8) as $b): ?>
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="card border-0 shadow-sm h-100" style="border-radius:.75rem;overflow:hidden">
+                    <div style="aspect-ratio:1/1;overflow:hidden;background:#f1f5f9;display:flex;align-items:center;justify-content:center">
+                        <img src="<?= esc($b['url_thumbnail'] ?? '') ?>"
+                             alt="<?= esc($b['judul']) ?>"
+                             style="width:100%;height:100%;object-fit:contain"
+                             referrerpolicy="no-referrer"
+                             loading="lazy"
+                             onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                        <div style="display:none;flex-direction:column;align-items:center;color:#94a3b8;font-size:.8rem">
+                            <i class="bi bi-book" style="font-size:2rem;margin-bottom:.3rem"></i>
+                        </div>
+                    </div>
+                    <div class="card-body p-3 d-flex flex-column">
+                        <p class="mb-3" style="font-size:.82rem;font-weight:600;line-height:1.4;color:var(--sa-primary);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">
+                            <?= esc($b['judul']) ?>
+                        </p>
+                        <?php if (! empty($b['url_shopee'])): ?>
+                        <a href="<?= esc($b['url_shopee']) ?>" target="_blank" rel="noopener noreferrer"
+                           class="btn btn-sm w-100 fw-semibold mt-auto"
+                           style="background:linear-gradient(135deg,#ee4d2d,#ff6633);color:#fff;border:none;border-radius:.5rem;font-size:.78rem">
+                            <i class="bi bi-cart3 me-1"></i>Beli di Shopee
+                        </a>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+</section>
+<?php endif; ?>
+
+<!-- ================================================================
      CTA
 ================================================================ -->
 <section id="cta">

@@ -150,7 +150,8 @@ class AuthController extends BaseController
         }
 
         $data = [
-            'captcha' => $this->generateCaptcha(),
+            'captcha'      => $this->generateCaptcha(),
+            'redirect_url' => $this->request->getGet('redirect_url') ?? '',
         ];
 
         return view('auth/login', $data);
@@ -232,6 +233,16 @@ class AuthController extends BaseController
             'role'          => $user['role'],
             'last_activity' => time(),
         ]);
+
+        // Redirect ke URL yang diminta sebelum login (jika ada)
+        $redirectUrl = $this->request->getPost('redirect_url');
+        if (! empty($redirectUrl) && $user['role'] === 'user') {
+            // Sanitasi: pastikan hanya path internal
+            $redirectUrl = ltrim($redirectUrl, '/');
+            if (! str_starts_with($redirectUrl, 'http')) {
+                return redirect()->to(base_url($redirectUrl));
+            }
+        }
 
         return $this->redirectToDashboard($user['role']);
     }

@@ -98,7 +98,7 @@ $importErrors  = session()->getFlashdata('import_errors') ?? [];
                             File CSV (.csv) <span class="text-danger">*</span>
                         </label>
                         <input type="file" id="file_import" name="file_import"
-                               class="form-control" accept=".csv" required>
+                               class="form-control" accept=".csv,text/csv,application/vnd.ms-excel" required>
                         <div class="form-text">Ukuran maksimum: 5 MB. Format: .csv (download template terbaru)</div>
                     </div>
                     <button type="submit" class="btn btn-success">

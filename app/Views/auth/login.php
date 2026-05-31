@@ -33,6 +33,7 @@
 
 <form action="<?= base_url('login') ?>" method="post" novalidate>
     <?= csrf_field() ?>
+    <input type="hidden" name="redirect_url" value="<?= esc($redirect_url ?? '') ?>">
 
     <div class="mb-3">
         <label for="email" class="form-label">Email</label>

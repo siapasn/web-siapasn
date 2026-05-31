@@ -105,6 +105,12 @@
                     <i class="bi bi-collection me-2 text-success"></i>
                     Tryout Tersedia
                 </h6>
+                <?php if (! empty($availableTryouts)): ?>
+                <div class="mt-2">
+                    <input type="text" id="searchTryout" class="form-control form-control-sm"
+                           placeholder="Cari nama tryout..." autocomplete="off">
+                </div>
+                <?php endif; ?>
             </div>
             <div class="card-body p-0">
                 <?php if (! empty($availableTryouts)): ?>
@@ -272,6 +278,19 @@
                 })
                 .catch(() => showToast('Terjadi kesalahan jaringan.', false));
             },
+        });
+    }
+    // ── Pencarian Tryout Tersedia ─────────────────────────────────────────────
+    const searchInput = document.getElementById('searchTryout');
+    if (searchInput) {
+        searchInput.addEventListener('input', function () {
+            const q = this.value.trim().toLowerCase();
+            document.querySelectorAll('.btn-tambah-tryout').forEach(function (btn) {
+                const row = btn.closest('tr');
+                if (!row) return;
+                const nama = row.querySelector('td').textContent.trim().toLowerCase();
+                row.style.display = (!q || nama.includes(q)) ? '' : 'none';
+            });
         });
     }
 }());

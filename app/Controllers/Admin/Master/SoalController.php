@@ -534,6 +534,12 @@ class SoalController extends BaseController
 
         if (! $file || ! $file->isValid()) {
             $error = $file ? $file->getErrorString() : 'Tidak ada file yang diunggah.';
+            // Debug: cek apakah ada file di $_FILES
+            if (empty($_FILES)) {
+                $error .= ' (Kemungkinan: post_max_size atau upload_max_filesize PHP terlalu kecil, atau form tidak memiliki enctype multipart/form-data)';
+            } elseif (isset($_FILES['file_import'])) {
+                $error .= ' (File error code: ' . $_FILES['file_import']['error'] . ')';
+            }
             return redirect()->back()->with('error', $error);
         }
 
