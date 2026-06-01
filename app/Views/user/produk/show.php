@@ -13,6 +13,18 @@
 
 <?= $this->section('content') ?>
 
+<?php
+// Cek status launching
+$db2        = \Config\Database::connect();
+$cfgRows2   = $db2->table('master_aplikasi')
+    ->whereIn('config_key', ['launch_date', 'launch_message'])
+    ->get()->getResultArray();
+$cfgMap2    = array_column($cfgRows2, 'config_value', 'config_key');
+$launchDate2 = $cfgMap2['launch_date'] ?? '';
+$launchMsg2  = $cfgMap2['launch_message'] ?? 'Pembelian paket tryout akan segera dibuka. Pantau terus halaman ini!';
+$isLaunched2 = empty($launchDate2) || strtotime($launchDate2) <= time();
+?>
+
 <div class="mb-3">
     <a href="<?= base_url('user/produk') ?>" class="btn btn-sm btn-outline-primary">
         <i class="bi bi-arrow-left me-1"></i>Kembali ke Katalog
@@ -321,6 +333,7 @@
 
                     <hr>
 
+                    <?php if ($isLaunched2): ?>
                     <a href="<?= base_url('user/transaksi/pilih-metode/' . $produk['id']) ?>"
                        class="btn btn-primary w-100 fw-semibold">
                         <i class="bi bi-credit-card me-1"></i>Pilih Metode & Beli
@@ -329,6 +342,18 @@
                     <div class="mt-3 text-muted small">
                         <i class="bi bi-shield-check me-1 text-success"></i>Pembayaran aman via Midtrans
                     </div>
+                    <?php else: ?>
+                    <button class="btn btn-primary w-100 fw-semibold" disabled>
+                        <i class="bi bi-lock me-1"></i>Pembelian Belum Dibuka
+                    </button>
+                    <div class="alert alert-warning py-2 mt-3 mb-0 small">
+                        <i class="bi bi-clock me-1"></i>
+                        <?= esc($launchMsg2) ?>
+                        <div class="fw-semibold mt-1">
+                            Aktif pada: <?= date('d M Y, H:i', strtotime($launchDate2)) ?> WIB
+                        </div>
+                    </div>
+                    <?php endif; ?>
                 <?php endif; ?>
             </div>
         </div>
