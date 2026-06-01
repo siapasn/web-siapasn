@@ -118,6 +118,7 @@ $routes->get('/share/hasil/(:alphanum)', 'ShareController::hasil/$1');
 
 // Cron Jobs — diamankan dengan API key (X-Cron-Key header atau ?key=...)
 $routes->get('/cron/sync-payment-status', 'CronController::syncPaymentStatus');
+$routes->get('/cron/process-blast-email', 'CronController::processBlastEmail');
 
 // Route Admin — dilindungi oleh AuthFilter + AdminFilter (admin & super_admin)
 $routes->group('admin', ['filter' => ['auth', 'admin_only']], function ($routes) {

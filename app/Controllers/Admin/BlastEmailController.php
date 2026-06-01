@@ -60,7 +60,8 @@ class BlastEmailController extends BaseController
     }
 
     /**
-     * Proses kirim email.
+     * Proses kirim email — simpan ke antrian (status pending).
+     * Email akan dikirim oleh cron job.
      */
     public function send()
     {
@@ -83,141 +84,42 @@ class BlastEmailController extends BaseController
         $body    = $this->request->getPost('body');
         $tipe    = $this->request->getPost('tipe');
 
-        $emailService = new EmailService();
-        $totalSent    = 0;
-        $totalFailed  = 0;
         $targetEmail  = null;
         $targetUserId = null;
 
         if ($tipe === 'single') {
-            // Kirim ke 1 user
             $targetUserId = (int) $this->request->getPost('target_user_id');
             $user = $db->table('users')->where('id', $targetUserId)->get()->getRowArray();
-
             if (! $user) {
                 return redirect()->back()->withInput()->with('error', 'User tidak ditemukan.');
             }
-
             $targetEmail = $user['email'];
-            $result = $this->sendSingleEmail($emailService, $user['email'], $user['nama'], $subject, $body);
-
-            if ($result) {
-                $totalSent = 1;
-            } else {
-                $totalFailed = 1;
-            }
-        } elseif ($tipe === 'subscribe') {
-            // Kirim ke semua subscriber dari tabel users_subscribe
-            $subscribers = $db->table('users_subscribe')
-                ->select('email, name')
-                ->get()->getResultArray();
-
-            foreach ($subscribers as $sub) {
-                $result = $this->sendSingleEmail(
-                    $emailService,
-                    $sub['email'],
-                    $sub['name'] ?: 'Subscriber',
-                    $subject,
-                    $body
-                );
-                if ($result) {
-                    $totalSent++;
-                } else {
-                    $totalFailed++;
-                }
-            }
         } elseif ($tipe === 'subscribe_single') {
-            // Kirim ke subscriber tertentu yang dipilih
             $subscriberIds = $this->request->getPost('target_subscriber_ids') ?? [];
             if (empty($subscriberIds)) {
                 return redirect()->back()->withInput()->with('error', 'Pilih minimal satu subscriber.');
             }
-
-            $selectedSubs = $db->table('users_subscribe')
-                ->whereIn('id', $subscriberIds)
-                ->get()->getResultArray();
-
-            foreach ($selectedSubs as $sub) {
-                $result = $this->sendSingleEmail(
-                    $emailService,
-                    $sub['email'],
-                    $sub['name'] ?: 'Subscriber',
-                    $subject,
-                    $body
-                );
-                if ($result) $totalSent++;
-                else $totalFailed++;
-            }
-        } else {
-            // Kirim ke semua user terdaftar
-            $allUsers = $db->table('users')
-                ->select('id, nama, email')
-                ->where('role', 'user')
-                ->where('is_active', 1)
-                ->where('email_verified_at IS NOT NULL', null, false)
-                ->get()->getResultArray();
-
-            foreach ($allUsers as $user) {
-                $result = $this->sendSingleEmail($emailService, $user['email'], $user['nama'], $subject, $body);
-                if ($result) {
-                    $totalSent++;
-                } else {
-                    $totalFailed++;
-                }
-            }
+            // Simpan IDs sebagai JSON di target_email untuk referensi
+            $targetEmail = json_encode($subscriberIds);
         }
 
-        // Simpan log
+        // Simpan ke antrian dengan status pending
         $db->table('blast_email')->insert([
             'subject'        => $subject,
             'body'           => $body,
             'tipe'           => $tipe,
             'target_user_id' => $targetUserId,
             'target_email'   => $targetEmail,
-            'total_sent'     => $totalSent,
-            'total_failed'   => $totalFailed,
+            'total_sent'     => 0,
+            'total_failed'   => 0,
             'sent_by'        => session()->get('user_id'),
+            'status'         => 'pending',
             'created_at'     => date('Y-m-d H:i:s'),
             'updated_at'     => date('Y-m-d H:i:s'),
         ]);
 
-        $msg = "Email berhasil dikirim: {$totalSent} berhasil";
-        if ($totalFailed > 0) {
-            $msg .= ", {$totalFailed} gagal";
-        }
-
-        // Notifikasi ke user yang menerima blast email
-        if ($tipe === 'all') {
-            $allUserIds = $db->table('users')
-                ->select('id')
-                ->where('role', 'user')
-                ->where('is_active', 1)
-                ->where('email_verified_at IS NOT NULL', null, false)
-                ->get()->getResultArray();
-
-            $now2 = date('Y-m-d H:i:s');
-            $batch = [];
-            foreach ($allUserIds as $u) {
-                $batch[] = [
-                    'user_id'    => $u['id'],
-                    'tipe'       => 'info',
-                    'judul'      => 'Pesan dari Admin',
-                    'pesan'      => $subject,
-                    'url'        => null,
-                    'is_read'    => 0,
-                    'created_at' => $now2,
-                ];
-            }
-            if (! empty($batch)) {
-                $db->table('notifikasi')->insertBatch($batch);
-            }
-        } elseif ($tipe === 'single' && $targetUserId) {
-            \App\Models\NotifikasiModel::kirim(
-                $targetUserId, 'info', 'Pesan dari Admin', $subject, null
-            );
-        }
-
-        return redirect()->to(base_url('admin/blast-email'))->with('success', $msg);
+        return redirect()->to(base_url('admin/blast-email'))
+            ->with('success', 'Email berhasil ditambahkan ke antrian. Akan dikirim oleh sistem secara otomatis.');
     }
 
     /**
