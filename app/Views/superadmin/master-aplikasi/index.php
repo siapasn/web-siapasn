@@ -73,6 +73,13 @@ $errors = session()->getFlashdata('errors') ?? [];
                 <i class="bi bi-database me-1"></i> Redis
             </button>
         </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="tab-launching" data-bs-toggle="tab"
+                    data-bs-target="#panel-launching" type="button" role="tab"
+                    aria-controls="panel-launching" aria-selected="false">
+                <i class="bi bi-rocket-takeoff me-1"></i> Launching
+            </button>
+        </li>
     </ul>
 
     <div class="tab-content border border-top-0 rounded-bottom bg-white shadow-sm p-4 mb-4" id="configTabContent">
@@ -546,6 +553,73 @@ $errors = session()->getFlashdata('errors') ?? [];
                     <?php if (isset($errors['redis_db'])): ?>
                         <div class="invalid-feedback"><?= esc($errors['redis_db']) ?></div>
                     <?php endif; ?>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- Tab 6: Launching -->
+        <!-- ============================================================ -->
+        <div class="tab-pane fade" id="panel-launching" role="tabpanel" aria-labelledby="tab-launching">
+            <h6 class="fw-semibold mb-3 text-primary">
+                <i class="bi bi-rocket-takeoff me-1"></i> Pengaturan Launching Pembelian
+            </h6>
+
+            <div class="alert alert-info d-flex align-items-start gap-2 mb-4" role="alert">
+                <i class="bi bi-info-circle-fill flex-shrink-0 mt-1"></i>
+                <div>
+                    Atur tanggal dan waktu mulai pembelian produk tryout berbayar.
+                    Sebelum waktu ini, tombol <strong>Keranjang</strong> dan <strong>Beli Sekarang</strong> akan dinonaktifkan
+                    dan user akan melihat informasi bahwa pembelian segera dibuka.
+                    Kosongkan untuk menonaktifkan fitur ini (pembelian selalu aktif).
+                </div>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-12 col-md-6">
+                    <label for="launch_date" class="form-label">
+                        Tanggal & Waktu Launching
+                    </label>
+                    <input type="datetime-local"
+                           id="launch_date"
+                           name="launch_date"
+                           class="form-control"
+                           value="<?= esc(old('launch_date', isset($configs['launch_date']) && $configs['launch_date']
+                               ? date('Y-m-d\TH:i', strtotime($configs['launch_date']))
+                               : '')) ?>">
+                    <div class="form-text">
+                        Pembelian akan aktif mulai tanggal dan waktu ini.
+                        <strong>Kosongkan</strong> jika pembelian sudah aktif atau tidak ingin membatasi.
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-6">
+                    <label class="form-label">Status Saat Ini</label>
+                    <div class="p-3 rounded border">
+                        <?php
+                        $launchDate = $configs['launch_date'] ?? '';
+                        if (empty($launchDate)) {
+                            echo '<span class="badge bg-success fs-6"><i class="bi bi-check-circle me-1"></i>Pembelian Aktif</span>';
+                            echo '<div class="text-muted small mt-1">Tidak ada pembatasan waktu launching.</div>';
+                        } elseif (strtotime($launchDate) > time()) {
+                            echo '<span class="badge bg-warning text-dark fs-6"><i class="bi bi-clock me-1"></i>Belum Launching</span>';
+                            echo '<div class="text-muted small mt-1">Pembelian akan aktif pada: <strong>' . date('d M Y, H:i', strtotime($launchDate)) . ' WIB</strong></div>';
+                        } else {
+                            echo '<span class="badge bg-success fs-6"><i class="bi bi-check-circle me-1"></i>Sudah Launching</span>';
+                            echo '<div class="text-muted small mt-1">Pembelian aktif sejak: <strong>' . date('d M Y, H:i', strtotime($launchDate)) . ' WIB</strong></div>';
+                        }
+                        ?>
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    <label for="launch_message" class="form-label">Pesan untuk User (sebelum launching)</label>
+                    <textarea id="launch_message"
+                              name="launch_message"
+                              class="form-control"
+                              rows="3"
+                              placeholder="Contoh: Pembelian paket tryout akan segera dibuka. Pantau terus halaman ini!"><?= esc(old('launch_message', $configs['launch_message'] ?? 'Pembelian paket tryout akan segera dibuka. Pantau terus halaman ini!')) ?></textarea>
+                    <div class="form-text">Pesan ini ditampilkan di halaman katalog produk sebelum waktu launching tiba.</div>
                 </div>
             </div>
         </div>

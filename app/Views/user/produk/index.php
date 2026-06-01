@@ -13,6 +13,36 @@
 
 <?= $this->section('content') ?>
 
+<?php
+// Cek status launching
+$db         = \Config\Database::connect();
+$cfgRows    = $db->table('master_aplikasi')
+    ->whereIn('config_key', ['launch_date', 'launch_message'])
+    ->get()->getResultArray();
+$cfgMap     = array_column($cfgRows, 'config_value', 'config_key');
+$launchDate = $cfgMap['launch_date'] ?? '';
+$launchMsg  = $cfgMap['launch_message'] ?? 'Pembelian paket tryout akan segera dibuka. Pantau terus halaman ini!';
+$isLaunched = empty($launchDate) || strtotime($launchDate) <= time();
+?>
+
+<?php if (! $isLaunched): ?>
+<div class="alert d-flex align-items-center gap-3 mb-4"
+     style="background:linear-gradient(135deg,#1a3a5c,#2d6a9f);color:#fff;border:none;border-radius:.75rem">
+    <div style="font-size:2rem;line-height:1">🚀</div>
+    <div class="flex-grow-1">
+        <div class="fw-bold mb-1">Pembelian Segera Dibuka!</div>
+        <div style="font-size:.9rem;opacity:.9"><?= esc($launchMsg) ?></div>
+    </div>
+    <div class="text-end flex-shrink-0">
+        <div style="font-size:.75rem;opacity:.8">Aktif pada</div>
+        <div class="fw-bold" style="font-size:.95rem" id="launchCountdown">
+            <?= date('d M Y, H:i', strtotime($launchDate)) ?> WIB
+        </div>
+        <div id="countdownTimer" class="mt-1" style="font-size:.8rem;opacity:.85"></div>
+    </div>
+</div>
+<?php endif; ?>
+
 <style>
 /* ── Produk Card ── */
 .produk-card {
@@ -396,15 +426,22 @@
                                                 <button type="button"
                                                         class="btn btn-outline-secondary btn-sm btn-cart btn-add-cart"
                                                         data-produk-id="<?= $p['id'] ?>"
-                                                        data-produk-nama="<?= esc($p['nama']) ?>">
+                                                        data-produk-nama="<?= esc($p['nama']) ?>"
+                                                        <?= ! $isLaunched ? 'disabled title="Pembelian belum dibuka"' : '' ?>>
                                                     <i class="bi bi-cart-plus me-1"></i>Keranjang
                                                 </button>
                                                 <button type="button"
                                                         class="btn btn-primary btn-sm btn-cart btn-beli-sekarang"
                                                         data-produk-id="<?= $p['id'] ?>"
-                                                        data-produk-nama="<?= esc($p['nama']) ?>">
+                                                        data-produk-nama="<?= esc($p['nama']) ?>"
+                                                        <?= ! $isLaunched ? 'disabled title="Pembelian belum dibuka"' : '' ?>>
                                                     <i class="bi bi-bag-check me-1"></i>Beli Sekarang
                                                 </button>
+                                                <?php if (! $isLaunched): ?>
+                                                <div class="text-center" style="font-size:.72rem;color:#64748b">
+                                                    <i class="bi bi-clock me-1"></i>Segera dibuka
+                                                </div>
+                                                <?php endif; ?>
                                             <?php endif; ?>
                                         </div>
                                     </div>
@@ -509,6 +546,30 @@
 
 <?= $this->section('scripts') ?>
 <script>
+<?php if (! $isLaunched && ! empty($launchDate)): ?>
+// Countdown timer
+(function () {
+    const target  = new Date('<?= date('Y-m-d\TH:i:s', strtotime($launchDate)) ?>').getTime();
+    const el      = document.getElementById('countdownTimer');
+    if (! el) return;
+
+    function tick() {
+        const diff = target - Date.now();
+        if (diff <= 0) {
+            el.textContent = 'Pembelian sudah aktif! Silakan refresh halaman.';
+            return;
+        }
+        const d = Math.floor(diff / 86400000);
+        const h = Math.floor((diff % 86400000) / 3600000);
+        const m = Math.floor((diff % 3600000) / 60000);
+        const s = Math.floor((diff % 60000) / 1000);
+        el.textContent = (d > 0 ? d + 'h ' : '') + String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+        setTimeout(tick, 1000);
+    }
+    tick();
+}());
+<?php endif; ?>
+
 (function () {
     const csrfName = '<?= csrf_token() ?>';
     const csrfHash = '<?= csrf_hash() ?>';

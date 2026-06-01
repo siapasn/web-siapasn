@@ -175,6 +175,12 @@ class MasterAplikasiController extends BaseController
             'redis_port'           => $this->request->getPost('redis_port') ?? '6379',
             'redis_password'       => $this->request->getPost('redis_password') ?? '',
             'redis_db'             => $this->request->getPost('redis_db') ?? '0',
+
+            // Launching
+            'launch_date'          => $this->request->getPost('launch_date')
+                ? date('Y-m-d H:i:s', strtotime($this->request->getPost('launch_date')))
+                : '',
+            'launch_message'       => $this->request->getPost('launch_message') ?? '',
         ];
 
         // Password email hanya diperbarui jika diisi (tidak kosong)
