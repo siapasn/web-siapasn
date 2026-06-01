@@ -91,6 +91,7 @@ $routes->group('user', ['filter' => 'auth'], function ($routes) {
 
     // Tryout Event
     $routes->get('tryout-event', 'User\TryoutEventController::index');
+    $routes->get('tryout-event/kalender', 'User\TryoutEventController::kalender');
     $routes->get('tryout-event/(:num)', 'User\TryoutEventController::detail/$1');
     $routes->post('tryout-event/(:num)/daftar', 'User\TryoutEventController::daftar/$1');
     $routes->post('tryout-event/(:num)/mulai', 'User\TryoutEventController::mulai/$1');

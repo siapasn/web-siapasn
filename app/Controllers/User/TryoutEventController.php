@@ -305,6 +305,65 @@ class TryoutEventController extends BaseController
     }
 
     /**
+     * Kalender event tryout.
+     */
+    public function kalender()
+    {
+        $db  = \Config\Database::connect();
+        $now = date('Y-m-d H:i:s');
+
+        // Ambil semua event aktif (termasuk yang akan datang)
+        $events = $db->table('tryout_event te')
+            ->select('te.*, t.nama AS tryout_nama, COUNT(tep.id) AS total_peserta')
+            ->join('tryout t', 't.id = te.tryout_id')
+            ->join('tryout_event_peserta tep', 'tep.event_id = te.id', 'left')
+            ->where('te.is_active', 1)
+            ->groupBy('te.id')
+            ->orderBy('te.mulai_pelaksanaan', 'ASC')
+            ->get()->getResultArray();
+
+        // Build calendar events untuk FullCalendar
+        $calendarEvents = [];
+        foreach ($events as $ev) {
+            $detailUrl = base_url('user/tryout-event/' . $ev['id']);
+
+            // Event pendaftaran (biru)
+            $calendarEvents[] = [
+                'id'    => 'reg-' . $ev['id'],
+                'title' => '📝 ' . $ev['nama'],
+                'start' => date('Y-m-d', strtotime($ev['mulai_pendaftaran'])),
+                'end'   => date('Y-m-d', strtotime($ev['tutup_pendaftaran'] . ' +1 day')),
+                'color' => '#0dcaf0',
+                'textColor' => '#000',
+                'url'   => $detailUrl,
+                'extendedProps' => [
+                    'desc' => 'Periode Pendaftaran',
+                ],
+            ];
+
+            // Event pelaksanaan (hijau)
+            $calendarEvents[] = [
+                'id'    => 'exec-' . $ev['id'],
+                'title' => '🎯 ' . $ev['nama'],
+                'start' => date('Y-m-d', strtotime($ev['mulai_pelaksanaan'])),
+                'end'   => date('Y-m-d', strtotime($ev['tutup_pelaksanaan'] . ' +1 day')),
+                'color' => '#198754',
+                'textColor' => '#fff',
+                'url'   => $detailUrl,
+                'extendedProps' => [
+                    'desc' => 'Periode Pelaksanaan',
+                ],
+            ];
+        }
+
+        return view('user/tryout-event/kalender', [
+            'events'         => $events,
+            'calendarEvents' => $calendarEvents,
+            'menus'          => $this->getMenus(),
+        ]);
+    }
+
+    /**
      * Leaderboard event.
      */
     public function leaderboard(int $eventId)

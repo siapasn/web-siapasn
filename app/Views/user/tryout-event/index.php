@@ -8,6 +8,9 @@
         <div class="ph-subtitle">Event tryout gratis & kompetitif</div>
         <div class="ph-accent-line"></div>
     </div>
+    <a href="<?= base_url('user/tryout-event/kalender') ?>" class="ms-auto btn btn-sm" style="background:var(--sa-accent);color:var(--sa-primary-dk);font-weight:600;border:none">
+        <i class="bi bi-calendar3 me-1"></i>Lihat Kalender
+    </a>
 </div>
 <?= $this->endSection() ?>
 

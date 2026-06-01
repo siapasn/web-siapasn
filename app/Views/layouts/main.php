@@ -205,6 +205,47 @@
             margin-top: .4rem;
         }
 
+        /* Button di page header */
+        .page-header-banner .ph-action {
+            background: rgba(245,166,35,.18);
+            border: 1px solid rgba(245,166,35,.4);
+            color: var(--sa-accent);
+            font-weight: 600;
+            font-size: .8rem;
+            border-radius: .45rem;
+            padding: .35rem .85rem;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: .35rem;
+            transition: background .15s;
+            white-space: nowrap;
+        }
+        .page-header-banner .ph-action:hover {
+            background: rgba(245,166,35,.3);
+            color: #fff;
+        }
+        /* Tombol solid di header (lebih jelas) */
+        .page-header-banner .btn-header {
+            background: var(--sa-accent);
+            color: var(--sa-primary-dk);
+            font-weight: 600;
+            font-size: .8rem;
+            border-radius: .45rem;
+            padding: .35rem .85rem;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: .35rem;
+            border: none;
+            transition: background .15s;
+            white-space: nowrap;
+        }
+        .page-header-banner .btn-header:hover {
+            background: var(--sa-accent-dk);
+            color: var(--sa-primary-dk);
+        }
+
         .btn-primary {
             background-color: var(--sa-primary);
             border-color: var(--sa-primary);
