@@ -226,11 +226,16 @@ class AuthController extends BaseController
         $this->rateLimiter->reset($rateKey);
         $this->userModel->resetLoginAttempts($user['id']);
 
+        // Generate session token baru — invalidate sesi lain yang sedang aktif
+        $sessionToken = bin2hex(random_bytes(32));
+        $this->userModel->update($user['id'], ['session_token' => $sessionToken]);
+
         session()->set([
             'user_id'       => $user['id'],
             'nama'          => $user['nama'],
             'email'         => $user['email'],
             'role'          => $user['role'],
+            'session_token' => $sessionToken,
             'last_activity' => time(),
         ]);
 
@@ -252,6 +257,12 @@ class AuthController extends BaseController
     // -------------------------------------------------------------------------
     public function logout(): RedirectResponse
     {
+        // Hapus session_token di DB agar tidak bisa dipakai lagi
+        $userId = session()->get('user_id');
+        if ($userId) {
+            $this->userModel->update($userId, ['session_token' => null]);
+        }
+
         session()->destroy();
         return redirect()->to('/login')->with('success', 'Anda telah logout.');
     }

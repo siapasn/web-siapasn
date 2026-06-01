@@ -43,12 +43,28 @@
                 <!-- Tipe Penerima -->
                 <div class="col-12">
                     <label class="form-label fw-semibold">Penerima <span class="text-danger">*</span></label>
-                    <div class="d-flex gap-3">
+                    <div class="d-flex gap-3 flex-wrap">
                         <div class="form-check">
                             <input class="form-check-input" type="radio" name="tipe" id="tipeAll" value="all"
                                    <?= old('tipe', 'all') === 'all' ? 'checked' : '' ?>>
                             <label class="form-check-label" for="tipeAll">
                                 <i class="bi bi-people me-1"></i>Semua User
+                                <span class="badge bg-secondary ms-1" style="font-size:.68rem"><?= count($users) ?></span>
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="tipe" id="tipeSubscribe" value="subscribe"
+                                   <?= old('tipe') === 'subscribe' ? 'checked' : '' ?>>
+                            <label class="form-check-label" for="tipeSubscribe">
+                                <i class="bi bi-envelope-heart me-1"></i>Subscriber
+                                <span class="badge bg-success ms-1" style="font-size:.68rem"><?= number_format($totalSubscriber) ?></span>
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="tipe" id="tipeSubscribeSingle" value="subscribe_single"
+                                   <?= old('tipe') === 'subscribe_single' ? 'checked' : '' ?>>
+                            <label class="form-check-label" for="tipeSubscribeSingle">
+                                <i class="bi bi-envelope-plus me-1"></i>Subscriber Tertentu
                             </label>
                         </div>
                         <div class="form-check">
@@ -59,6 +75,20 @@
                             </label>
                         </div>
                     </div>
+                </div>
+
+                <!-- Pilih Subscriber Tertentu -->
+                <div class="col-12" id="wrapperTargetSubscriber" style="<?= old('tipe') === 'subscribe_single' ? '' : 'display:none' ?>">
+                    <label for="target_subscriber_ids" class="form-label">Pilih Subscriber <span class="text-danger">*</span></label>
+                    <select id="target_subscriber_ids" name="target_subscriber_ids[]"
+                            class="form-select" multiple style="width:100%">
+                        <?php foreach ($subscribers as $sub): ?>
+                            <option value="<?= $sub['id'] ?>">
+                                <?= esc($sub['name'] ?: 'Tanpa Nama') ?> — <?= esc($sub['email']) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                    <div class="form-text">Ketik nama atau email untuk mencari. Bisa pilih lebih dari satu.</div>
                 </div>
 
                 <!-- Pilih User (muncul jika single) -->
@@ -138,6 +168,10 @@
                             <td>
                                 <?php if ($r['tipe'] === 'all'): ?>
                                     <span class="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle">Semua User</span>
+                                <?php elseif ($r['tipe'] === 'subscribe'): ?>
+                                    <span class="badge bg-success bg-opacity-10 text-success border border-success-subtle">Subscriber</span>
+                                <?php elseif ($r['tipe'] === 'subscribe_single'): ?>
+                                    <span class="badge bg-teal bg-opacity-10 text-success border border-success-subtle" style="background-color:rgba(32,201,151,.1)!important;color:#0d9e6e!important;border-color:rgba(32,201,151,.3)!important">Subscriber Tertentu</span>
                                 <?php else: ?>
                                     <span class="badge bg-info bg-opacity-10 text-info border border-info-subtle">User Tertentu</span>
                                 <?php endif; ?>
@@ -208,6 +242,22 @@ $('#formBlastEmail').on('submit', function (e) {
             e.preventDefault();
             return false;
         }
+    } else if (tipe === 'subscribe') {
+        if (!confirm('Anda yakin ingin mengirim email ke <?= number_format($totalSubscriber) ?> subscriber?')) {
+            e.preventDefault();
+            return false;
+        }
+    } else if (tipe === 'subscribe_single') {
+        const selected = $('#target_subscriber_ids').val();
+        if (!selected || selected.length === 0) {
+            alert('Pilih minimal satu subscriber.');
+            e.preventDefault();
+            return false;
+        }
+        if (!confirm('Anda yakin ingin mengirim email ke ' + selected.length + ' subscriber yang dipilih?')) {
+            e.preventDefault();
+            return false;
+        }
     }
 });
 
@@ -219,6 +269,18 @@ $('#target_user_id').select2({
     width: '100%',
 });
 
+// Select2 untuk pilih subscriber tertentu
+$('#target_subscriber_ids').select2({
+    theme: 'bootstrap-5',
+    placeholder: '-- Cari nama atau email subscriber --',
+    allowClear: true,
+    width: '100%',
+    language: {
+        noResults: function() { return 'Subscriber tidak ditemukan'; },
+        searching: function() { return 'Mencari...'; },
+    },
+});
+
 // Toggle penerima
 (function () {
     const wrapperTarget = document.getElementById('wrapperTargetUser');
@@ -227,12 +289,21 @@ $('#target_user_id').select2({
 
     function toggle() {
         const val = document.querySelector('input[name="tipe"]:checked').value;
+        wrapperTarget.style.display = 'none';
+        document.getElementById('wrapperTargetSubscriber').style.display = 'none';
+
         if (val === 'single') {
             wrapperTarget.style.display = '';
             infoTarget.innerHTML = '<i class="bi bi-info-circle me-1"></i>Email akan dikirim ke <strong>1 user</strong> yang dipilih.';
+        } else if (val === 'subscribe') {
+            infoTarget.innerHTML = '<i class="bi bi-envelope-heart me-1 text-success"></i>Email akan dikirim ke <strong><?= number_format($totalSubscriber) ?> subscriber</strong> dari tabel users_subscribe.';
+            $('#target_user_id').val('').trigger('change');
+        } else if (val === 'subscribe_single') {
+            document.getElementById('wrapperTargetSubscriber').style.display = '';
+            infoTarget.innerHTML = '<i class="bi bi-envelope-plus me-1 text-success"></i>Email akan dikirim ke <strong>subscriber yang dipilih</strong>.';
+            $('#target_user_id').val('').trigger('change');
         } else {
-            wrapperTarget.style.display = 'none';
-            infoTarget.innerHTML = '<i class="bi bi-info-circle me-1"></i>Email akan dikirim ke <strong>semua user</strong> terdaftar.';
+            infoTarget.innerHTML = '<i class="bi bi-info-circle me-1"></i>Email akan dikirim ke <strong>semua user</strong> terdaftar (<?= count($users) ?> user).';
             $('#target_user_id').val('').trigger('change');
         }
     }

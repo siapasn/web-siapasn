@@ -33,6 +33,15 @@ class BlastEmailController extends BaseController
             ->orderBy('nama', 'ASC')
             ->get()->getResultArray();
 
+        // Jumlah subscriber
+        $totalSubscriber = $db->table('users_subscribe')->countAllResults();
+
+        // Daftar subscriber untuk pilihan tertentu
+        $subscribers = $db->table('users_subscribe')
+            ->select('id, name, email')
+            ->orderBy('name', 'ASC')
+            ->get()->getResultArray();
+
         // Riwayat blast email (20 terakhir)
         $riwayat = $db->table('blast_email be')
             ->select('be.*, u.nama AS sent_by_nama')
@@ -42,9 +51,11 @@ class BlastEmailController extends BaseController
             ->get()->getResultArray();
 
         return view('admin/blast-email/index', [
-            'users'   => $users,
-            'riwayat' => $riwayat,
-            'menus'   => $this->getMenus(),
+            'users'           => $users,
+            'totalSubscriber' => $totalSubscriber,
+            'subscribers'     => $subscribers,
+            'riwayat'         => $riwayat,
+            'menus'           => $this->getMenus(),
         ]);
     }
 
@@ -56,7 +67,7 @@ class BlastEmailController extends BaseController
         $rules = [
             'subject' => 'required|min_length[3]|max_length[255]',
             'body'    => 'required',
-            'tipe'    => 'required|in_list[all,single]',
+            'tipe'    => 'required|in_list[all,single,subscribe,subscribe_single]',
         ];
 
         if ($this->request->getPost('tipe') === 'single') {
@@ -95,8 +106,50 @@ class BlastEmailController extends BaseController
             } else {
                 $totalFailed = 1;
             }
+        } elseif ($tipe === 'subscribe') {
+            // Kirim ke semua subscriber dari tabel users_subscribe
+            $subscribers = $db->table('users_subscribe')
+                ->select('email, name')
+                ->get()->getResultArray();
+
+            foreach ($subscribers as $sub) {
+                $result = $this->sendSingleEmail(
+                    $emailService,
+                    $sub['email'],
+                    $sub['name'] ?: 'Subscriber',
+                    $subject,
+                    $body
+                );
+                if ($result) {
+                    $totalSent++;
+                } else {
+                    $totalFailed++;
+                }
+            }
+        } elseif ($tipe === 'subscribe_single') {
+            // Kirim ke subscriber tertentu yang dipilih
+            $subscriberIds = $this->request->getPost('target_subscriber_ids') ?? [];
+            if (empty($subscriberIds)) {
+                return redirect()->back()->withInput()->with('error', 'Pilih minimal satu subscriber.');
+            }
+
+            $selectedSubs = $db->table('users_subscribe')
+                ->whereIn('id', $subscriberIds)
+                ->get()->getResultArray();
+
+            foreach ($selectedSubs as $sub) {
+                $result = $this->sendSingleEmail(
+                    $emailService,
+                    $sub['email'],
+                    $sub['name'] ?: 'Subscriber',
+                    $subject,
+                    $body
+                );
+                if ($result) $totalSent++;
+                else $totalFailed++;
+            }
         } else {
-            // Kirim ke semua user
+            // Kirim ke semua user terdaftar
             $allUsers = $db->table('users')
                 ->select('id, nama, email')
                 ->where('role', 'user')

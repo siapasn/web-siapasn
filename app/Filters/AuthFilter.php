@@ -38,6 +38,16 @@ class AuthFilter implements FilterInterface
             return redirect()->to('/login')->with('error', 'Akun Anda telah dinonaktifkan');
         }
 
+        // Cek single session — jika session_token tidak cocok, akun dipakai di device lain
+        $sessionTokenInSession = $session->get('session_token');
+        $sessionTokenInDb      = $user['session_token'] ?? null;
+
+        if ($sessionTokenInSession && $sessionTokenInDb && $sessionTokenInSession !== $sessionTokenInDb) {
+            $session->destroy();
+            return redirect()->to('/login')
+                ->with('error', 'Sesi Anda berakhir karena akun ini login di perangkat lain.');
+        }
+
         // Perbarui last_activity pada setiap request
         $session->set('last_activity', time());
 

@@ -23,6 +23,7 @@ class UserModel extends Model
         'email_verified_at',
         'login_attempts',
         'locked_until',
+        'session_token',
     ];
 
     protected $useTimestamps = true;
