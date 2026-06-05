@@ -49,6 +49,7 @@ Dokumentasi teknis untuk project **bimbel-cpns** (SiapASN Simulation Center), pl
 
 | Dokumen | Deskripsi |
 |---|---|
+| [visitor-tracking.md](./features/visitor-tracking.md) | Tracking pengunjung harian unik (per IP/hari) + persentase perbandingan vs kemarin di dashboard admin |
 | [soal-import-salin-antar-tryout.md](./features/soal-import-salin-antar-tryout.md) | Import soal format baru (tanpa sub_kategori) + fitur Salin Soal antar tryout |
 | [soal-form-tipe-soal-dari-kategori.md](./features/soal-form-tipe-soal-dari-kategori.md) | Form soal — hapus sub kategori, tipe soal (SCORE/POINT) langsung dari kategori yang dipilih |
 | [select2-kategori-passing-grade-form.md](./features/select2-kategori-passing-grade-form.md) | Select2 search pada form Kategori (parent dropdown) & Passing Grade (kategori dropdown); nilai minimum jadi opsional |
@@ -63,6 +64,7 @@ Dokumentasi teknis untuk project **bimbel-cpns** (SiapASN Simulation Center), pl
 
 | Tanggal | Kategori | Deskripsi |
 |---|---|---|
+| 2026-06-05 | Feature | Tracking pengunjung harian unik + persentase perbandingan vs kemarin di dashboard admin |
 | 2026-05-21 | Feature | Import soal format baru (tanpa sub_kategori) + fitur Salin Soal antar tryout |
 | 2026-05-21 | Guide | Pola standar DataTables — `section('scripts')`, `dom` padding, CSS scoped, diterapkan ke 14 halaman admin |
 | 2026-05-21 | Feature | Form soal — hapus sub kategori, tipe soal langsung dari kategori yang dipilih |

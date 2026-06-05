@@ -78,17 +78,52 @@
         </div>
     </div>
 
+    <!-- Pengunjung Hari Ini -->
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body d-flex align-items-center gap-3">
+                <div class="rounded-3 p-3 bg-info bg-opacity-10 text-info flex-shrink-0">
+                    <i class="bi bi-eye fs-4"></i>
+                </div>
+                <div>
+                    <div class="text-muted small">Pengunjung Hari Ini</div>
+                    <div class="fs-4 fw-bold"><?= number_format($visitorStats['today_count']) ?></div>
+                    <div class="small mt-1">
+                        <?php if ($visitorStats['trend'] === 'up'): ?>
+                            <span class="text-success"><i class="bi bi-arrow-up-short"></i><?= $visitorStats['percentage'] ?>%</span>
+                        <?php elseif ($visitorStats['trend'] === 'down'): ?>
+                            <span class="text-danger"><i class="bi bi-arrow-down-short"></i><?= abs($visitorStats['percentage']) ?>%</span>
+                        <?php else: ?>
+                            <span class="text-muted"><i class="bi bi-dash"></i>0%</span>
+                        <?php endif; ?>
+                        <span class="text-muted ms-1">vs kemarin (<?= number_format($visitorStats['yesterday_count']) ?>)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div><!-- /.row stats cards -->
 
 <!-- Chart Row -->
 <div class="row g-3 mb-4">
-    <div class="col-12">
+    <div class="col-12 col-lg-7">
         <div class="card border-0 shadow-sm">
             <div class="card-header bg-white border-bottom py-3">
                 <h6 class="mb-0 fw-semibold"><i class="bi bi-graph-up me-2 text-primary"></i>Tren Transaksi 30 Hari Terakhir</h6>
             </div>
             <div class="card-body">
-                <canvas id="chartTrenTransaksi" height="100"></canvas>
+                <canvas id="chartTrenTransaksi" height="120"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-lg-5">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-bottom py-3">
+                <h6 class="mb-0 fw-semibold"><i class="bi bi-bar-chart me-2 text-info"></i>Tren Pengunjung 30 Hari Terakhir</h6>
+            </div>
+            <div class="card-body">
+                <canvas id="chartTrenVisitor" height="120"></canvas>
             </div>
         </div>
     </div>
@@ -166,6 +201,10 @@
 $chartLabels    = array_column($trenTransaksi, 'tanggal');
 $chartJumlah    = array_map('intval', array_column($trenTransaksi, 'jumlah'));
 $chartPendapatan = array_map('floatval', array_column($trenTransaksi, 'pendapatan'));
+
+// Visitor chart data
+$visitorLabels = array_column($trenVisitor, 'tanggal');
+$visitorCounts = array_map('intval', array_column($trenVisitor, 'jumlah'));
 ?>
 
 <script>
@@ -278,6 +317,61 @@ $chartPendapatan = array_map('floatval', array_column($trenTransaksi, 'pendapata
             ]
         });
     });
+
+    // Chart.js — Tren Pengunjung 30 Hari
+    const visitorLabels = <?= json_encode($visitorLabels) ?>;
+    const visitorCounts = <?= json_encode($visitorCounts) ?>;
+
+    const ctxVisitor = document.getElementById('chartTrenVisitor');
+    if (ctxVisitor) {
+        new Chart(ctxVisitor, {
+            type: 'bar',
+            data: {
+                labels: visitorLabels,
+                datasets: [{
+                    label: 'Pengunjung Unik',
+                    data: visitorCounts,
+                    backgroundColor: 'rgba(13,202,240,0.3)',
+                    borderColor: '#0dcaf0',
+                    borderWidth: 1,
+                    borderRadius: 4,
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            title: function (items) {
+                                const d = new Date(items[0].label);
+                                return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+                            },
+                            label: function (context) {
+                                return ' ' + context.parsed.y + ' pengunjung';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { precision: 0 },
+                        title: { display: true, text: 'Pengunjung' }
+                    },
+                    x: {
+                        ticks: {
+                            maxTicksLimit: 10,
+                            callback: function (value, index) {
+                                const d = new Date(visitorLabels[index]);
+                                return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
 }());
 </script>
 

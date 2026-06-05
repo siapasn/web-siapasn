@@ -6,6 +6,7 @@ use App\Filters\AdminFilter;
 use App\Filters\AuthFilter;
 use App\Filters\RoleFilter;
 use App\Filters\SuperAdminFilter;
+use App\Filters\VisitorFilter;
 use CodeIgniter\Config\Filters as BaseFilters;
 use CodeIgniter\Filters\Cors;
 use CodeIgniter\Filters\CSRF;
@@ -42,6 +43,7 @@ class Filters extends BaseFilters
         'role'          => RoleFilter::class,
         'admin_only'    => AdminFilter::class,
         'superadmin_only' => SuperAdminFilter::class,
+        'visitor'       => VisitorFilter::class,
     ];
 
     /**
@@ -119,6 +121,15 @@ class Filters extends BaseFilters
      * @var array<string, array<string, list<string>>>
      */
     public array $filters = [
-        'auth' => ['before' => ['user/*', 'admin/*', 'superadmin/*']],
+        'auth'    => ['before' => ['user/*', 'admin/*', 'superadmin/*']],
+        'visitor' => ['before' => [
+            '/',
+            'login',
+            'register',
+            'syarat-ketentuan',
+            'kebijakan-privasi',
+            'hubungi-kami',
+            'user/*',
+        ]],
     ];
 }

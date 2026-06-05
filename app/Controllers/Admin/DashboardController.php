@@ -3,6 +3,7 @@
 namespace App\Controllers\Admin;
 
 use App\Controllers\BaseController;
+use App\Models\VisitorModel;
 
 class DashboardController extends BaseController
 {
@@ -61,6 +62,11 @@ class DashboardController extends BaseController
             ->limit(10)
             ->get()->getResultArray();
 
+        // Statistik pengunjung harian (hari ini vs kemarin + persentase)
+        $visitorModel  = new VisitorModel();
+        $visitorStats  = $visitorModel->getDailyStats();
+        $trenVisitor   = $visitorModel->getTrend(30);
+
         return view('admin/dashboard', [
             'totalUser'             => $totalUser,
             'totalTransaksiHariIni' => $totalTransaksiHariIni,
@@ -68,6 +74,8 @@ class DashboardController extends BaseController
             'sesiSedangBerlangsung' => $sesiSedangBerlangsung,
             'trenTransaksi'         => $trenTransaksi,
             'transaksiTerbaru'      => $transaksiTerbaru,
+            'visitorStats'          => $visitorStats,
+            'trenVisitor'           => $trenVisitor,
             'menus'                 => $this->getMenus(),
         ]);
     }
