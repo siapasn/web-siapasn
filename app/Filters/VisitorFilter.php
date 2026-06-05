@@ -16,21 +16,21 @@ class VisitorFilter implements FilterInterface
     public function before(RequestInterface $request, $arguments = null)
     {
         // Skip jika bukan GET request (form POST, API call, dll.)
-        if ($request->getMethod() !== 'get') {
+        if (strtolower($request->getMethod()) !== 'get') {
             return null;
         }
 
         // Skip route admin, superadmin, cron, webhook, file serve
-        $uri = service('uri')->getPath();
+        $uri = uri_string(); // CI4 helper — returns path tanpa leading slash
         $excludedPrefixes = ['admin', 'superadmin', 'cron', 'webhook', 'file'];
         foreach ($excludedPrefixes as $prefix) {
-            if (str_starts_with(ltrim($uri, '/'), $prefix)) {
+            if (str_starts_with($uri, $prefix)) {
                 return null;
             }
         }
 
         // Skip bot/crawler umum
-        $userAgent = $request->getUserAgent()->getAgentString();
+        $userAgent = $request->getUserAgent()->getAgentString() ?? '';
         if ($this->isBot($userAgent)) {
             return null;
         }
@@ -42,7 +42,6 @@ class VisitorFilter implements FilterInterface
             $visitorModel = new VisitorModel();
             $visitorModel->recordVisit($ipAddress, $userAgent, $pageUrl);
         } catch (\Throwable $e) {
-            // Jangan ganggu user experience jika tracking gagal
             log_message('error', '[VisitorFilter] Gagal mencatat pengunjung: ' . $e->getMessage());
         }
 

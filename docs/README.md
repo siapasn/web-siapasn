@@ -35,7 +35,7 @@ Dokumentasi teknis untuk project **bimbel-cpns** (SiapASN Simulation Center), pl
 
 | Dokumen | Deskripsi |
 |---|---|
-| [visitor-filter-not-recording.md](./troubleshooting/visitor-filter-not-recording.md) | Visitor filter tidak mencatat — CI4 URI pattern `'/'` tidak match root, fix pakai wildcard `'*'` + exclusion di dalam filter |
+| [visitor-filter-not-recording.md](./troubleshooting/visitor-filter-not-recording.md) | Visitor filter tidak mencatat — fix: pindah tracking ke `BaseController::initController()` |
 | [mapping-tryout-produk-tidak-muncul.md](./troubleshooting/mapping-tryout-produk-tidak-muncul.md) | Data produk tidak muncul di mapping tryout — kolom `jumlah_soal` sudah dihapus, harus dihitung dari `mapping_soal` |
 | [csp-datatables-summernote-blocked.md](./troubleshooting/csp-datatables-summernote-blocked.md) | `tooltip is not a function` — CSP tidak whitelist `cdn.datatables.net` + jQuery harus di-load sebelum Bootstrap |
 | [select2-jquery-not-defined-scripts-section.md](./troubleshooting/select2-jquery-not-defined-scripts-section.md) | `$ is not defined` pada Select2/jQuery — script view harus di `section('scripts')`, bukan `section('content')` |
@@ -66,7 +66,7 @@ Dokumentasi teknis untuk project **bimbel-cpns** (SiapASN Simulation Center), pl
 | Tanggal | Kategori | Deskripsi |
 |---|---|---|
 | 2026-06-05 | Feature | Tracking pengunjung harian unik + persentase perbandingan vs kemarin di dashboard admin |
-| 2026-06-05 | Fix | Visitor filter tidak mencatat — CI4 URI pattern fix ke wildcard + exclusion di filter |
+| 2026-06-05 | Fix | Visitor filter tidak mencatat — pindah tracking ke BaseController::initController() |
 | 2026-05-21 | Feature | Import soal format baru (tanpa sub_kategori) + fitur Salin Soal antar tryout |
 | 2026-05-21 | Guide | Pola standar DataTables — `section('scripts')`, `dom` padding, CSS scoped, diterapkan ke 14 halaman admin |
 | 2026-05-21 | Feature | Form soal — hapus sub kategori, tipe soal langsung dari kategori yang dipilih |

@@ -40,6 +40,9 @@ abstract class BaseController extends Controller
     {
         parent::initController($request, $response, $logger);
 
+        // --- Visitor Tracking ---
+        $this->recordVisitor($request);
+
         // Content Security Policy — izinkan Midtrans Snap dan semua domain yang dibutuhkan
         $csp = implode('; ', [
             "default-src 'self'",
@@ -84,5 +87,45 @@ abstract class BaseController extends Controller
         ]);
 
         $this->response->setHeader('Content-Security-Policy', $csp);
+    }
+
+    /**
+     * Catat pengunjung unik per hari.
+     * Hanya GET request pada halaman publik/user (bukan admin/superadmin/cron).
+     */
+    protected function recordVisitor(RequestInterface $request): void
+    {
+        try {
+            // Hanya GET request
+            if (strtolower($request->getMethod()) !== 'get') {
+                return;
+            }
+
+            // Skip admin, superadmin, cron, webhook
+            $uri = uri_string();
+            $excludedPrefixes = ['admin', 'superadmin', 'cron', 'webhook'];
+            foreach ($excludedPrefixes as $prefix) {
+                if (str_starts_with($uri, $prefix)) {
+                    return;
+                }
+            }
+
+            // Skip bot/crawler
+            $userAgent = $request->getUserAgent()->getAgentString() ?? '';
+            if (empty($userAgent) || preg_match('/bot|crawl|spider|slurp|bingbot|googlebot/i', $userAgent)) {
+                return;
+            }
+
+            $ipAddress = $request->getIPAddress();
+            $today     = date('Y-m-d');
+
+            $db = \Config\Database::connect();
+            $db->query(
+                "INSERT IGNORE INTO visitors (ip_address, user_agent, page_url, visited_at, created_at) VALUES (?, ?, ?, ?, ?)",
+                [$ipAddress, mb_substr($userAgent, 0, 500), current_url(), $today, date('Y-m-d H:i:s')]
+            );
+        } catch (\Throwable $e) {
+            log_message('error', '[Visitor] ' . $e->getMessage());
+        }
     }
 }

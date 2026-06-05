@@ -6,34 +6,33 @@ Setelah implementasi visitor tracking, tabel `visitors` tetap kosong meskipun su
 
 ## Root Cause
 
-1. **CI4 URI pattern `'/'` tidak match root URL** — CodeIgniter 4 `$filters` config menggunakan URI segment matching, dan pattern `'/'` tidak reliabel untuk mencocokkan homepage (root path kosong).
+1. **CI4 Filter `$filters` config tidak reliabel** — Pattern URI di `$filters` array (termasuk `'*'` wildcard) tidak selalu ter-trigger di semua konfigurasi server. Filter hanya jalan jika route benar-benar match dan tidak ada early return (redirect, dll.).
 
-2. **NAT / IP sama** — Device berbeda di jaringan WiFi yang sama memiliki IP publik yang sama (karena NAT router). Karena constraint `UNIQUE (ip_address, visited_at)`, hanya 1 record per IP per hari.
+2. **Solusi: Pindah ke BaseController** — Menempatkan logic tracking di `BaseController::initController()` menjamin eksekusi karena semua controller pasti melewati method ini.
+
+3. **NAT / IP sama** — Device berbeda di jaringan WiFi yang sama memiliki IP publik yang sama (karena NAT router). Karena constraint `UNIQUE (ip_address, visited_at)`, hanya 1 record per IP per hari.
 
 ## Solusi
 
-### Fix 1: Ganti URI pattern ke wildcard `'*'`
+### Fix Final: Pindah tracking ke BaseController
+
+CI4 Filter ternyata tidak reliabel untuk semua route. Solusi terbaik: pindah logic ke `BaseController::initController()`.
 
 ```php
-// app/Config/Filters.php
-public array $filters = [
-    'auth'    => ['before' => ['user/*', 'admin/*', 'superadmin/*']],
-    'visitor' => ['before' => ['*']],  // Match SEMUA route
-];
+// app/Controllers/BaseController.php — di initController()
+$this->recordVisitor($request);
 ```
 
-### Fix 2: Exclude admin/cron dari dalam filter
+Method `recordVisitor()` ditambahkan di `BaseController`:
+- Hanya GET request
+- Skip route admin/superadmin/cron/webhook
+- Skip bot/crawler (regex pattern)
+- `INSERT IGNORE` ke tabel visitors (1 IP per hari)
 
-```php
-// app/Filters/VisitorFilter.php — di method before()
-$uri = service('uri')->getPath();
-$excludedPrefixes = ['admin', 'superadmin', 'cron', 'webhook', 'file'];
-foreach ($excludedPrefixes as $prefix) {
-    if (str_starts_with(ltrim($uri, '/'), $prefix)) {
-        return null;
-    }
-}
-```
+### Pendekatan Sebelumnya (Tidak Berhasil)
+
+1. **Filter `$filters` dengan URI list** — pattern `'/'` tidak match root URL
+2. **Filter `$filters` dengan wildcard `'*'`** — tetap tidak reliabel di beberapa konfigurasi
 
 ## Checklist Debugging
 
@@ -49,8 +48,9 @@ foreach ($excludedPrefixes as $prefix) {
 
 | File | Perubahan |
 |------|-----------|
-| `app/Config/Filters.php` | Pattern visitor diganti dari list URI ke `['*']` |
-| `app/Filters/VisitorFilter.php` | Tambah exclusion logic untuk admin/superadmin/cron di dalam filter |
+| `app/Controllers/BaseController.php` | Tambah `recordVisitor()` method + panggil di `initController()` |
+| `app/Config/Filters.php` | Hapus visitor filter dari `$filters` (tidak digunakan lagi) |
+| `app/Filters/VisitorFilter.php` | Masih ada sebagai backup, tapi tidak aktif di config |
 
 ## Validasi
 
