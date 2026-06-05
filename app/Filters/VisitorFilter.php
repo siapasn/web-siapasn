@@ -11,13 +11,22 @@ class VisitorFilter implements FilterInterface
 {
     /**
      * Catat pengunjung unik per hari.
-     * Hanya halaman publik yang di-track (bukan admin/superadmin/asset).
+     * Hanya halaman publik & user yang di-track (bukan admin/superadmin/cron/webhook).
      */
     public function before(RequestInterface $request, $arguments = null)
     {
         // Skip jika bukan GET request (form POST, API call, dll.)
         if ($request->getMethod() !== 'get') {
             return null;
+        }
+
+        // Skip route admin, superadmin, cron, webhook, file serve
+        $uri = service('uri')->getPath();
+        $excludedPrefixes = ['admin', 'superadmin', 'cron', 'webhook', 'file'];
+        foreach ($excludedPrefixes as $prefix) {
+            if (str_starts_with(ltrim($uri, '/'), $prefix)) {
+                return null;
+            }
         }
 
         // Skip bot/crawler umum
