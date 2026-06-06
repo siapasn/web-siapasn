@@ -71,7 +71,23 @@ class RankingController extends BaseController
             ]);
         }
 
-        // Ambil tryout yang user punya akses DAN sudah punya minimal 1 hasil
+        // Filter lagi: hanya tryout yang SUDAH PERNAH dikerjakan user (ada di hasil_tryout)
+        $completedTryoutIds = $db->table('hasil_tryout')
+            ->select('tryout_id')
+            ->where('user_id', $userId)
+            ->whereIn('tryout_id', $accessibleTryoutIds)
+            ->groupBy('tryout_id')
+            ->get()->getResultArray();
+        $completedTryoutIds = array_column($completedTryoutIds, 'tryout_id');
+
+        if (empty($completedTryoutIds)) {
+            return view('user/ranking/index', [
+                'tryoutByKategori' => [],
+                'menus'            => $this->getMenus(),
+            ]);
+        }
+
+        // Ambil tryout yang user sudah kerjakan DAN sudah punya minimal 1 hasil (dari peserta lain juga)
         $tryouts = $db->table('tryout t')
             ->select('t.id, t.nama, t.durasi, p.kategori_id,
                       COUNT(DISTINCT ht.user_id) AS total_peserta,
@@ -80,7 +96,7 @@ class RankingController extends BaseController
             ->join('produk p', 'p.id = mt.produk_id')
             ->join('hasil_tryout ht', 'ht.tryout_id = t.id', 'left')
             ->where('t.is_active', 1)
-            ->whereIn('t.id', $accessibleTryoutIds)
+            ->whereIn('t.id', $completedTryoutIds)
             ->groupBy('t.id')
             ->having('total_peserta >', 0)
             ->orderBy('t.nama', 'ASC')
@@ -142,6 +158,17 @@ class RankingController extends BaseController
         if ($hasProdukAccess === 0 && $hasEventAccess === 0) {
             return redirect()->to(base_url('user/ranking'))
                 ->with('error', 'Anda belum memiliki akses ke perangkingan tryout ini. Silakan beli paket atau daftar event terkait.');
+        }
+
+        // Cek 3: apakah user sudah pernah mengerjakan tryout ini?
+        $hasCompleted = $db->table('hasil_tryout')
+            ->where('user_id', $userId)
+            ->where('tryout_id', $tryoutId)
+            ->countAllResults();
+
+        if ($hasCompleted === 0) {
+            return redirect()->to(base_url('user/ranking'))
+                ->with('error', 'Anda belum mengerjakan tryout ini. Selesaikan tryout terlebih dahulu untuk melihat perangkingan.');
         }
 
         // Ambil skor terbaik per user (total_nilai tertinggi, fallback ke skor_total)

@@ -40,8 +40,11 @@
         <div class="card-body text-center py-5 text-muted">
             <i class="bi bi-trophy fs-1 d-block mb-3"></i>
             <p class="mb-2">Belum ada data perangkingan yang dapat ditampilkan.</p>
-            <p class="small mb-3">Perangkingan hanya tersedia untuk tryout dari paket yang telah Anda beli atau event yang Anda ikuti.</p>
+            <p class="small mb-3">Perangkingan hanya tersedia untuk tryout yang sudah Anda kerjakan. Selesaikan tryout terlebih dahulu.</p>
             <div class="d-flex justify-content-center gap-2">
+                <a href="<?= base_url('user/tryout') ?>" class="btn btn-sm btn-success">
+                    <i class="bi bi-play-circle me-1"></i>Mulai Tryout
+                </a>
                 <a href="<?= base_url('user/produk') ?>" class="btn btn-sm btn-primary">
                     <i class="bi bi-cart me-1"></i>Lihat Paket
                 </a>

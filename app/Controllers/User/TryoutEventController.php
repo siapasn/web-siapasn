@@ -374,6 +374,7 @@ class TryoutEventController extends BaseController
 
     /**
      * Leaderboard event.
+     * Hanya bisa diakses jika user sudah mengerjakan tryout event ini.
      */
     public function leaderboard(int $eventId)
     {
@@ -384,6 +385,17 @@ class TryoutEventController extends BaseController
         if (! $event) {
             return redirect()->to(base_url('user/tryout-event'))
                 ->with('error', 'Event tidak ditemukan.');
+        }
+
+        // Validasi: user harus sudah pernah mengerjakan tryout ini
+        $hasCompleted = $db->table('hasil_tryout')
+            ->where('user_id', $userId)
+            ->where('tryout_id', $event['tryout_id'])
+            ->countAllResults();
+
+        if ($hasCompleted === 0) {
+            return redirect()->to(base_url('user/tryout-event/' . $eventId))
+                ->with('error', 'Anda belum mengerjakan tryout ini. Selesaikan tryout terlebih dahulu untuk melihat leaderboard.');
         }
 
         // Ranking: skor terbaik per peserta event

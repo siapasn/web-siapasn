@@ -51,7 +51,7 @@ Dokumentasi teknis untuk project **bimbel-cpns** (SiapASN Simulation Center), pl
 
 | Dokumen | Deskripsi |
 |---|---|
-| [ranking-access-control.md](./features/ranking-access-control.md) | Ranking hanya bisa dilihat user yang telah beli produk atau daftar event terkait |
+| [ranking-access-control.md](./features/ranking-access-control.md) | Ranking & leaderboard hanya untuk user yang sudah mengerjakan tryout (termasuk event leaderboard) |
 | [visitor-tracking.md](./features/visitor-tracking.md) | Tracking pengunjung harian unik (per IP/hari) + persentase perbandingan vs kemarin di dashboard admin |
 | [soal-import-salin-antar-tryout.md](./features/soal-import-salin-antar-tryout.md) | Import soal format baru (tanpa sub_kategori) + fitur Salin Soal antar tryout |
 | [soal-form-tipe-soal-dari-kategori.md](./features/soal-form-tipe-soal-dari-kategori.md) | Form soal — hapus sub kategori, tipe soal (SCORE/POINT) langsung dari kategori yang dipilih |
