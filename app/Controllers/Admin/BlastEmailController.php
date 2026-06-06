@@ -60,8 +60,9 @@ class BlastEmailController extends BaseController
     }
 
     /**
-     * Proses kirim email — simpan ke antrian (status pending).
-     * Email akan dikirim oleh cron job.
+     * Proses kirim email — expand ke individual records (1 email per row).
+     * Jika tipe 'all' atau 'subscribe', baca daftar penerima dari DB,
+     * lalu insert 1 record per email ke blast_email dengan status pending.
      */
     public function send()
     {
@@ -83,9 +84,11 @@ class BlastEmailController extends BaseController
         $subject = $this->request->getPost('subject');
         $body    = $this->request->getPost('body');
         $tipe    = $this->request->getPost('tipe');
+        $sentBy  = session()->get('user_id');
+        $now     = date('Y-m-d H:i:s');
 
-        $targetEmail  = null;
-        $targetUserId = null;
+        // Kumpulkan daftar penerima berdasarkan tipe
+        $recipients = [];
 
         if ($tipe === 'single') {
             $targetUserId = (int) $this->request->getPost('target_user_id');
@@ -93,33 +96,93 @@ class BlastEmailController extends BaseController
             if (! $user) {
                 return redirect()->back()->withInput()->with('error', 'User tidak ditemukan.');
             }
-            $targetEmail = $user['email'];
+            $recipients[] = [
+                'email'   => $user['email'],
+                'nama'    => $user['nama'],
+                'user_id' => $user['id'],
+            ];
+
+        } elseif ($tipe === 'subscribe') {
+            $subs = $db->table('users_subscribe')
+                ->select('id, email, name')
+                ->orderBy('id', 'ASC')
+                ->get()->getResultArray();
+            foreach ($subs as $s) {
+                $recipients[] = [
+                    'email'   => $s['email'],
+                    'nama'    => $s['name'] ?: 'Subscriber',
+                    'user_id' => null,
+                ];
+            }
+
         } elseif ($tipe === 'subscribe_single') {
             $subscriberIds = $this->request->getPost('target_subscriber_ids') ?? [];
             if (empty($subscriberIds)) {
                 return redirect()->back()->withInput()->with('error', 'Pilih minimal satu subscriber.');
             }
-            // Simpan IDs sebagai JSON di target_email untuk referensi
-            $targetEmail = json_encode($subscriberIds);
+            $subs = $db->table('users_subscribe')
+                ->whereIn('id', $subscriberIds)
+                ->orderBy('id', 'ASC')
+                ->get()->getResultArray();
+            foreach ($subs as $s) {
+                $recipients[] = [
+                    'email'   => $s['email'],
+                    'nama'    => $s['name'] ?: 'Subscriber',
+                    'user_id' => null,
+                ];
+            }
+
+        } else {
+            // tipe = 'all' → semua user aktif yang sudah verifikasi email
+            $users = $db->table('users')
+                ->select('id, email, nama')
+                ->where('role', 'user')
+                ->where('is_active', 1)
+                ->where('email_verified_at IS NOT NULL', null, false)
+                ->orderBy('id', 'ASC')
+                ->get()->getResultArray();
+            foreach ($users as $u) {
+                $recipients[] = [
+                    'email'   => $u['email'],
+                    'nama'    => $u['nama'],
+                    'user_id' => $u['id'],
+                ];
+            }
         }
 
-        // Simpan ke antrian dengan status pending
-        $db->table('blast_email')->insert([
-            'subject'        => $subject,
-            'body'           => $body,
-            'tipe'           => $tipe,
-            'target_user_id' => $targetUserId,
-            'target_email'   => $targetEmail,
-            'total_sent'     => 0,
-            'total_failed'   => 0,
-            'sent_by'        => session()->get('user_id'),
-            'status'         => 'pending',
-            'created_at'     => date('Y-m-d H:i:s'),
-            'updated_at'     => date('Y-m-d H:i:s'),
-        ]);
+        if (empty($recipients)) {
+            return redirect()->back()->withInput()->with('error', 'Tidak ada penerima yang ditemukan.');
+        }
+
+        // Insert 1 record per penerima ke blast_email
+        $batchData = [];
+        foreach ($recipients as $r) {
+            $batchData[] = [
+                'subject'        => $subject,
+                'body'           => $body,
+                'tipe'           => 'single', // semua di-convert jadi single
+                'target_user_id' => $r['user_id'],
+                'target_email'   => $r['email'],
+                'target_nama'    => $r['nama'],
+                'total_sent'     => 0,
+                'total_failed'   => 0,
+                'sent_by'        => $sentBy,
+                'status'         => 'pending',
+                'created_at'     => $now,
+                'updated_at'     => $now,
+            ];
+        }
+
+        // Insert batch (chunk per 100 untuk menghindari limit)
+        $chunks = array_chunk($batchData, 100);
+        foreach ($chunks as $chunk) {
+            $db->table('blast_email')->insertBatch($chunk);
+        }
+
+        $totalInserted = count($batchData);
 
         return redirect()->to(base_url('admin/blast-email'))
-            ->with('success', 'Email berhasil ditambahkan ke antrian. Akan dikirim oleh sistem secara otomatis.');
+            ->with('success', "Berhasil menambahkan {$totalInserted} email ke antrian. Akan dikirim satu per satu oleh sistem.");
     }
 
     /**
