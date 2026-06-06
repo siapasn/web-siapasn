@@ -4,10 +4,26 @@ Allow: /syarat-ketentuan
 Allow: /kebijakan-privasi
 Allow: /hubungi-kami
 
-# Blokir halaman yang tidak perlu diindeks
+# Halaman produk & event — dapat diindeks mesin pencari
+Allow: /user/produk/
+Allow: /user/tryout-event/
+
+# Blokir area yang tidak perlu diindeks
 Disallow: /admin/
 Disallow: /superadmin/
-Disallow: /user/
+Disallow: /user/dashboard
+Disallow: /user/transaksi
+Disallow: /user/tryout/
+Disallow: /user/ranking/
+Disallow: /user/profil
+Disallow: /user/cart
+Disallow: /user/notifikasi
+Disallow: /user/ulasan
+Disallow: /user/request-formasi
+Disallow: /user/materi/
+Disallow: /user/payment/
+Disallow: /user/katalog-buku
+Disallow: /user/share/
 Disallow: /login
 Disallow: /register
 Disallow: /logout
@@ -15,6 +31,7 @@ Disallow: /reset-password
 Disallow: /verify-email/
 Disallow: /webhook/
 Disallow: /cron/
+Disallow: /share/hasil/
 
 # Sitemap
 Sitemap: https://siapasnsimulationcenter.id/sitemap.xml

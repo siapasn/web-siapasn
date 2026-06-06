@@ -1,5 +1,39 @@
 <?= $this->extend('layouts/main') ?>
 
+<?php
+// Siapkan data SEO
+$_seoSlug  = $event['slug'] ?? $event['id'];
+$_seoTitle = esc($event['nama']) . ' — Tryout Event Gratis CPNS | SiapASN';
+$_seoDesc  = ! empty($event['deskripsi'])
+    ? substr(strip_tags($event['deskripsi']), 0, 155) . '...'
+    : 'Ikuti ' . esc($event['nama']) . ' — tryout event CPNS gratis bersama ribuan peserta. Uji kemampuan dan lihat posisi ranking Anda di SiapASN Simulation Center.';
+$_seoUrl   = base_url('user/tryout-event/' . $_seoSlug);
+$_seoImage = ! empty($event['banner_url'])
+    ? base_url($event['banner_url'])
+    : base_url('assets/images/thumbnail/product-default.png');
+?>
+
+<?= $this->section('seo_title') ?><?= $_seoTitle ?><?= $this->endSection() ?>
+
+<?= $this->section('seo_meta') ?>
+<meta name="robots" content="index, follow">
+<meta name="description" content="<?= esc($_seoDesc) ?>">
+<meta name="keywords" content="tryout event CPNS, <?= esc($event['nama']) ?>, simulasi CAT CPNS gratis, tryout online CPNS, SiapASN">
+<link rel="canonical" href="<?= $_seoUrl ?>">
+<!-- Open Graph -->
+<meta property="og:type"        content="event">
+<meta property="og:title"       content="<?= esc($_seoTitle) ?>">
+<meta property="og:description" content="<?= esc($_seoDesc) ?>">
+<meta property="og:url"         content="<?= $_seoUrl ?>">
+<meta property="og:image"       content="<?= $_seoImage ?>">
+<meta property="og:site_name"   content="SiapASN Simulation Center">
+<!-- Twitter Card -->
+<meta name="twitter:card"        content="summary_large_image">
+<meta name="twitter:title"       content="<?= esc($_seoTitle) ?>">
+<meta name="twitter:description" content="<?= esc($_seoDesc) ?>">
+<meta name="twitter:image"       content="<?= $_seoImage ?>">
+<?= $this->endSection() ?>
+
 <?= $this->section('page_header') ?>
 <div class="d-flex align-items-center gap-3">
     <div class="ph-icon"><i class="bi bi-calendar-event"></i></div>

@@ -677,6 +677,53 @@
 <!-- Bootstrap 5 JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
+<!-- ItemList Schema — Produk Highlight (SEO Rich Snippet) -->
+<?php if (! empty($produkRekomendasi)): ?>
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "name": "Paket Tryout CPNS Unggulan — SiapASN Simulation Center",
+    "description": "Daftar paket tryout CPNS dan PPPK terbaik untuk persiapan seleksi ASN",
+    "url": "<?= rtrim(base_url(), '/') ?>/",
+    "numberOfItems": <?= count($produkRekomendasi) ?>,
+    "itemListElement": [
+<?php foreach ($produkRekomendasi as $idx => $p):
+    $slugUrl  = ! empty($p['slug']) ? $p['slug'] : $p['id'];
+    $imgUrl   = ! empty($p['thumbnail'])
+        ? base_url('uploads/produk/' . $p['thumbnail'])
+        : base_url('assets/images/thumbnail/product-default.png');
+    $harga    = isset($p['harga_promo']) && $p['harga_promo'] !== null ? $p['harga_promo'] : $p['harga'];
+    $isLast   = ($idx === count($produkRekomendasi) - 1);
+?>
+        {
+            "@type": "ListItem",
+            "position": <?= $idx + 1 ?>,
+            "item": {
+                "@type": "Product",
+                "name": "<?= addslashes(esc($p['nama'])) ?>",
+                "url": "<?= rtrim(base_url(), '/') ?>/user/produk/<?= $slugUrl ?>",
+                "image": "<?= $imgUrl ?>",
+                "description": "Paket tryout CPNS <?= addslashes(esc($p['nama'])) ?> — <?= (int)($p['jumlah_tryout'] ?? 1) ?> sesi tryout lengkap dengan pembahasan.",
+                "brand": {
+                    "@type": "Brand",
+                    "name": "SiapASN Simulation Center"
+                },
+                "offers": {
+                    "@type": "Offer",
+                    "priceCurrency": "IDR",
+                    "price": "<?= number_format((float)$harga, 0, '.', '') ?>",
+                    "availability": "https://schema.org/InStock",
+                    "url": "<?= rtrim(base_url(), '/') ?>/user/produk/<?= $slugUrl ?>"
+                }
+            }
+        }<?= $isLast ? '' : ',' ?>
+<?php endforeach; ?>
+    ]
+}
+</script>
+<?php endif; ?>
+
 <!-- FAQ Schema — Rich Snippet Google -->
 <script type="application/ld+json">
 {

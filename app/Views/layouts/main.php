@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= config('App')->appName ?? 'SiapASN Simulation Center' ?></title>
+    <title><?= $this->renderSection('seo_title') ?: (config('App')->appName ?? 'SiapASN Simulation Center') ?></title>
 
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="<?= base_url('siapasn_favicon.ico') ?>">
 
     <!-- Noindex: halaman user dashboard tidak perlu diindeks mesin pencari -->
-    <meta name="robots" content="noindex, nofollow">
+    <?= $this->renderSection('seo_meta') ?: '<meta name="robots" content="noindex, nofollow">' ?>
     <meta name="theme-color" content="#0f2744">
 
     <!-- Bootstrap 5.3 CSS -->

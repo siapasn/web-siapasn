@@ -1,5 +1,39 @@
 <?= $this->extend('layouts/main') ?>
 
+<?php
+// Siapkan data SEO
+$_seoSlug        = $produk['slug'] ?? $produk['id'];
+$_seoTitle       = esc($produk['nama']) . ' — Paket Tryout CPNS | SiapASN';
+$_seoDesc        = ! empty($produk['deskripsi'])
+    ? substr(strip_tags($produk['deskripsi']), 0, 155) . '...'
+    : 'Paket tryout CPNS lengkap untuk persiapan ujian ' . esc($produk['nama']) . '. Latihan soal SKD dan SKB terlengkap di SiapASN Simulation Center.';
+$_seoUrl         = base_url('user/produk/' . $_seoSlug);
+$_seoImage       = ! empty($produk['thumbnail'])
+    ? base_url('uploads/produk/' . $produk['thumbnail'])
+    : base_url('assets/images/thumbnail/product-default.png');
+?>
+
+<?= $this->section('seo_title') ?><?= $_seoTitle ?><?= $this->endSection() ?>
+
+<?= $this->section('seo_meta') ?>
+<meta name="robots" content="index, follow">
+<meta name="description" content="<?= esc($_seoDesc) ?>">
+<meta name="keywords" content="tryout CPNS, <?= esc($produk['nama']) ?>, latihan soal SKD, SKB CPNS, simulasi CAT CPNS, SiapASN">
+<link rel="canonical" href="<?= $_seoUrl ?>">
+<!-- Open Graph -->
+<meta property="og:type"        content="product">
+<meta property="og:title"       content="<?= esc($_seoTitle) ?>">
+<meta property="og:description" content="<?= esc($_seoDesc) ?>">
+<meta property="og:url"         content="<?= $_seoUrl ?>">
+<meta property="og:image"       content="<?= $_seoImage ?>">
+<meta property="og:site_name"   content="SiapASN Simulation Center">
+<!-- Twitter Card -->
+<meta name="twitter:card"        content="summary_large_image">
+<meta name="twitter:title"       content="<?= esc($_seoTitle) ?>">
+<meta name="twitter:description" content="<?= esc($_seoDesc) ?>">
+<meta name="twitter:image"       content="<?= $_seoImage ?>">
+<?= $this->endSection() ?>
+
 <?= $this->section('page_header') ?>
 <div class="d-flex align-items-center gap-3">
     <div class="ph-icon"><i class="bi bi-box-seam"></i></div>
@@ -369,6 +403,28 @@ $isLaunched2 = empty($launchDate2) || strtotime($launchDate2) <= time();
 <?= $this->endSection() ?>
 
 <?= $this->section('scripts') ?>
+<!-- Product JSON-LD Structured Data -->
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": "<?= addslashes(esc($produk['nama'])) ?>",
+    "url": "<?= rtrim(base_url(), '/') ?>/user/produk/<?= esc($produk['slug'] ?? $produk['id']) ?>",
+    "image": "<?= ! empty($produk['thumbnail']) ? base_url('uploads/produk/' . $produk['thumbnail']) : base_url('assets/images/thumbnail/product-default.png') ?>",
+    "description": "<?= addslashes(esc(substr(strip_tags($produk['deskripsi'] ?? ''), 0, 200) ?: 'Paket tryout CPNS ' . $produk['nama'] . ' dengan soal lengkap dan pembahasan.')) ?>",
+    "brand": {
+        "@type": "Brand",
+        "name": "SiapASN Simulation Center"
+    },
+    "offers": {
+        "@type": "Offer",
+        "priceCurrency": "IDR",
+        "price": "<?= number_format((float)$produk['harga'], 0, '.', '') ?>",
+        "availability": "<?= $produk['is_active'] ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock' ?>",
+        "url": "<?= rtrim(base_url(), '/') ?>/user/produk/<?= esc($produk['slug'] ?? $produk['id']) ?>"
+    }
+}
+</script>
 <script>
 (function () {
     const stars    = document.querySelectorAll('#ratingStars i');

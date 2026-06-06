@@ -60,6 +60,8 @@ Dokumentasi teknis untuk project **bimbel-cpns** (SiapASN Simulation Center), pl
 
 | Dokumen | Deskripsi |
 |---|---|
+| [slug-based-routing.md](./features/slug-based-routing.md) | URL halaman detail produk, tryout event, dan ranking berbasis slug SEO-friendly (ganti dari ID numerik) |
+| [sitemap-seo.md](./features/sitemap-seo.md) | Sitemap dinamis dengan produk highlight, event aktif, meta tag OG, JSON-LD structured data produk |
 | [blast-email-single-expand.md](./features/blast-email-single-expand.md) | Blast email: expand all/subscribe ke individual records (1 row per penerima) untuk tracking per email |
 | [share-button.md](./features/share-button.md) | Tombol Bagikan (WhatsApp, Telegram, Facebook, X, Copy Link) di produk, event, dan katalog buku (list + detail) |
 | [ranking-access-control.md](./features/ranking-access-control.md) | Ranking & leaderboard hanya untuk user yang sudah mengerjakan tryout (termasuk event leaderboard) |
@@ -78,6 +80,8 @@ Dokumentasi teknis untuk project **bimbel-cpns** (SiapASN Simulation Center), pl
 
 | Tanggal | Kategori | Deskripsi |
 |---|---|---|
+| 2026-06-07 | Feature | Sitemap dinamis — produk highlight + event aktif + meta OG + JSON-LD structured data |
+| 2026-06-07 | Feature | Slug-based routing — URL detail produk, tryout event, dan ranking berbasis slug SEO-friendly |
 | 2026-06-06 | Perf | Blast email parallel processing — spawn background CLI processes (5 paralel) |
 | 2026-06-06 | Perf | Blast email hanya kirim 1/menit — fix execution time + SMTP timeout |
 | 2026-06-06 | Feature | Blast email: expand all/subscribe ke individual records untuk per-email tracking |
