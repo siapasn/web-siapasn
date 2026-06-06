@@ -391,7 +391,7 @@
                                                    style="border-radius:.5rem;font-weight:600;font-size:.8rem">
                                                     <i class="bi bi-list-ul me-1"></i>Lihat Sesi (<?= $item['jumlah_tryout'] ?>)
                                                 </a>
-                                                <a href="<?= base_url('user/produk/' . $produk['id']) ?>"
+                                                <a href="<?= base_url('user/produk/' . ($produk['slug'] ?? $produk['id'])) ?>"
                                                    class="btn btn-outline-secondary btn-sm"
                                                    style="border-radius:.5rem;font-weight:600;font-size:.8rem">
                                                     <i class="bi bi-box-seam me-1"></i>Detail Produk

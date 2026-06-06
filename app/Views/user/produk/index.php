@@ -411,8 +411,8 @@ $isLaunched = empty($launchDate) || strtotime($launchDate) <= time();
                                             <?php endif; ?>
                                         </div>
 
-                                        <div class="d-flex flex-column gap-2">
-                                            <a href="<?= base_url('user/produk/' . $p['id']) ?>"
+                                                        <div class="d-flex flex-column gap-2">
+                                            <a href="<?= base_url('user/produk/' . ($p['slug'] ?: $p['id'])) ?>"
                                                class="btn btn-outline-primary btn-sm btn-cart">
                                                 <i class="bi bi-eye me-1"></i>Detail
                                             </a>
@@ -446,7 +446,7 @@ $isLaunched = empty($launchDate) || strtotime($launchDate) <= time();
 
                                             <?php
                                             $shareTitle = $p['nama'];
-                                            $shareUrl   = base_url('user/produk/' . $p['id']);
+                                            $shareUrl   = base_url('user/produk/' . ($p['slug'] ?: $p['id']));
                                             $shareText  = 'Paket Tryout CPNS - ' . $p['nama'];
                                             $shareBtnClass = 'btn-outline-secondary btn-cart w-100';
                                             echo view('partials/share-button', compact('shareTitle', 'shareUrl', 'shareText', 'shareBtnClass'));

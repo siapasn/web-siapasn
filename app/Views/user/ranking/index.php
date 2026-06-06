@@ -64,7 +64,7 @@
         <div class="row g-3">
             <?php foreach ($kat['tryouts'] as $t): ?>
             <div class="col-12 col-md-6 col-lg-4">
-                <a href="<?= base_url('user/ranking/' . $t['id']) ?>" class="card border-0 shadow-sm h-100 ranking-tryout-card">
+                <a href="<?= base_url('user/ranking/' . ($t['slug'] ?: $t['id'])) ?>" class="card border-0 shadow-sm h-100 ranking-tryout-card">
                     <div class="card-body">
                         <div class="d-flex align-items-start gap-3">
                             <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"

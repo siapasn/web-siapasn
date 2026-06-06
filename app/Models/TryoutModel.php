@@ -15,6 +15,7 @@ class TryoutModel extends Model
 
     protected $allowedFields = [
         'nama',
+        'slug',
         'durasi',
         'jumlah_soal',
         'is_active',
@@ -23,6 +24,15 @@ class TryoutModel extends Model
     protected $useTimestamps = true;
     protected $createdField  = 'created_at';
     protected $updatedField  = 'updated_at';
+
+    /**
+     * Cari tryout berdasarkan slug.
+     */
+    public function findBySlug(string $slug): ?array
+    {
+        $result = $this->where('slug', $slug)->first();
+        return $result ?: null;
+    }
 
     /**
      * Ambil semua tryout yang aktif (is_active = 1).

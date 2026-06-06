@@ -72,7 +72,7 @@
                             <span class="badge bg-primary rounded-pill"><?= (int) $ev['total_peserta'] ?></span>
                         </td>
                         <td class="text-center pe-3">
-                            <a href="<?= base_url('user/tryout-event/' . $ev['id']) ?>"
+                            <a href="<?= base_url('user/tryout-event/' . ($ev['slug'] ?: $ev['id'])) ?>"
                                class="btn btn-sm btn-outline-primary py-0 px-2">
                                 Detail
                             </a>

@@ -499,7 +499,7 @@
                         <div class="text-muted small mb-3">
                             <i class="bi bi-calendar3 me-1"></i><?= date('d M Y H:i', strtotime($ev['mulai_pelaksanaan'])) ?>
                         </div>
-                        <a href="<?= base_url('login?redirect_url=' . urlencode('user/tryout-event/' . $ev['id'])) ?>"
+                        <a href="<?= base_url('login?redirect_url=' . urlencode('user/tryout-event/' . ($ev['slug'] ?? $ev['id']))) ?>"
                            class="btn btn-warning btn-sm w-100 fw-semibold" style="border-radius:.5rem">
                             <i class="bi bi-person-plus me-1"></i>Daftar & Ikuti Gratis
                         </a>
@@ -556,7 +556,7 @@
                                 </div>
                             <?php endif; ?>
                         </div>
-                        <a href="<?= base_url('login?redirect_url=' . urlencode('user/produk/' . $p['id'])) ?>"
+                        <a href="<?= base_url('login?redirect_url=' . urlencode('user/produk/' . ($p['slug'] ?? $p['id']))) ?>"
                            class="btn btn-primary btn-sm w-100 fw-semibold" style="border-radius:.5rem;background:var(--sa-primary);border-color:var(--sa-primary)">
                             <i class="bi bi-eye me-1"></i>Lihat Detail
                         </a>

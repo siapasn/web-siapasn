@@ -26,6 +26,12 @@
     <a href="<?= base_url('user/ranking') ?>" class="btn btn-sm btn-outline-primary">
         <i class="bi bi-arrow-left me-1"></i>Kembali
     </a>
+    <?php
+    $shareTitle = 'Leaderboard - ' . $tryout['nama'];
+    $shareUrl   = base_url('user/ranking/' . ($tryout['slug'] ?: $tryout['id']));
+    $shareText  = 'Lihat peringkat saya di tryout CPNS: ' . $tryout['nama'];
+    echo view('partials/share-button', compact('shareTitle', 'shareUrl', 'shareText'));
+    ?>
 </div>
 
 <!-- Statistik -->

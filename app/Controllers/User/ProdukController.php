@@ -191,15 +191,26 @@ class ProdukController extends BaseController
     /**
      * Tampilkan detail produk beserta daftar tryout yang termasuk.
      */
-    public function show(int $id)
+    public function show(string $slug)
     {
         $userId = session()->get('user_id');
         $db     = \Config\Database::connect();
 
-        $produk = $this->produkModel->find($id);
+        // Cari produk by slug (backward-compat: juga coba by ID jika slug adalah angka)
+        $produk = ctype_digit($slug)
+            ? $this->produkModel->find((int) $slug)
+            : $this->produkModel->findBySlug($slug);
+
         if (!$produk || !$produk['is_active']) {
             return redirect()->to(base_url('user/produk'))->with('error', 'Produk tidak ditemukan.');
         }
+
+        // Jika diakses via ID (angka), redirect ke URL slug
+        if (ctype_digit($slug) && ! empty($produk['slug'])) {
+            return redirect()->to(base_url('user/produk/' . $produk['slug']), 301);
+        }
+
+        $id = (int) $produk['id'];
 
         // Ambil info formasi jika ada
         $formasiInfo = null;

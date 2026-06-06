@@ -86,13 +86,13 @@
                     <?php endif; ?>
 
                     <div class="d-flex gap-2">
-                        <a href="<?= base_url('user/tryout-event/' . $e['id']) ?>"
+                        <a href="<?= base_url('user/tryout-event/' . ($e['slug'] ?: $e['id'])) ?>"
                            class="btn btn-primary btn-sm flex-grow-1 fw-semibold" style="border-radius:.5rem">
                             <i class="bi bi-arrow-right me-1"></i>Detail
                         </a>
                         <?php
                         $shareTitle = $e['nama'];
-                        $shareUrl   = base_url('user/tryout-event/' . $e['id']);
+                        $shareUrl   = base_url('user/tryout-event/' . ($e['slug'] ?: $e['id']));
                         $shareText  = 'Event Tryout CPNS Gratis - ' . $e['nama'];
                         $shareBtnClass = 'btn-outline-secondary';
                         echo view('partials/share-button', compact('shareTitle', 'shareUrl', 'shareText', 'shareBtnClass'));
@@ -121,7 +121,7 @@
                         <span class="badge bg-success rounded-pill" style="font-size:.65rem">Anda ikut</span>
                     <?php endif; ?>
                 </div>
-                <a href="<?= base_url('user/tryout-event/' . $es['id'] . '/leaderboard') ?>"
+                <a href="<?= base_url('user/tryout-event/' . ($es['slug'] ?: $es['id']) . '/leaderboard') ?>"
                    class="btn btn-outline-secondary btn-sm w-100" style="font-size:.78rem">
                     <i class="bi bi-trophy me-1"></i>Lihat Leaderboard
                 </a>

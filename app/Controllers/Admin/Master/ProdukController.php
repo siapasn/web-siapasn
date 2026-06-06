@@ -131,8 +131,12 @@ class ProdukController extends BaseController
             $file->move(FCPATH . 'uploads/produk', $thumbnailName);
         }
 
+        helper('slug');
+        $slug = make_unique_slug('produk', $this->request->getPost('nama'));
+
         $produkId = $this->produkModel->insert([
             'nama'        => $this->request->getPost('nama'),
+            'slug'        => $slug,
             'kategori_id' => $this->request->getPost('kategori_id') ?: null,
             'formasi_id'  => $this->request->getPost('formasi_id') ?: null,
             'deskripsi'   => $this->request->getPost('deskripsi') ?? null,
@@ -210,8 +214,12 @@ class ProdukController extends BaseController
             $thumbnailName = null;
         }
 
+        helper('slug');
+        $slug = make_unique_slug('produk', $this->request->getPost('nama'), $id);
+
         $this->produkModel->update($id, [
             'nama'        => $this->request->getPost('nama'),
+            'slug'        => $slug,
             'kategori_id' => $this->request->getPost('kategori_id') ?: null,
             'formasi_id'  => $this->request->getPost('formasi_id') ?: null,
             'deskripsi'   => $this->request->getPost('deskripsi') ?? null,

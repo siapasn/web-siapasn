@@ -15,6 +15,7 @@ class TryoutEventModel extends Model
 
     protected $allowedFields = [
         'nama',
+        'slug',
         'tryout_id',
         'deskripsi',
         'banner_url',
@@ -29,6 +30,15 @@ class TryoutEventModel extends Model
     protected $useTimestamps = true;
     protected $createdField  = 'created_at';
     protected $updatedField  = 'updated_at';
+
+    /**
+     * Cari event berdasarkan slug.
+     */
+    public function findBySlug(string $slug): ?array
+    {
+        $result = $this->where('slug', $slug)->first();
+        return $result ?: null;
+    }
 
     /**
      * Ambil semua event beserta nama tryout dan jumlah peserta.

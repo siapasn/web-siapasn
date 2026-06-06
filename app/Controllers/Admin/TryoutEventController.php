@@ -84,8 +84,10 @@ class TryoutEventController extends BaseController
             $bannerUrl = 'uploads/event/' . $bannerName;
         }
 
-        $this->eventModel->insert([
+        helper('slug');
+        $eventId = $this->eventModel->insert([
             'nama'               => $this->request->getPost('nama'),
+            'slug'               => make_unique_slug('tryout_event', $this->request->getPost('nama')),
             'tryout_id'          => (int) $this->request->getPost('tryout_id'),
             'deskripsi'          => $this->request->getPost('deskripsi') ?: null,
             'banner_url'         => $bannerUrl,
@@ -193,8 +195,10 @@ class TryoutEventController extends BaseController
             $bannerUrl = null;
         }
 
+        helper('slug');
         $this->eventModel->update($id, [
             'nama'               => $this->request->getPost('nama'),
+            'slug'               => make_unique_slug('tryout_event', $this->request->getPost('nama'), $id),
             'tryout_id'          => (int) $this->request->getPost('tryout_id'),
             'deskripsi'          => $this->request->getPost('deskripsi') ?: null,
             'banner_url'         => $bannerUrl,

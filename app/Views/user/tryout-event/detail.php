@@ -19,7 +19,7 @@
     </a>
     <?php
     $shareTitle = $event['nama'];
-    $shareUrl   = current_url();
+    $shareUrl   = base_url('user/tryout-event/' . ($event['slug'] ?: $event['id']));
     $shareText  = 'Event Tryout CPNS - ' . $event['nama'];
     echo view('partials/share-button', compact('shareTitle', 'shareUrl', 'shareText'));
     ?>
@@ -85,7 +85,7 @@
         </div>
 
         <!-- Leaderboard link -->
-        <a href="<?= base_url("user/tryout-event/{$event['id']}/leaderboard") ?>"
+        <a href="<?= base_url("user/tryout-event/" . ($event['slug'] ?: $event['id']) . "/leaderboard") ?>"
            class="btn btn-outline-warning w-100 fw-semibold mb-4">
             <i class="bi bi-trophy me-1"></i>Lihat Leaderboard Event
         </a>

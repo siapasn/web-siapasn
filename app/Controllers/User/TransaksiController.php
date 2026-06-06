@@ -80,7 +80,7 @@ class TransaksiController extends BaseController
         }
 
         if ($this->userProdukModel->hasAccess($userId, $produkId)) {
-            return redirect()->to(base_url('user/produk/' . $produkId))
+            return redirect()->to(base_url('user/produk/' . ($produk['slug'] ?: $produkId)))
                 ->with('error', 'Anda sudah memiliki akses ke produk ini.');
         }
 
@@ -135,7 +135,7 @@ class TransaksiController extends BaseController
         }
 
         if ($this->userProdukModel->hasAccess($userId, $produkId)) {
-            return redirect()->to(base_url('user/produk/' . $produkId))
+            return redirect()->to(base_url('user/produk/' . ($produk['slug'] ?: $produkId)))
                 ->with('error', 'Anda sudah memiliki akses ke produk ini.');
         }
 

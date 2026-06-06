@@ -15,6 +15,7 @@ class ProdukModel extends Model
 
     protected $allowedFields = [
         'nama',
+        'slug',
         'kategori_id',
         'formasi_id',
         'deskripsi',
@@ -27,6 +28,15 @@ class ProdukModel extends Model
     protected $useTimestamps = true;
     protected $createdField  = 'created_at';
     protected $updatedField  = 'updated_at';
+
+    /**
+     * Cari produk berdasarkan slug.
+     */
+    public function findBySlug(string $slug): ?array
+    {
+        $result = $this->where('slug', $slug)->first();
+        return $result ?: null;
+    }
 
     /**
      * Ambil semua produk yang aktif.

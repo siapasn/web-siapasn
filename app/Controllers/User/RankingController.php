@@ -89,7 +89,7 @@ class RankingController extends BaseController
 
         // Ambil tryout yang user sudah kerjakan DAN sudah punya minimal 1 hasil (dari peserta lain juga)
         $tryouts = $db->table('tryout t')
-            ->select('t.id, t.nama, t.durasi, p.kategori_id,
+            ->select('t.id, t.nama, t.slug, t.durasi, p.kategori_id,
                       COUNT(DISTINCT ht.user_id) AS total_peserta,
                       MAX(ht.total_nilai) AS skor_tertinggi')
             ->join('mapping_tryout mt', 'mt.tryout_id = t.id')
@@ -125,16 +125,29 @@ class RankingController extends BaseController
      * Leaderboard per tryout — ranking semua peserta.
      * Hanya bisa diakses jika user telah membeli produk terkait atau terdaftar di event.
      */
-    public function leaderboard(int $tryoutId)
+    public function leaderboard(string $slug)
     {
         $userId = (int) session()->get('user_id');
         $db     = \Config\Database::connect();
 
-        $tryout = $db->table('tryout')->where('id', $tryoutId)->get()->getRowArray();
+        // Cari tryout by slug (backward-compat: juga coba by ID jika slug adalah angka)
+        if (ctype_digit($slug)) {
+            $tryout = $db->table('tryout')->where('id', (int) $slug)->get()->getRowArray();
+        } else {
+            $tryout = $db->table('tryout')->where('slug', $slug)->get()->getRowArray();
+        }
+
         if (! $tryout) {
             return redirect()->to(base_url('user/ranking'))
                 ->with('error', 'Tryout tidak ditemukan.');
         }
+
+        // Jika diakses via ID (angka), redirect ke URL slug
+        if (ctype_digit($slug) && ! empty($tryout['slug'])) {
+            return redirect()->to(base_url('user/ranking/' . $tryout['slug']), 301);
+        }
+
+        $tryoutId = (int) $tryout['id'];
 
         // --- Validasi Akses ---
         // Cek 1: apakah user punya produk yang mengandung tryout ini?

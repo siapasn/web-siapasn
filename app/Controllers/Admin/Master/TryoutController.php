@@ -72,8 +72,12 @@ class TryoutController extends BaseController
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
 
+        helper('slug');
+        $slug = make_unique_slug('tryout', $this->request->getPost('nama'));
+
         $this->tryoutModel->insert([
             'nama'      => $this->request->getPost('nama'),
+            'slug'      => $slug,
             'durasi'    => (int) $this->request->getPost('durasi'),
             'is_active' => $this->request->getPost('is_active') ? 1 : 0,
         ]);
@@ -119,8 +123,12 @@ class TryoutController extends BaseController
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
 
+        helper('slug');
+        $slug = make_unique_slug('tryout', $this->request->getPost('nama'), $id);
+
         $this->tryoutModel->update($id, [
             'nama'      => $this->request->getPost('nama'),
+            'slug'      => $slug,
             'durasi'    => (int) $this->request->getPost('durasi'),
             'is_active' => $this->request->getPost('is_active') ? 1 : 0,
         ]);

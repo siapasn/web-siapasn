@@ -108,7 +108,7 @@
                         <div class="text-muted mb-2" style="font-size:.7rem">
                             <i class="bi bi-calendar3 me-1"></i><?= date('d M Y H:i', strtotime($ev['mulai_pelaksanaan'])) ?>
                         </div>
-                        <a href="<?= base_url('user/tryout-event/' . $ev['id']) ?>"
+                        <a href="<?= base_url('user/tryout-event/' . ($ev['slug'] ?? $ev['id'])) ?>"
                            class="btn btn-warning btn-sm w-100 fw-semibold" style="font-size:.78rem;border-radius:.5rem">
                             <?php if ($ev['fase'] === 'pendaftaran' && ! $ev['user_registered']): ?>
                                 <i class="bi bi-person-plus me-1"></i>Daftar Gratis
@@ -198,7 +198,7 @@ $_isLaunched = empty($_launchDate) || strtotime($_launchDate) <= time();
                                     <?php endif; ?>
                                 </div>
                                 <div class="d-flex flex-column gap-2">
-                                    <a href="<?= base_url('user/produk/' . $p['id']) ?>"
+                                    <a href="<?= base_url('user/produk/' . ($p['slug'] ?? $p['id'])) ?>"
                                        class="btn btn-outline-primary btn-sm fw-semibold">
                                         <i class="bi bi-eye me-1"></i>Detail
                                     </a>

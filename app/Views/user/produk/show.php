@@ -31,7 +31,7 @@ $isLaunched2 = empty($launchDate2) || strtotime($launchDate2) <= time();
     </a>
     <?php
     $shareTitle = $produk['nama'];
-    $shareUrl   = current_url();
+    $shareUrl   = base_url('user/produk/' . ($produk['slug'] ?: $produk['id']));
     $shareText  = 'Paket Tryout CPNS - ' . $produk['nama'];
     echo view('partials/share-button', compact('shareTitle', 'shareUrl', 'shareText'));
     ?>

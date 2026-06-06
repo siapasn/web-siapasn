@@ -22,7 +22,7 @@
 </style>
 
 <div class="mb-3">
-    <a href="<?= base_url('user/tryout-event/' . $event['id']) ?>" class="btn btn-sm btn-outline-primary">
+    <a href="<?= base_url('user/tryout-event/' . ($event['slug'] ?: $event['id'])) ?>" class="btn btn-sm btn-outline-primary">
         <i class="bi bi-arrow-left me-1"></i>Kembali ke Event
     </a>
 </div>

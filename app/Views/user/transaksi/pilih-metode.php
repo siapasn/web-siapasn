@@ -80,7 +80,7 @@
 
         <!-- Breadcrumb steps -->
         <div class="d-flex align-items-center gap-2 mb-4 text-muted small">
-            <a href="<?= base_url('user/produk/' . $produk['id']) ?>" class="text-decoration-none text-muted">
+            <a href="<?= base_url('user/produk/' . ($produk['slug'] ?? $produk['id'])) ?>" class="text-decoration-none text-muted">
                 <i class="bi bi-arrow-left me-1"></i>Kembali
             </a>
             <span>·</span>

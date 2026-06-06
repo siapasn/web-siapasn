@@ -35,7 +35,7 @@ $routes->group('user', ['filter' => 'auth'], function ($routes) {
 
     // Katalog produk
     $routes->get('produk', 'User\ProdukController::index');
-    $routes->get('produk/(:num)', 'User\ProdukController::show/$1');
+    $routes->get('produk/(:segment)', 'User\ProdukController::show/$1');
 
     // Transaksi
     $routes->post('transaksi/beli/(:num)', 'User\TransaksiController::beli/$1');
@@ -73,7 +73,7 @@ $routes->group('user', ['filter' => 'auth'], function ($routes) {
 
     // Ranking / Leaderboard
     $routes->get('ranking', 'User\RankingController::index');
-    $routes->get('ranking/(:num)', 'User\RankingController::leaderboard/$1');
+    $routes->get('ranking/(:segment)', 'User\RankingController::leaderboard/$1');
 
     // Request Formasi
     $routes->post('request-formasi', 'User\RequestFormasiController::store');
@@ -92,10 +92,10 @@ $routes->group('user', ['filter' => 'auth'], function ($routes) {
     // Tryout Event
     $routes->get('tryout-event', 'User\TryoutEventController::index');
     $routes->get('tryout-event/kalender', 'User\TryoutEventController::kalender');
-    $routes->get('tryout-event/(:num)', 'User\TryoutEventController::detail/$1');
+    $routes->get('tryout-event/(:segment)', 'User\TryoutEventController::detail/$1');
     $routes->post('tryout-event/(:num)/daftar', 'User\TryoutEventController::daftar/$1');
     $routes->post('tryout-event/(:num)/mulai', 'User\TryoutEventController::mulai/$1');
-    $routes->get('tryout-event/(:num)/leaderboard', 'User\TryoutEventController::leaderboard/$1');
+    $routes->get('tryout-event/(:segment)/leaderboard', 'User\TryoutEventController::leaderboard/$1');
 
     // Serve file materi pelajaran — hanya untuk user yang sudah membeli produk terkait
     $routes->get('materi/(:num)/file', 'User\MateriFileController::serve/$1');

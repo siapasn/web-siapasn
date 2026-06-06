@@ -112,17 +112,28 @@ class TryoutEventController extends BaseController
     /**
      * Detail event + daftar.
      */
-    public function detail(int $eventId)
+    public function detail(string $slug)
     {
         $userId = (int) session()->get('user_id');
         $db     = \Config\Database::connect();
         $now    = date('Y-m-d H:i:s');
 
-        $event = $this->eventModel->find($eventId);
+        // Cari event by slug (backward-compat: juga coba by ID jika slug adalah angka)
+        $event = ctype_digit($slug)
+            ? $this->eventModel->find((int) $slug)
+            : $this->eventModel->findBySlug($slug);
+
         if (! $event || ! $event['is_active']) {
             return redirect()->to(base_url('user/tryout-event'))
                 ->with('error', 'Event tidak ditemukan.');
         }
+
+        // Jika diakses via ID (angka), redirect ke URL slug
+        if (ctype_digit($slug) && ! empty($event['slug'])) {
+            return redirect()->to(base_url('user/tryout-event/' . $event['slug']), 301);
+        }
+
+        $eventId = (int) $event['id'];
 
         // Info tryout
         $tryout = $db->table('tryout')->where('id', $event['tryout_id'])->get()->getRowArray();
@@ -201,7 +212,7 @@ class TryoutEventController extends BaseController
     }
 
     /**
-     * Daftar ke event.
+     * Daftar ke event (POST dengan event ID).
      */
     public function daftar(int $eventId)
     {
@@ -215,9 +226,11 @@ class TryoutEventController extends BaseController
                 ->with('error', 'Event tidak ditemukan.');
         }
 
+        $eventSlug = $event['slug'] ?: $eventId;
+
         // Cek periode pendaftaran
         if ($now < $event['mulai_pendaftaran'] || $now > $event['tutup_pendaftaran']) {
-            return redirect()->to(base_url("user/tryout-event/{$eventId}"))
+            return redirect()->to(base_url("user/tryout-event/{$eventSlug}"))
                 ->with('error', 'Pendaftaran belum dibuka atau sudah ditutup.');
         }
 
@@ -228,7 +241,7 @@ class TryoutEventController extends BaseController
             ->countAllResults();
 
         if ($exists > 0) {
-            return redirect()->to(base_url("user/tryout-event/{$eventId}"))
+            return redirect()->to(base_url("user/tryout-event/{$eventSlug}"))
                 ->with('error', 'Anda sudah terdaftar di event ini.');
         }
 
@@ -244,7 +257,7 @@ class TryoutEventController extends BaseController
         \App\Models\NotifikasiModel::kirimKeRole('admin', 'event', 'Peserta Event Baru', $userName . ' mendaftar event: ' . $event['nama'], 'admin/tryout-event/' . $eventId . '/peserta');
         \App\Models\NotifikasiModel::kirimKeRole('super_admin', 'event', 'Peserta Event Baru', $userName . ' mendaftar event: ' . $event['nama'], 'admin/tryout-event/' . $eventId . '/peserta');
 
-        return redirect()->to(base_url("user/tryout-event/{$eventId}"))
+        return redirect()->to(base_url("user/tryout-event/{$eventSlug}"))
             ->with('success', 'Berhasil mendaftar! Anda dapat mengerjakan tryout saat periode pelaksanaan dimulai.');
     }
 
@@ -263,9 +276,11 @@ class TryoutEventController extends BaseController
                 ->with('error', 'Event tidak ditemukan.');
         }
 
+        $eventSlug = $event['slug'] ?: $eventId;
+
         // Cek periode pelaksanaan
         if ($now < $event['mulai_pelaksanaan'] || $now > $event['tutup_pelaksanaan']) {
-            return redirect()->to(base_url("user/tryout-event/{$eventId}"))
+            return redirect()->to(base_url("user/tryout-event/{$eventSlug}"))
                 ->with('error', 'Periode pelaksanaan belum dimulai atau sudah berakhir.');
         }
 
@@ -276,7 +291,7 @@ class TryoutEventController extends BaseController
             ->get()->getRowArray();
 
         if (! $peserta) {
-            return redirect()->to(base_url("user/tryout-event/{$eventId}"))
+            return redirect()->to(base_url("user/tryout-event/{$eventSlug}"))
                 ->with('error', 'Anda belum terdaftar di event ini.');
         }
 
@@ -288,7 +303,7 @@ class TryoutEventController extends BaseController
             ->countAllResults();
 
         if ($percobaan >= (int) $event['max_percobaan']) {
-            return redirect()->to(base_url("user/tryout-event/{$eventId}"))
+            return redirect()->to(base_url("user/tryout-event/{$eventSlug}"))
                 ->with('error', 'Anda sudah mencapai batas maksimal percobaan (' . $event['max_percobaan'] . 'x).');
         }
 
@@ -334,7 +349,7 @@ class TryoutEventController extends BaseController
         // Build calendar events untuk FullCalendar
         $calendarEvents = [];
         foreach ($events as $ev) {
-            $detailUrl = base_url('user/tryout-event/' . $ev['id']);
+            $detailUrl = base_url('user/tryout-event/' . ($ev['slug'] ?: $ev['id']));
 
             // Event pendaftaran (biru)
             $calendarEvents[] = [
@@ -376,16 +391,28 @@ class TryoutEventController extends BaseController
      * Leaderboard event.
      * Hanya bisa diakses jika user sudah mengerjakan tryout event ini.
      */
-    public function leaderboard(int $eventId)
+    public function leaderboard(string $slug)
     {
         $userId = (int) session()->get('user_id');
         $db     = \Config\Database::connect();
 
-        $event = $this->eventModel->find($eventId);
+        // Cari event by slug (backward-compat: juga coba by ID jika slug adalah angka)
+        $event = ctype_digit($slug)
+            ? $this->eventModel->find((int) $slug)
+            : $this->eventModel->findBySlug($slug);
+
         if (! $event) {
             return redirect()->to(base_url('user/tryout-event'))
                 ->with('error', 'Event tidak ditemukan.');
         }
+
+        // Jika diakses via ID (angka), redirect ke URL slug
+        if (ctype_digit($slug) && ! empty($event['slug'])) {
+            return redirect()->to(base_url('user/tryout-event/' . $event['slug'] . '/leaderboard'), 301);
+        }
+
+        $eventId   = (int) $event['id'];
+        $eventSlug = $event['slug'] ?: $eventId;
 
         // Validasi: user harus sudah pernah mengerjakan tryout ini
         $hasCompleted = $db->table('hasil_tryout')
@@ -394,7 +421,7 @@ class TryoutEventController extends BaseController
             ->countAllResults();
 
         if ($hasCompleted === 0) {
-            return redirect()->to(base_url('user/tryout-event/' . $eventId))
+            return redirect()->to(base_url('user/tryout-event/' . $eventSlug))
                 ->with('error', 'Anda belum mengerjakan tryout ini. Selesaikan tryout terlebih dahulu untuk melihat leaderboard.');
         }
 
