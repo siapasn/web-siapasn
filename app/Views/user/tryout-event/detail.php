@@ -185,7 +185,7 @@
                     <!-- Hasil user -->
                     <?php if ($hasilUser): ?>
                     <hr>
-                    <div class="text-center">
+                    <div class="text-center mb-3">
                         <div class="text-muted small mb-1">Skor Terbaik Anda</div>
                         <div class="fs-3 fw-bold text-success"><?= (int) ($hasilUser['total_nilai'] ?: $hasilUser['skor_total']) ?></div>
                         <?php if ($hasilUser['status_lulus'] === 'lulus'): ?>
@@ -194,6 +194,52 @@
                             <span class="badge bg-danger">Belum Lulus</span>
                         <?php endif; ?>
                     </div>
+
+                    <!-- Tombol Hasil & Pembahasan -->
+                    <div class="d-flex flex-column gap-2 mb-3">
+                        <a href="<?= base_url('user/tryout/hasil/' . $hasilUser['sesi_tryout_id']) ?>"
+                           class="btn btn-outline-success btn-sm fw-semibold">
+                            <i class="bi bi-clipboard-data me-1"></i>Lihat Hasil
+                        </a>
+                        <a href="<?= base_url('user/tryout/pembahasan/' . $hasilUser['sesi_tryout_id']) ?>"
+                           class="btn btn-outline-primary btn-sm fw-semibold">
+                            <i class="bi bi-book me-1"></i>Lihat Pembahasan
+                        </a>
+                    </div>
+
+                    <!-- Riwayat semua percobaan -->
+                    <?php if (count($semuaHasil) > 1): ?>
+                    <div class="border-top pt-3">
+                        <div class="text-muted small fw-semibold mb-2">
+                            <i class="bi bi-clock-history me-1"></i>Riwayat Percobaan
+                        </div>
+                        <?php foreach ($semuaHasil as $idx => $h): ?>
+                        <div class="d-flex align-items-center justify-content-between py-2 <?= $idx < count($semuaHasil) - 1 ? 'border-bottom' : '' ?>">
+                            <div>
+                                <div class="small fw-medium">Percobaan <?= count($semuaHasil) - $idx ?></div>
+                                <div class="text-muted" style="font-size:.7rem">
+                                    <?= date('d M Y H:i', strtotime($h['created_at'])) ?>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="fw-bold small" style="color:#1a3a5c">
+                                    <?= (int)($h['total_nilai'] ?: $h['skor_total']) ?>
+                                </span>
+                                <a href="<?= base_url('user/tryout/hasil/' . $h['sesi_tryout_id']) ?>"
+                                   class="btn btn-outline-secondary btn-sm" style="font-size:.7rem;padding:2px 8px"
+                                   title="Lihat Hasil">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a href="<?= base_url('user/tryout/pembahasan/' . $h['sesi_tryout_id']) ?>"
+                                   class="btn btn-outline-secondary btn-sm" style="font-size:.7rem;padding:2px 8px"
+                                   title="Lihat Pembahasan">
+                                    <i class="bi bi-book"></i>
+                                </a>
+                            </div>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                    <?php endif; ?>
                     <?php endif; ?>
                 <?php endif; ?>
             </div>

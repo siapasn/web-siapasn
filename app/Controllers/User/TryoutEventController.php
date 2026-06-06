@@ -169,6 +169,7 @@ class TryoutEventController extends BaseController
 
         // Hasil terbaik user
         $hasilUser = null;
+        $semuaHasil = [];
         if ($peserta && $peserta['status'] === 'completed') {
             $hasilUser = $db->table('hasil_tryout')
                 ->where('user_id', $userId)
@@ -176,6 +177,13 @@ class TryoutEventController extends BaseController
                 ->orderBy('total_nilai', 'DESC')
                 ->limit(1)
                 ->get()->getRowArray();
+
+            // Ambil semua hasil percobaan user (untuk riwayat)
+            $semuaHasil = $db->table('hasil_tryout')
+                ->where('user_id', $userId)
+                ->where('tryout_id', $event['tryout_id'])
+                ->orderBy('created_at', 'DESC')
+                ->get()->getResultArray();
         }
 
         return view('user/tryout-event/detail', [
@@ -187,6 +195,7 @@ class TryoutEventController extends BaseController
             'userPercobaan' => $userPercobaan,
             'sesiAktif'     => $sesiAktif,
             'hasilUser'     => $hasilUser,
+            'semuaHasil'    => $semuaHasil,
             'menus'         => $this->getMenus(),
         ]);
     }
