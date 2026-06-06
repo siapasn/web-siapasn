@@ -31,6 +31,14 @@ Dokumentasi teknis untuk project **bimbel-cpns** (SiapASN Simulation Center), pl
 
 ---
 
+## Optimizations
+
+| Dokumen | Deskripsi |
+|---|---|
+| [blast-email-parallel-processing.md](./optimizations/blast-email-parallel-processing.md) | Blast email parallel processing via background CLI processes (mirip goroutine) |
+
+---
+
 ## Troubleshooting
 
 | Dokumen | Deskripsi |
@@ -70,6 +78,7 @@ Dokumentasi teknis untuk project **bimbel-cpns** (SiapASN Simulation Center), pl
 
 | Tanggal | Kategori | Deskripsi |
 |---|---|---|
+| 2026-06-06 | Perf | Blast email parallel processing — spawn background CLI processes (5 paralel) |
 | 2026-06-06 | Perf | Blast email hanya kirim 1/menit — fix execution time + SMTP timeout |
 | 2026-06-06 | Feature | Blast email: expand all/subscribe ke individual records untuk per-email tracking |
 | 2026-06-06 | Feature | Tombol Bagikan (share) di halaman produk detail, event detail, dan katalog buku |

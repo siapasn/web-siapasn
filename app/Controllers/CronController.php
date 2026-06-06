@@ -200,16 +200,16 @@ class CronController extends BaseController
      * GET /cron/process-blast-email
      *
      * Proses antrian blast email yang berstatus 'pending'.
-     * Setiap record = 1 email (sudah di-expand saat admin submit).
-     * Kirim batch 50 email per eksekusi.
+     * Spawn multiple background PHP processes secara paralel (mirip goroutine).
+     * Setiap process mengirim 1 email secara independen.
      */
     public function processBlastEmail()
     {
-        // Perpanjang execution time untuk proses batch email
-        set_time_limit(300); // 5 menit
+        set_time_limit(300);
 
-        $startTime = microtime(true);
-        $batchSize = 50;
+        $startTime    = microtime(true);
+        $batchSize    = 10; // jumlah email yang di-spawn paralel per cron call
+        $maxParallel  = 5;  // jumlah proses paralel bersamaan
 
         if (! $this->authorize()) {
             return $this->response
@@ -219,7 +219,7 @@ class CronController extends BaseController
 
         $db = \Config\Database::connect();
 
-        // Ambil batch email pending (setiap record = 1 penerima)
+        // Ambil batch email pending
         $jobs = $db->table('blast_email')
             ->where('status', 'pending')
             ->orderBy('created_at', 'ASC')
@@ -234,76 +234,131 @@ class CronController extends BaseController
             ]);
         }
 
-        $totalSent   = 0;
-        $totalFailed = 0;
-        $results     = [];
+        // Tandai semua sebagai 'sending' agar tidak di-pick cron berikutnya
+        $jobIds = array_column($jobs, 'id');
+        $db->table('blast_email')
+            ->whereIn('id', $jobIds)
+            ->update(['status' => 'sending', 'updated_at' => date('Y-m-d H:i:s')]);
 
-        foreach ($jobs as $job) {
-            $toEmail = $job['target_email'];
-            $nama    = $job['target_nama'] ?? 'User';
+        // Deteksi path PHP dan spark
+        $phpBin   = $this->detectPhpBinary();
+        $sparkPath = ROOTPATH . 'spark';
 
-            // Fallback: jika target_email kosong tapi ada target_user_id
-            if (empty($toEmail) && ! empty($job['target_user_id'])) {
-                $user = $db->table('users')->select('email, nama')->where('id', $job['target_user_id'])->get()->getRowArray();
-                if ($user) {
-                    $toEmail = $user['email'];
-                    $nama    = $user['nama'];
+        // Cek apakah bisa spawn background process
+        $canSpawn = function_exists('proc_open') && is_file($sparkPath);
+
+        if ($canSpawn) {
+            // === MODE PARALEL: spawn background processes ===
+            $processes = [];
+            $dispatched = 0;
+
+            foreach ($jobs as $job) {
+                // Spawn: php spark email:send {id} (background, non-blocking)
+                $cmd = sprintf('%s %s email:send %d', $phpBin, escapeshellarg($sparkPath), (int) $job['id']);
+
+                if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+                    // Windows: start /B
+                    pclose(popen("start /B {$cmd}", 'r'));
+                } else {
+                    // Linux/Mac: nohup ... &
+                    pclose(popen("nohup {$cmd} > /dev/null 2>&1 &", 'r'));
+                }
+
+                $dispatched++;
+
+                // Throttle: jangan spawn terlalu banyak sekaligus
+                if ($dispatched % $maxParallel === 0) {
+                    usleep(500000); // 0.5 detik delay setiap 5 proses
                 }
             }
 
-            if (empty($toEmail)) {
-                // Skip — tandai sebagai failed
+            $durationMs = round((microtime(true) - $startTime) * 1000);
+
+            log_message('info', sprintf(
+                'CronController::processBlastEmail — dispatched %d parallel processes, duration=%dms',
+                $dispatched, $durationMs
+            ));
+
+            return $this->response->setJSON([
+                'success'     => true,
+                'mode'        => 'parallel',
+                'dispatched'  => $dispatched,
+                'duration_ms' => $durationMs,
+                'timestamp'   => date('Y-m-d H:i:s'),
+            ]);
+
+        } else {
+            // === MODE SEQUENTIAL (fallback): kirim langsung satu per satu ===
+            $totalSent   = 0;
+            $totalFailed = 0;
+
+            foreach ($jobs as $job) {
+                $toEmail = $job['target_email'];
+                $nama    = $job['target_nama'] ?? 'User';
+
+                if (empty($toEmail) && ! empty($job['target_user_id'])) {
+                    $user = $db->table('users')->select('email, nama')->where('id', $job['target_user_id'])->get()->getRowArray();
+                    if ($user) {
+                        $toEmail = $user['email'];
+                        $nama    = $user['nama'];
+                    }
+                }
+
+                if (empty($toEmail)) {
+                    $db->table('blast_email')->where('id', $job['id'])->update([
+                        'status'       => 'failed',
+                        'total_failed' => 1,
+                        'updated_at'   => date('Y-m-d H:i:s'),
+                    ]);
+                    $totalFailed++;
+                    continue;
+                }
+
+                $success = $this->sendBlastEmail($toEmail, $nama, $job['subject'], $job['body']);
+
                 $db->table('blast_email')->where('id', $job['id'])->update([
-                    'status'       => 'failed',
-                    'total_failed' => 1,
+                    'status'       => $success ? 'done' : 'failed',
+                    'total_sent'   => $success ? 1 : 0,
+                    'total_failed' => $success ? 0 : 1,
                     'updated_at'   => date('Y-m-d H:i:s'),
                 ]);
-                $totalFailed++;
-                continue;
+
+                if ($success) $totalSent++;
+                else $totalFailed++;
             }
 
-            // Kirim email
-            $success = $this->sendBlastEmail($toEmail, $nama, $job['subject'], $job['body']);
+            $durationMs = round((microtime(true) - $startTime) * 1000);
 
-            if ($success) {
-                $db->table('blast_email')->where('id', $job['id'])->update([
-                    'status'     => 'done',
-                    'total_sent' => 1,
-                    'updated_at' => date('Y-m-d H:i:s'),
-                ]);
-                $totalSent++;
-            } else {
-                $db->table('blast_email')->where('id', $job['id'])->update([
-                    'status'       => 'failed',
-                    'total_failed' => 1,
-                    'updated_at'   => date('Y-m-d H:i:s'),
-                ]);
-                $totalFailed++;
-            }
+            log_message('info', sprintf(
+                'CronController::processBlastEmail [sequential] — sent=%d, failed=%d, duration=%dms',
+                $totalSent, $totalFailed, $durationMs
+            ));
 
-            $results[] = [
-                'id'     => $job['id'],
-                'email'  => $toEmail,
-                'status' => $success ? 'sent' : 'failed',
-            ];
+            return $this->response->setJSON([
+                'success'      => true,
+                'mode'         => 'sequential',
+                'batch_sent'   => $totalSent,
+                'batch_failed' => $totalFailed,
+                'duration_ms'  => $durationMs,
+                'timestamp'    => date('Y-m-d H:i:s'),
+            ]);
         }
+    }
 
-        $durationMs = round((microtime(true) - $startTime) * 1000);
-
-        log_message('info', sprintf(
-            'CronController::processBlastEmail — batch: sent=%d, failed=%d, duration=%dms',
-            $totalSent, $totalFailed, $durationMs
-        ));
-
-        return $this->response->setJSON([
-            'success'      => true,
-            'batch_sent'   => $totalSent,
-            'batch_failed' => $totalFailed,
-            'total_batch'  => count($jobs),
-            'results'      => $results,
-            'duration_ms'  => $durationMs,
-            'timestamp'    => date('Y-m-d H:i:s'),
-        ]);
+    /**
+     * Deteksi path PHP binary.
+     */
+    private function detectPhpBinary(): string
+    {
+        if (defined('PHP_BINARY') && PHP_BINARY !== '') {
+            return PHP_BINARY;
+        }
+        // Fallback umum di shared hosting
+        $paths = ['/usr/local/bin/php', '/usr/bin/php', 'php'];
+        foreach ($paths as $p) {
+            if (@is_executable($p)) return $p;
+        }
+        return 'php';
     }
 
     /**
