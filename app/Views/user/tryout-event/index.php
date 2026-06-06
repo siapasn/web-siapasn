@@ -85,10 +85,19 @@
                         <span class="badge bg-success mb-2"><i class="bi bi-check-circle me-1"></i>Terdaftar</span>
                     <?php endif; ?>
 
-                    <a href="<?= base_url('user/tryout-event/' . $e['id']) ?>"
-                       class="btn btn-primary btn-sm w-100 fw-semibold" style="border-radius:.5rem">
-                        <i class="bi bi-arrow-right me-1"></i>Lihat Detail
-                    </a>
+                    <div class="d-flex gap-2">
+                        <a href="<?= base_url('user/tryout-event/' . $e['id']) ?>"
+                           class="btn btn-primary btn-sm flex-grow-1 fw-semibold" style="border-radius:.5rem">
+                            <i class="bi bi-arrow-right me-1"></i>Detail
+                        </a>
+                        <?php
+                        $shareTitle = $e['nama'];
+                        $shareUrl   = base_url('user/tryout-event/' . $e['id']);
+                        $shareText  = 'Event Tryout CPNS Gratis - ' . $e['nama'];
+                        $shareBtnClass = 'btn-outline-secondary';
+                        echo view('partials/share-button', compact('shareTitle', 'shareUrl', 'shareText', 'shareBtnClass'));
+                        ?>
+                    </div>
                 </div>
             </div>
         </div>

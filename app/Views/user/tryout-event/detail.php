@@ -17,6 +17,12 @@
     <a href="<?= base_url('user/tryout-event') ?>" class="btn btn-sm btn-outline-primary">
         <i class="bi bi-arrow-left me-1"></i>Kembali
     </a>
+    <?php
+    $shareTitle = $event['nama'];
+    $shareUrl   = current_url();
+    $shareText  = 'Event Tryout CPNS - ' . $event['nama'];
+    echo view('partials/share-button', compact('shareTitle', 'shareUrl', 'shareText'));
+    ?>
 </div>
 
 <div class="row g-4">

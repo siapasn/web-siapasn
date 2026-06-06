@@ -51,6 +51,7 @@ Dokumentasi teknis untuk project **bimbel-cpns** (SiapASN Simulation Center), pl
 
 | Dokumen | Deskripsi |
 |---|---|
+| [share-button.md](./features/share-button.md) | Tombol Bagikan (WhatsApp, Telegram, Facebook, X, Copy Link) di produk, event, dan katalog buku (list + detail) |
 | [ranking-access-control.md](./features/ranking-access-control.md) | Ranking & leaderboard hanya untuk user yang sudah mengerjakan tryout (termasuk event leaderboard) |
 | [visitor-tracking.md](./features/visitor-tracking.md) | Tracking pengunjung harian unik (per IP/hari) + persentase perbandingan vs kemarin di dashboard admin |
 | [soal-import-salin-antar-tryout.md](./features/soal-import-salin-antar-tryout.md) | Import soal format baru (tanpa sub_kategori) + fitur Salin Soal antar tryout |
@@ -67,6 +68,7 @@ Dokumentasi teknis untuk project **bimbel-cpns** (SiapASN Simulation Center), pl
 
 | Tanggal | Kategori | Deskripsi |
 |---|---|---|
+| 2026-06-06 | Feature | Tombol Bagikan (share) di halaman produk detail, event detail, dan katalog buku |
 | 2026-06-05 | Fix | Tombol beli di dashboard rekomendasi mengabaikan launch_date — tambah pengecekan config |
 | 2026-06-05 | Feature | Ranking access control — hanya user yang beli produk atau daftar event yang bisa lihat leaderboard |
 | 2026-06-05 | Feature | Tracking pengunjung harian unik + persentase perbandingan vs kemarin di dashboard admin |

@@ -29,6 +29,12 @@ $isLaunched2 = empty($launchDate2) || strtotime($launchDate2) <= time();
     <a href="<?= base_url('user/produk') ?>" class="btn btn-sm btn-outline-primary">
         <i class="bi bi-arrow-left me-1"></i>Kembali ke Katalog
     </a>
+    <?php
+    $shareTitle = $produk['nama'];
+    $shareUrl   = current_url();
+    $shareText  = 'Paket Tryout CPNS - ' . $produk['nama'];
+    echo view('partials/share-button', compact('shareTitle', 'shareUrl', 'shareText'));
+    ?>
 </div>
 
 <div class="row g-4">

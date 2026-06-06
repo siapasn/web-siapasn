@@ -443,6 +443,14 @@ $isLaunched = empty($launchDate) || strtotime($launchDate) <= time();
                                                 </div>
                                                 <?php endif; ?>
                                             <?php endif; ?>
+
+                                            <?php
+                                            $shareTitle = $p['nama'];
+                                            $shareUrl   = base_url('user/produk/' . $p['id']);
+                                            $shareText  = 'Paket Tryout CPNS - ' . $p['nama'];
+                                            $shareBtnClass = 'btn-outline-secondary btn-cart w-100';
+                                            echo view('partials/share-button', compact('shareTitle', 'shareUrl', 'shareText', 'shareBtnClass'));
+                                            ?>
                                         </div>
                                     </div>
                                 </div>

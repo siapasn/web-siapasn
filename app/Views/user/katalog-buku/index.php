@@ -204,7 +204,7 @@
                     </div>
                     <div class="card-body d-flex flex-column p-3">
                         <p class="judul-buku mb-2"><?= esc($b['judul']) ?></p>
-                        <div class="mt-auto">
+                        <div class="mt-auto d-flex flex-column gap-2">
                             <?php if (! empty($b['url_shopee'])): ?>
                             <a href="<?= esc($b['url_shopee']) ?>"
                                target="_blank" rel="noopener noreferrer"
@@ -213,6 +213,13 @@
                                 <i class="bi bi-cart3 me-1"></i>Beli di Shopee
                             </a>
                             <?php endif; ?>
+                            <?php
+                            $shareTitle = $b['judul'];
+                            $shareUrl   = ! empty($b['url_shopee']) ? $b['url_shopee'] : current_url();
+                            $shareText  = 'Buku persiapan CPNS: ' . $b['judul'];
+                            $shareBtnClass = 'btn-outline-secondary w-100';
+                            echo view('partials/share-button', compact('shareTitle', 'shareUrl', 'shareText', 'shareBtnClass'));
+                            ?>
                         </div>
                     </div>
                 </div>
