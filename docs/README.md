@@ -35,6 +35,7 @@ Dokumentasi teknis untuk project **bimbel-cpns** (SiapASN Simulation Center), pl
 
 | Dokumen | Deskripsi |
 |---|---|
+| [dashboard-buy-button-ignores-launch-date.md](./troubleshooting/dashboard-buy-button-ignores-launch-date.md) | Tombol beli di dashboard rekomendasi mengabaikan launch_date — fix: tambah pengecekan config sebelum render tombol |
 | [visitor-filter-not-recording.md](./troubleshooting/visitor-filter-not-recording.md) | Visitor filter tidak mencatat — fix: pindah tracking ke `BaseController::initController()` |
 | [mapping-tryout-produk-tidak-muncul.md](./troubleshooting/mapping-tryout-produk-tidak-muncul.md) | Data produk tidak muncul di mapping tryout — kolom `jumlah_soal` sudah dihapus, harus dihitung dari `mapping_soal` |
 | [csp-datatables-summernote-blocked.md](./troubleshooting/csp-datatables-summernote-blocked.md) | `tooltip is not a function` — CSP tidak whitelist `cdn.datatables.net` + jQuery harus di-load sebelum Bootstrap |
@@ -50,6 +51,7 @@ Dokumentasi teknis untuk project **bimbel-cpns** (SiapASN Simulation Center), pl
 
 | Dokumen | Deskripsi |
 |---|---|
+| [ranking-access-control.md](./features/ranking-access-control.md) | Ranking hanya bisa dilihat user yang telah beli produk atau daftar event terkait |
 | [visitor-tracking.md](./features/visitor-tracking.md) | Tracking pengunjung harian unik (per IP/hari) + persentase perbandingan vs kemarin di dashboard admin |
 | [soal-import-salin-antar-tryout.md](./features/soal-import-salin-antar-tryout.md) | Import soal format baru (tanpa sub_kategori) + fitur Salin Soal antar tryout |
 | [soal-form-tipe-soal-dari-kategori.md](./features/soal-form-tipe-soal-dari-kategori.md) | Form soal — hapus sub kategori, tipe soal (SCORE/POINT) langsung dari kategori yang dipilih |
@@ -65,6 +67,8 @@ Dokumentasi teknis untuk project **bimbel-cpns** (SiapASN Simulation Center), pl
 
 | Tanggal | Kategori | Deskripsi |
 |---|---|---|
+| 2026-06-05 | Fix | Tombol beli di dashboard rekomendasi mengabaikan launch_date — tambah pengecekan config |
+| 2026-06-05 | Feature | Ranking access control — hanya user yang beli produk atau daftar event yang bisa lihat leaderboard |
 | 2026-06-05 | Feature | Tracking pengunjung harian unik + persentase perbandingan vs kemarin di dashboard admin |
 | 2026-06-05 | Fix | Visitor filter tidak mencatat — pindah tracking ke BaseController::initController() |
 | 2026-05-21 | Feature | Import soal format baru (tanpa sub_kategori) + fitur Salin Soal antar tryout |

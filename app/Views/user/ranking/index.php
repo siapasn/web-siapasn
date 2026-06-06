@@ -13,6 +13,13 @@
 
 <?= $this->section('content') ?>
 
+<?php if (session()->getFlashdata('error')): ?>
+<div class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
+    <i class="bi bi-exclamation-triangle me-2"></i><?= esc(session()->getFlashdata('error')) ?>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
+</div>
+<?php endif; ?>
+
 <style>
 .ranking-tryout-card {
     transition: transform .18s ease, box-shadow .18s ease;
@@ -32,8 +39,16 @@
     <div class="card border-0 shadow-sm rounded-3">
         <div class="card-body text-center py-5 text-muted">
             <i class="bi bi-trophy fs-1 d-block mb-3"></i>
-            <p class="mb-2">Belum ada data perangkingan.</p>
-            <p class="small">Perangkingan akan muncul setelah ada peserta yang menyelesaikan tryout.</p>
+            <p class="mb-2">Belum ada data perangkingan yang dapat ditampilkan.</p>
+            <p class="small mb-3">Perangkingan hanya tersedia untuk tryout dari paket yang telah Anda beli atau event yang Anda ikuti.</p>
+            <div class="d-flex justify-content-center gap-2">
+                <a href="<?= base_url('user/produk') ?>" class="btn btn-sm btn-primary">
+                    <i class="bi bi-cart me-1"></i>Lihat Paket
+                </a>
+                <a href="<?= base_url('user/tryout-event') ?>" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-calendar-event me-1"></i>Lihat Event
+                </a>
+            </div>
         </div>
     </div>
 <?php else: ?>

@@ -18,11 +18,13 @@ class RankingController extends BaseController
 
     /**
      * Halaman utama ranking — daftar tryout yang bisa dilihat rankingnya.
+     * Hanya tampilkan tryout yang user punya akses (beli produk atau daftar event).
      * Dikelompokkan per kategori.
      */
     public function index()
     {
-        $db = \Config\Database::connect();
+        $db     = \Config\Database::connect();
+        $userId = (int) session()->get('user_id');
 
         // Ambil semua kategori level 1
         $kategoris = $db->table('kategori')
@@ -30,7 +32,46 @@ class RankingController extends BaseController
             ->orderBy('id', 'ASC')
             ->get()->getResultArray();
 
-        // Ambil semua tryout aktif yang sudah punya minimal 1 hasil
+        // Ambil produk_id yang user miliki aksesnya (sudah dibeli & belum expired)
+        $ownedProdukIds = $db->table('user_produk')
+            ->select('produk_id')
+            ->where('user_id', $userId)
+            ->groupStart()
+                ->where('expired_at IS NULL', null, false)
+                ->orWhere('expired_at >', date('Y-m-d H:i:s'))
+            ->groupEnd()
+            ->get()->getResultArray();
+        $ownedProdukIds = array_column($ownedProdukIds, 'produk_id');
+
+        // Ambil tryout_id yang user ikuti lewat event (terdaftar sebagai peserta)
+        $eventTryoutIds = $db->table('tryout_event_peserta tep')
+            ->select('te.tryout_id')
+            ->join('tryout_event te', 'te.id = tep.event_id')
+            ->where('tep.user_id', $userId)
+            ->get()->getResultArray();
+        $eventTryoutIds = array_column($eventTryoutIds, 'tryout_id');
+
+        // Ambil tryout_id yang terhubung ke produk yang dimiliki user
+        $produkTryoutIds = [];
+        if (! empty($ownedProdukIds)) {
+            $produkTryoutRows = $db->table('mapping_tryout')
+                ->select('tryout_id')
+                ->whereIn('produk_id', $ownedProdukIds)
+                ->get()->getResultArray();
+            $produkTryoutIds = array_column($produkTryoutRows, 'tryout_id');
+        }
+
+        // Gabungkan: tryout yang bisa diakses user
+        $accessibleTryoutIds = array_unique(array_merge($produkTryoutIds, $eventTryoutIds));
+
+        if (empty($accessibleTryoutIds)) {
+            return view('user/ranking/index', [
+                'tryoutByKategori' => [],
+                'menus'            => $this->getMenus(),
+            ]);
+        }
+
+        // Ambil tryout yang user punya akses DAN sudah punya minimal 1 hasil
         $tryouts = $db->table('tryout t')
             ->select('t.id, t.nama, t.durasi, p.kategori_id,
                       COUNT(DISTINCT ht.user_id) AS total_peserta,
@@ -39,6 +80,7 @@ class RankingController extends BaseController
             ->join('produk p', 'p.id = mt.produk_id')
             ->join('hasil_tryout ht', 'ht.tryout_id = t.id', 'left')
             ->where('t.is_active', 1)
+            ->whereIn('t.id', $accessibleTryoutIds)
             ->groupBy('t.id')
             ->having('total_peserta >', 0)
             ->orderBy('t.nama', 'ASC')
@@ -65,6 +107,7 @@ class RankingController extends BaseController
 
     /**
      * Leaderboard per tryout — ranking semua peserta.
+     * Hanya bisa diakses jika user telah membeli produk terkait atau terdaftar di event.
      */
     public function leaderboard(int $tryoutId)
     {
@@ -75,6 +118,30 @@ class RankingController extends BaseController
         if (! $tryout) {
             return redirect()->to(base_url('user/ranking'))
                 ->with('error', 'Tryout tidak ditemukan.');
+        }
+
+        // --- Validasi Akses ---
+        // Cek 1: apakah user punya produk yang mengandung tryout ini?
+        $hasProdukAccess = $db->table('mapping_tryout mt')
+            ->join('user_produk up', 'up.produk_id = mt.produk_id')
+            ->where('mt.tryout_id', $tryoutId)
+            ->where('up.user_id', $userId)
+            ->groupStart()
+                ->where('up.expired_at IS NULL', null, false)
+                ->orWhere('up.expired_at >', date('Y-m-d H:i:s'))
+            ->groupEnd()
+            ->countAllResults();
+
+        // Cek 2: apakah user terdaftar di event yang menggunakan tryout ini?
+        $hasEventAccess = $db->table('tryout_event_peserta tep')
+            ->join('tryout_event te', 'te.id = tep.event_id')
+            ->where('te.tryout_id', $tryoutId)
+            ->where('tep.user_id', $userId)
+            ->countAllResults();
+
+        if ($hasProdukAccess === 0 && $hasEventAccess === 0) {
+            return redirect()->to(base_url('user/ranking'))
+                ->with('error', 'Anda belum memiliki akses ke perangkingan tryout ini. Silakan beli paket atau daftar event terkait.');
         }
 
         // Ambil skor terbaik per user (total_nilai tertinggi, fallback ke skor_total)

@@ -128,7 +128,19 @@
 <?php endif; ?>
 
 <!-- Rekomendasi Tryout (produk highlight, belum dibeli) — max 8 -->
-<?php $produkShow = array_slice($produkRekomendasi, 0, 8); ?>
+<?php
+$produkShow = array_slice($produkRekomendasi, 0, 8);
+
+// Cek status launching (sama seperti di halaman produk)
+$_db        = \Config\Database::connect();
+$_cfgRows   = $_db->table('master_aplikasi')
+    ->whereIn('config_key', ['launch_date', 'launch_message'])
+    ->get()->getResultArray();
+$_cfgMap     = array_column($_cfgRows, 'config_value', 'config_key');
+$_launchDate = $_cfgMap['launch_date'] ?? '';
+$_launchMsg  = $_cfgMap['launch_message'] ?? 'Pembelian paket tryout akan segera dibuka. Pantau terus halaman ini!';
+$_isLaunched = empty($_launchDate) || strtotime($_launchDate) <= time();
+?>
 <div class="card border-0 shadow-sm mb-4">
     <div class="card-header bg-white border-bottom d-flex align-items-center justify-content-between">
         <h6 class="mb-0"><i class="bi bi-star-fill me-2 text-warning"></i>Rekomendasi Tryout</h6>
@@ -190,10 +202,20 @@
                                        class="btn btn-outline-primary btn-sm fw-semibold">
                                         <i class="bi bi-eye me-1"></i>Detail
                                     </a>
+                                    <?php if ($_isLaunched): ?>
                                     <a href="<?= base_url('user/transaksi/pilih-metode/' . $p['id']) ?>"
                                        class="btn btn-primary btn-sm fw-semibold">
                                         <i class="bi bi-credit-card me-1"></i>Beli Sekarang
                                     </a>
+                                    <?php else: ?>
+                                    <button type="button" class="btn btn-primary btn-sm fw-semibold" disabled
+                                            title="Pembelian belum dibuka">
+                                        <i class="bi bi-credit-card me-1"></i>Beli Sekarang
+                                    </button>
+                                    <div class="text-center" style="font-size:.72rem;color:#64748b">
+                                        <i class="bi bi-clock me-1"></i>Segera dibuka
+                                    </div>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         </div>
