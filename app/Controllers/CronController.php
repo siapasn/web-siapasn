@@ -205,6 +205,9 @@ class CronController extends BaseController
      */
     public function processBlastEmail()
     {
+        // Perpanjang execution time untuk proses batch email
+        set_time_limit(300); // 5 menit
+
         $startTime = microtime(true);
         $batchSize = 50;
 
@@ -317,7 +320,7 @@ class CronController extends BaseController
             $emailConfig->SMTPUser    = $config['username'];
             $emailConfig->SMTPPass    = $config['password'];
             $emailConfig->SMTPCrypto  = ($config['encryption'] !== 'none') ? $config['encryption'] : '';
-            $emailConfig->SMTPTimeout = (int) ($config['timeout'] ?? 10);
+            $emailConfig->SMTPTimeout = 5; // 5 detik timeout per email (agar batch cepat)
             $emailConfig->mailType    = 'html';
             $emailConfig->charset     = 'utf-8';
 

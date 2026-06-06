@@ -35,6 +35,7 @@ Dokumentasi teknis untuk project **bimbel-cpns** (SiapASN Simulation Center), pl
 
 | Dokumen | Deskripsi |
 |---|---|
+| [blast-email-only-1-per-minute.md](./troubleshooting/blast-email-only-1-per-minute.md) | Blast email hanya kirim 1 per menit — fix: `set_time_limit(300)` + kurangi SMTP timeout |
 | [dashboard-buy-button-ignores-launch-date.md](./troubleshooting/dashboard-buy-button-ignores-launch-date.md) | Tombol beli di dashboard rekomendasi mengabaikan launch_date — fix: tambah pengecekan config sebelum render tombol |
 | [visitor-filter-not-recording.md](./troubleshooting/visitor-filter-not-recording.md) | Visitor filter tidak mencatat — fix: pindah tracking ke `BaseController::initController()` |
 | [mapping-tryout-produk-tidak-muncul.md](./troubleshooting/mapping-tryout-produk-tidak-muncul.md) | Data produk tidak muncul di mapping tryout — kolom `jumlah_soal` sudah dihapus, harus dihitung dari `mapping_soal` |
@@ -69,6 +70,7 @@ Dokumentasi teknis untuk project **bimbel-cpns** (SiapASN Simulation Center), pl
 
 | Tanggal | Kategori | Deskripsi |
 |---|---|---|
+| 2026-06-06 | Perf | Blast email hanya kirim 1/menit — fix execution time + SMTP timeout |
 | 2026-06-06 | Feature | Blast email: expand all/subscribe ke individual records untuk per-email tracking |
 | 2026-06-06 | Feature | Tombol Bagikan (share) di halaman produk detail, event detail, dan katalog buku |
 | 2026-06-05 | Fix | Tombol beli di dashboard rekomendasi mengabaikan launch_date — tambah pengecekan config |
