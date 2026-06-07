@@ -196,7 +196,7 @@ class AkunController extends BaseController
             'email'     => $this->request->getPost('email'),
             'telepon'   => $this->request->getPost('telepon') ?? '',
             'role'      => $this->request->getPost('role'),
-            'is_active' => (int) $this->request->getPost('is_active'),
+            'is_active' => $user['is_active'], // pertahankan status lama, diubah via toggle di list
         ];
 
         if ($password !== '' && $password !== null) {
@@ -213,6 +213,40 @@ class AkunController extends BaseController
         );
 
         return redirect()->to(base_url('superadmin/akun'))->with('success', 'Akun berhasil diperbarui.');
+    }
+
+    // -------------------------------------------------------------------------
+    // toggleStatus — AJAX toggle is_active
+    // -------------------------------------------------------------------------
+
+    public function toggleStatus(): \CodeIgniter\HTTP\ResponseInterface
+    {
+        $id    = (int) $this->request->getPost('id');
+        $value = (int) $this->request->getPost('value');
+
+        if ($this->currentUserId() === $id) {
+            return $this->response->setJSON(['status' => false, 'message' => 'Tidak dapat mengubah status akun sendiri.']);
+        }
+
+        $user = $this->userModel->find($id);
+        if (! $user) {
+            return $this->response->setJSON(['status' => false, 'message' => 'Akun tidak ditemukan.']);
+        }
+
+        $this->userModel->update($id, ['is_active' => $value ? 1 : 0]);
+
+        $this->auditLogModel->catat(
+            $this->currentUserId(),
+            $value ? 'Aktifkan Akun' : 'Nonaktifkan Akun',
+            ($value ? 'Mengaktifkan' : 'Menonaktifkan') . " akun via toggle: {$user['email']}",
+            $this->request->getIPAddress()
+        );
+
+        return $this->response->setJSON([
+            'status'  => true,
+            'message' => $value ? 'Akun diaktifkan.' : 'Akun dinonaktifkan.',
+            'value'   => $value ? 1 : 0,
+        ]);
     }
 
     // -------------------------------------------------------------------------

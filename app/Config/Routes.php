@@ -306,6 +306,7 @@ $routes->group('superadmin', ['filter' => ['auth', 'superadmin_only']], function
     $routes->get('akun', 'SuperAdmin\AkunController::index');
     $routes->get('akun/create', 'SuperAdmin\AkunController::create');
     $routes->post('akun/store', 'SuperAdmin\AkunController::store');
+    $routes->post('akun/toggle-status', 'SuperAdmin\AkunController::toggleStatus');
     $routes->get('akun/(:num)/edit', 'SuperAdmin\AkunController::edit/$1');
     $routes->post('akun/(:num)/update', 'SuperAdmin\AkunController::update/$1');
     $routes->post('akun/(:num)/nonaktifkan', 'SuperAdmin\AkunController::nonaktifkan/$1');

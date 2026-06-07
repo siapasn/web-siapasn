@@ -116,11 +116,16 @@
                                     <span class="badge <?= $ri[0] ?> rounded-pill px-2"><?= $ri[1] ?></span>
                                 </td>
                                 <td class="text-center">
-                                    <?php if ($u['is_active']): ?>
-                                        <span class="badge bg-success rounded-pill px-2">Aktif</span>
-                                    <?php else: ?>
-                                        <span class="badge bg-secondary rounded-pill px-2">Nonaktif</span>
-                                    <?php endif; ?>
+                                    <?php $canToggle = (int) session('user_id') !== (int) $u['id']; ?>
+                                    <div class="form-check form-switch d-flex justify-content-center mb-0">
+                                        <input class="form-check-input toggle-status" type="checkbox"
+                                               role="switch"
+                                               id="toggle-<?= $u['id'] ?>"
+                                               data-id="<?= $u['id'] ?>"
+                                               <?= $u['is_active'] ? 'checked' : '' ?>
+                                               <?= ! $canToggle ? 'disabled title="Tidak dapat mengubah status akun sendiri"' : '' ?>
+                                               style="cursor:<?= $canToggle ? 'pointer' : 'not-allowed' ?>">
+                                    </div>
                                 </td>
                                 <td class="text-center pe-3">
                                     <!-- Edit -->
@@ -129,29 +134,6 @@
                                        title="Edit">
                                         <i class="bi bi-pencil"></i>
                                     </a>
-
-                                    <!-- Nonaktifkan / Aktifkan -->
-                                    <?php if ($u['is_active']): ?>
-                                        <form method="post"
-                                              action="<?= base_url("superadmin/akun/{$u['id']}/nonaktifkan") ?>"
-                                              class="d-inline"
-                                              onsubmit="return confirm('Nonaktifkan akun ini?')">
-                                            <?= csrf_field() ?>
-                                            <button type="submit" class="btn btn-sm btn-outline-warning py-0 px-2" title="Nonaktifkan">
-                                                <i class="bi bi-person-dash"></i>
-                                            </button>
-                                        </form>
-                                    <?php else: ?>
-                                        <form method="post"
-                                              action="<?= base_url("superadmin/akun/{$u['id']}/aktifkan") ?>"
-                                              class="d-inline"
-                                              onsubmit="return confirm('Aktifkan kembali akun ini?')">
-                                            <?= csrf_field() ?>
-                                            <button type="submit" class="btn btn-sm btn-outline-success py-0 px-2" title="Aktifkan">
-                                                <i class="bi bi-person-check"></i>
-                                            </button>
-                                        </form>
-                                    <?php endif; ?>
 
                                     <!-- Hapus -->
                                     <?php if ((int) session('user_id') !== (int) $u['id']): ?>
@@ -221,6 +203,36 @@ $(document).ready(function () {
         columnDefs: [
             { orderable: false, targets: [0, 5] }
         ]
+    });
+});
+
+// Toggle status akun via AJAX
+document.querySelectorAll('.toggle-status').forEach(function (toggle) {
+    toggle.addEventListener('change', function () {
+        const id    = this.dataset.id;
+        const value = this.checked ? 1 : 0;
+        const self  = this;
+
+        fetch('<?= base_url('superadmin/akun/toggle-status') ?>', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({
+                '<?= csrf_token() ?>': '<?= csrf_hash() ?>',
+                id: id,
+                value: value,
+            }),
+        })
+        .then(r => r.json())
+        .then(function (data) {
+            if (! data.status) {
+                self.checked = ! self.checked;
+                alert(data.message || 'Gagal mengubah status.');
+            }
+        })
+        .catch(function () {
+            self.checked = ! self.checked;
+            alert('Terjadi kesalahan. Silakan coba lagi.');
+        });
     });
 });
 </script>
