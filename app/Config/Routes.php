@@ -132,6 +132,7 @@ $routes->group('admin', ['filter' => ['auth', 'admin_only']], function ($routes)
     $routes->get('master/user', 'Admin\Master\UserController::index');
     $routes->get('master/user/create', 'Admin\Master\UserController::create');
     $routes->post('master/user/store', 'Admin\Master\UserController::store');
+    $routes->post('master/user/toggle-status', 'Admin\Master\UserController::toggleStatus');
     $routes->get('master/user/(:num)/edit', 'Admin\Master\UserController::edit/$1');
     $routes->post('master/user/(:num)/update', 'Admin\Master\UserController::update/$1');
     $routes->post('master/user/(:num)/delete', 'Admin\Master\UserController::delete/$1');

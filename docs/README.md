@@ -43,6 +43,7 @@ Dokumentasi teknis untuk project **bimbel-cpns** (SiapASN Simulation Center), pl
 
 | Dokumen | Deskripsi |
 |---|---|
+| [csrf-regenerate-multi-form.md](./troubleshooting/csrf-regenerate-multi-form.md) | Tombol aksi di tabel gagal diam-diam — fix: `CSRF regenerate=false` + `redirect=true` |
 | [blast-email-only-1-per-minute.md](./troubleshooting/blast-email-only-1-per-minute.md) | Blast email hanya kirim 1 per menit — fix: `set_time_limit(300)` + kurangi SMTP timeout |
 | [dashboard-buy-button-ignores-launch-date.md](./troubleshooting/dashboard-buy-button-ignores-launch-date.md) | Tombol beli di dashboard rekomendasi mengabaikan launch_date — fix: tambah pengecekan config sebelum render tombol |
 | [visitor-filter-not-recording.md](./troubleshooting/visitor-filter-not-recording.md) | Visitor filter tidak mencatat — fix: pindah tracking ke `BaseController::initController()` |
@@ -82,6 +83,7 @@ Dokumentasi teknis untuk project **bimbel-cpns** (SiapASN Simulation Center), pl
 
 | Tanggal | Kategori | Deskripsi |
 |---|---|---|
+| 2026-06-07 | Fix | CSRF regenerate=true menyebabkan tombol aksi tabel kedua gagal diam-diam — fix regenerate=false |
 | 2026-06-07 | Feature | Email verification required — user nonaktif saat register, aktif setelah klik link verifikasi |
 | 2026-06-07 | Feature | Halaman daftar formasi SKB — 258 formasi per kategori, status tersedia/request tryout, live search |
 | 2026-06-07 | Feature | Sitemap dinamis — produk highlight + event aktif + meta OG + JSON-LD structured data |

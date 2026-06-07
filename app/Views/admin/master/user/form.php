@@ -103,20 +103,6 @@
                     <?php endif; ?>
                 </div>
 
-                <!-- Status Aktif -->
-                <div class="col-12 col-md-6">
-                    <label class="form-label d-block">Status Akun</label>
-                    <div class="form-check form-switch mt-1">
-                        <?php $isActive = (int) old('is_active', $user['is_active'] ?? 1); ?>
-                        <!-- Hidden field agar nilai 0 tetap terkirim saat checkbox tidak dicentang -->
-                        <input type="hidden" name="is_active" value="0">
-                        <input class="form-check-input" type="checkbox" role="switch"
-                               id="is_active" name="is_active" value="1"
-                               <?= $isActive ? 'checked' : '' ?>>
-                        <label class="form-check-label" for="is_active">Aktif</label>
-                    </div>
-                </div>
-
             </div><!-- /.row -->
 
             <hr class="my-4">

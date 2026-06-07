@@ -94,28 +94,22 @@
                                     <span class="badge <?= $ri[0] ?> rounded-pill px-2"><?= $ri[1] ?></span>
                                 </td>
                                 <td class="text-center">
-                                    <?php if ($u['is_active']): ?>
-                                        <span class="badge bg-success rounded-pill px-2">Aktif</span>
-                                    <?php else: ?>
-                                        <span class="badge bg-secondary rounded-pill px-2">Nonaktif</span>
-                                    <?php endif; ?>
+                                    <?php $canToggle = (int) session('user_id') !== (int) $u['id']; ?>
+                                    <div class="form-check form-switch d-flex justify-content-center mb-0">
+                                        <input class="form-check-input toggle-status" type="checkbox"
+                                               role="switch"
+                                               id="toggle-<?= $u['id'] ?>"
+                                               data-id="<?= $u['id'] ?>"
+                                               <?= $u['is_active'] ? 'checked' : '' ?>
+                                               <?= ! $canToggle ? 'disabled title="Tidak dapat mengubah status akun sendiri"' : '' ?>
+                                               style="cursor:<?= $canToggle ? 'pointer' : 'not-allowed' ?>">
+                                    </div>
                                 </td>
                                 <td class="text-center pe-3">
                                     <a href="<?= base_url("admin/master/user/{$u['id']}/edit") ?>"
                                        class="btn btn-sm btn-outline-primary py-0 px-2">
                                         <i class="bi bi-pencil"></i>
                                     </a>
-                                    <?php if ((int) session('user_id') !== (int) $u['id']): ?>
-                                        <form method="post"
-                                              action="<?= base_url("admin/master/user/{$u['id']}/delete") ?>"
-                                              class="d-inline"
-                                              onsubmit="return confirm('Nonaktifkan user ini?')">
-                                            <?= csrf_field() ?>
-                                            <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2">
-                                                <i class="bi bi-person-x"></i>
-                                            </button>
-                                        </form>
-                                    <?php endif; ?>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
@@ -149,6 +143,37 @@ $('#tabelUser').DataTable({
         { orderable: false, targets: [0, 5] },
         { searchable: false, targets: [0, 5] },
     ]
+});
+
+// Toggle status user via AJAX
+document.querySelectorAll('.toggle-status').forEach(function (toggle) {
+    toggle.addEventListener('change', function () {
+        const id    = this.dataset.id;
+        const value = this.checked ? 1 : 0;
+        const self  = this;
+
+        fetch('<?= base_url('admin/master/user/toggle-status') ?>', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({
+                '<?= csrf_token() ?>': '<?= csrf_hash() ?>',
+                id: id,
+                value: value,
+            }),
+        })
+        .then(r => r.json())
+        .then(function (data) {
+            if (! data.status) {
+                // Rollback toggle jika gagal
+                self.checked = ! self.checked;
+                alert(data.message || 'Gagal mengubah status.');
+            }
+        })
+        .catch(function () {
+            self.checked = ! self.checked;
+            alert('Terjadi kesalahan. Silakan coba lagi.');
+        });
+    });
 });
 </script>
 <?= $this->endSection() ?>

@@ -70,8 +70,12 @@ class Security extends BaseConfig
      * --------------------------------------------------------------------------
      *
      * Regenerate CSRF Token on every submission.
+     *
+     * Diset false agar token tetap valid selama sesi — mencegah masalah pada
+     * halaman dengan banyak form (misalnya tabel dengan tombol aksi per baris).
+     * Token tetap aman karena unik per sesi dan berubah saat login/logout.
      */
-    public bool $regenerate = true;
+    public bool $regenerate = false;
 
     /**
      * --------------------------------------------------------------------------
@@ -79,8 +83,10 @@ class Security extends BaseConfig
      * --------------------------------------------------------------------------
      *
      * Redirect to previous page with error on failure.
+     * Diset true agar kegagalan CSRF selalu menampilkan pesan error,
+     * bukan gagal diam-diam (silent failure).
      *
      * @see https://codeigniter4.github.io/userguide/libraries/security.html#redirection-on-failure
      */
-    public bool $redirect = (ENVIRONMENT === 'production');
+    public bool $redirect = true;
 }

@@ -152,7 +152,7 @@ class UserController extends BaseController
             'email'     => $this->request->getPost('email'),
             'telepon'   => $this->request->getPost('telepon') ?? '',
             'role'      => $this->request->getPost('role'),
-            'is_active' => $this->request->getPost('is_active') !== null ? 1 : 0,
+            'is_active' => $user['is_active'], // pertahankan status lama, diubah via toggle di list
         ];
 
         if ($password !== '' && $password !== null) {
@@ -162,6 +162,33 @@ class UserController extends BaseController
         $this->userModel->update($id, $data);
 
         return redirect()->to(base_url('admin/master/user'))->with('success', 'User berhasil diperbarui.');
+    }
+
+    /**
+     * AJAX: Toggle is_active user.
+     * POST admin/master/user/toggle-status
+     */
+    public function toggleStatus()
+    {
+        $id    = (int) $this->request->getPost('id');
+        $value = (int) $this->request->getPost('value'); // 1 atau 0
+
+        if ((int) session()->get('user_id') === $id) {
+            return $this->response->setJSON(['status' => false, 'message' => 'Tidak dapat mengubah status akun sendiri.']);
+        }
+
+        $user = $this->userModel->find($id);
+        if (! $user) {
+            return $this->response->setJSON(['status' => false, 'message' => 'User tidak ditemukan.']);
+        }
+
+        $this->userModel->update($id, ['is_active' => $value ? 1 : 0]);
+
+        return $this->response->setJSON([
+            'status'  => true,
+            'message' => $value ? 'User diaktifkan.' : 'User dinonaktifkan.',
+            'value'   => $value ? 1 : 0,
+        ]);
     }
 
     /**
