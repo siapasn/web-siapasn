@@ -28,6 +28,7 @@ $routes->post('/reset-password', 'Auth\AuthController::resetPasswordProcess');
 $routes->get('/reset-password/(:alphanum)', 'Auth\AuthController::resetPasswordForm/$1');
 $routes->post('/reset-password/update', 'Auth\AuthController::resetPasswordUpdate');
 $routes->get('/verify-email/(:alphanum)', 'Auth\AuthController::verifyEmail/$1');
+$routes->post('/resend-verification', 'Auth\AuthController::resendVerification');
 
 // Route User — dilindungi oleh AuthFilter
 $routes->group('user', ['filter' => 'auth'], function ($routes) {

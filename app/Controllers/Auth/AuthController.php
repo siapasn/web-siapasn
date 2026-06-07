@@ -22,6 +22,54 @@ class AuthController extends BaseController
     }
 
     // -------------------------------------------------------------------------
+    // resendVerification — POST: kirim ulang email verifikasi
+    // -------------------------------------------------------------------------
+    public function resendVerification(): RedirectResponse
+    {
+        $email = $this->request->getPost('email');
+
+        if (empty($email)) {
+            return redirect()->to('/login')->with('error', 'Email tidak valid.');
+        }
+
+        $user = $this->userModel->findByEmail($email);
+
+        if (! $user) {
+            // Jangan beri info apakah email terdaftar atau tidak (security)
+            return redirect()->to('/login')
+                ->with('success', 'Jika email terdaftar, link verifikasi telah dikirim ulang.');
+        }
+
+        // Jika sudah aktif, tidak perlu kirim ulang
+        if ($user['is_active'] && ! empty($user['email_verified_at'])) {
+            return redirect()->to('/login')
+                ->with('success', 'Akun Anda sudah terverifikasi. Silakan login.');
+        }
+
+        // Hapus token lama, buat token baru
+        $db    = \Config\Database::connect();
+        $db->table('password_resets')->where('email', $email)->delete();
+
+        $token = bin2hex(random_bytes(32));
+        $db->table('password_resets')->insert([
+            'email'      => $email,
+            'token'      => $token,
+            'created_at' => date('Y-m-d H:i:s'),
+        ]);
+
+        $verifyUrl = base_url('verify-email/' . $token);
+
+        try {
+            $this->emailService->sendVerification($email, $user['nama'], $verifyUrl);
+        } catch (\Throwable $e) {
+            log_message('error', 'Resend verification gagal: ' . $e->getMessage());
+        }
+
+        return redirect()->to('/login')
+            ->with('success', 'Link verifikasi telah dikirim ulang. Silakan cek email Anda.');
+    }
+
+    // -------------------------------------------------------------------------
     // index — redirect ke /login
     // -------------------------------------------------------------------------
     public function index(): RedirectResponse
@@ -103,12 +151,12 @@ class AuthController extends BaseController
         $password = password_hash($this->request->getPost('password'), PASSWORD_BCRYPT);
 
         $userId = $this->userModel->insert([
-            'nama'     => $this->request->getPost('nama'),
-            'email'    => $this->request->getPost('email'),
-            'telepon'  => $this->request->getPost('telepon'),
-            'password' => $password,
-            'role'     => 'user',
-            'is_active' => 1,
+            'nama'      => $this->request->getPost('nama'),
+            'email'     => $this->request->getPost('email'),
+            'telepon'   => $this->request->getPost('telepon'),
+            'password'  => $password,
+            'role'      => 'user',
+            'is_active' => 0, // nonaktif sampai verifikasi email
         ]);
 
         // Generate email verification token
@@ -222,7 +270,26 @@ class AuthController extends BaseController
             return redirect()->back()->withInput()->with('error', 'Email atau password salah.');
         }
 
-        // Login berhasil — reset rate limiter
+        // Login berhasil — cek status akun
+        // Cek apakah akun nonaktif (belum verifikasi email atau dinonaktifkan admin)
+        if (! $user['is_active']) {
+            // Tentukan pesan berdasarkan apakah sudah pernah dapat token verifikasi
+            $db = \Config\Database::connect();
+            $hasToken = $db->table('password_resets')
+                ->where('email', $user['email'])
+                ->countAllResults() > 0;
+
+            if ($hasToken || empty($user['email_verified_at'])) {
+                return redirect()->back()->withInput()
+                    ->with('error', 'Akun Anda belum aktif. Silakan verifikasi email terlebih dahulu. Cek inbox atau folder spam Anda.')
+                    ->with('show_resend_verification', $user['email']);
+            }
+
+            return redirect()->back()->withInput()
+                ->with('error', 'Akun Anda dinonaktifkan. Silakan hubungi admin.');
+        }
+
+        // Reset rate limiter
         $this->rateLimiter->reset($rateKey);
         $this->userModel->resetLoginAttempts($user['id']);
 

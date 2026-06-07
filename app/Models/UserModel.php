@@ -92,12 +92,13 @@ class UserModel extends Model
     }
 
     /**
-     * Tandai email sebagai terverifikasi.
+     * Tandai email sebagai terverifikasi dan aktifkan akun.
      */
     public function verifyEmail(int $userId): void
     {
         $this->update($userId, [
             'email_verified_at' => date('Y-m-d H:i:s'),
+            'is_active'         => 1,
         ]);
     }
 

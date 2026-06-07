@@ -20,6 +20,29 @@
     </div>
 <?php endif; ?>
 
+<?php if (session()->getFlashdata('show_resend_verification')): ?>
+    <?php $resendEmail = session()->getFlashdata('show_resend_verification'); ?>
+    <div class="alert alert-warning border-0 shadow-sm" role="alert">
+        <div class="d-flex align-items-start gap-2">
+            <i class="bi bi-envelope-exclamation-fill text-warning mt-1 flex-shrink-0"></i>
+            <div class="flex-grow-1">
+                <div class="fw-semibold small mb-1">Email belum diverifikasi</div>
+                <p class="small mb-2 text-muted">
+                    Cek inbox atau folder <strong>spam</strong> untuk link verifikasi.
+                    Belum menerima email?
+                </p>
+                <form action="<?= base_url('resend-verification') ?>" method="post" class="d-inline">
+                    <?= csrf_field() ?>
+                    <input type="hidden" name="email" value="<?= esc($resendEmail) ?>">
+                    <button type="submit" class="btn btn-sm btn-warning fw-semibold">
+                        <i class="bi bi-send me-1"></i>Kirim Ulang Email Verifikasi
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+<?php endif; ?>
+
 <?php if (session()->getFlashdata('errors')): ?>
     <div class="alert alert-danger alert-dismissible fade show" role="alert">
         <ul class="mb-0 ps-3">
