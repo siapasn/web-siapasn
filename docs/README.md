@@ -60,6 +60,7 @@ Dokumentasi teknis untuk project **bimbel-cpns** (SiapASN Simulation Center), pl
 
 | Dokumen | Deskripsi |
 |---|---|
+| [daftar-formasi-skb.md](./features/daftar-formasi-skb.md) | Halaman daftar formasi SKB dengan status ketersediaan tryout per formasi, live search, modal request |
 | [slug-based-routing.md](./features/slug-based-routing.md) | URL halaman detail produk, tryout event, dan ranking berbasis slug SEO-friendly (ganti dari ID numerik) |
 | [sitemap-seo.md](./features/sitemap-seo.md) | Sitemap dinamis dengan produk highlight, event aktif, meta tag OG, JSON-LD structured data produk |
 | [blast-email-single-expand.md](./features/blast-email-single-expand.md) | Blast email: expand all/subscribe ke individual records (1 row per penerima) untuk tracking per email |
@@ -80,6 +81,7 @@ Dokumentasi teknis untuk project **bimbel-cpns** (SiapASN Simulation Center), pl
 
 | Tanggal | Kategori | Deskripsi |
 |---|---|---|
+| 2026-06-07 | Feature | Halaman daftar formasi SKB — 258 formasi per kategori, status tersedia/request tryout, live search |
 | 2026-06-07 | Feature | Sitemap dinamis — produk highlight + event aktif + meta OG + JSON-LD structured data |
 | 2026-06-07 | Feature | Slug-based routing — URL detail produk, tryout event, dan ranking berbasis slug SEO-friendly |
 | 2026-06-06 | Perf | Blast email parallel processing — spawn background CLI processes (5 paralel) |

@@ -75,6 +75,9 @@ $routes->group('user', ['filter' => 'auth'], function ($routes) {
     $routes->get('ranking', 'User\RankingController::index');
     $routes->get('ranking/(:segment)', 'User\RankingController::leaderboard/$1');
 
+    // Daftar Formasi SKB
+    $routes->get('formasi', 'User\FormasiController::index');
+
     // Request Formasi
     $routes->post('request-formasi', 'User\RequestFormasiController::store');
 
