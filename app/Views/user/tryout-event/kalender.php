@@ -5,7 +5,7 @@
     <div class="ph-icon"><i class="bi bi-calendar3"></i></div>
     <div>
         <div class="ph-title">Kalender Event Tryout</div>
-        <div class="ph-subtitle">Jadwal pendaftaran dan pelaksanaan event tryout nasional</div>
+        <div class="ph-subtitle">Jadwal pelaksanaan event tryout nasional</div>
         <div class="ph-accent-line"></div>
     </div>
 </div>
@@ -15,10 +15,6 @@
 
 <!-- Legenda -->
 <div class="d-flex flex-wrap gap-3 mb-3">
-    <div class="d-flex align-items-center gap-2">
-        <span style="width:14px;height:14px;border-radius:3px;background:#0dcaf0;display:inline-block"></span>
-        <span class="small text-muted">Pendaftaran Dibuka</span>
-    </div>
     <div class="d-flex align-items-center gap-2">
         <span style="width:14px;height:14px;border-radius:3px;background:#198754;display:inline-block"></span>
         <span class="small text-muted">Pelaksanaan</span>
@@ -48,7 +44,6 @@
                 <thead class="table-light">
                     <tr>
                         <th class="ps-3">Nama Event</th>
-                        <th>Pendaftaran</th>
                         <th>Pelaksanaan</th>
                         <th class="text-center">Peserta</th>
                         <th class="text-center pe-3">Aksi</th>
@@ -58,11 +53,6 @@
                     <?php foreach ($events as $ev): ?>
                     <tr>
                         <td class="ps-3 fw-medium"><?= esc($ev['nama']) ?></td>
-                        <td class="text-muted">
-                            <?= date('d M Y', strtotime($ev['mulai_pendaftaran'])) ?>
-                            <span class="text-muted">—</span>
-                            <?= date('d M Y', strtotime($ev['tutup_pendaftaran'])) ?>
-                        </td>
                         <td class="text-muted">
                             <?= date('d M Y H:i', strtotime($ev['mulai_pelaksanaan'])) ?>
                             <span class="text-muted">—</span>

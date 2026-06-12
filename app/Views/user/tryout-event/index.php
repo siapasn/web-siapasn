@@ -42,7 +42,6 @@
                 <span class="position-absolute top-0 end-0 m-2 badge fase-badge
                     <?php
                     switch ($e['fase']) {
-                        case 'pendaftaran': echo 'bg-info'; break;
                         case 'menunggu': echo 'bg-warning text-dark'; break;
                         case 'pelaksanaan': echo 'bg-success'; break;
                         case 'selesai': echo 'bg-secondary'; break;
@@ -51,8 +50,6 @@
                     ?>">
                     <?php
                     switch ($e['fase']) {
-                        case 'belum_buka': echo 'Segera'; break;
-                        case 'pendaftaran': echo 'Pendaftaran Dibuka'; break;
                         case 'menunggu': echo 'Menunggu Pelaksanaan'; break;
                         case 'pelaksanaan': echo 'Sedang Berlangsung'; break;
                         case 'selesai': echo 'Selesai'; break;
@@ -81,10 +78,6 @@
                 </div>
 
                 <div class="mt-auto">
-                    <?php if ($e['user_registered']): ?>
-                        <span class="badge bg-success mb-2"><i class="bi bi-check-circle me-1"></i>Terdaftar</span>
-                    <?php endif; ?>
-
                     <div class="d-flex gap-2">
                         <a href="<?= base_url('user/tryout-event/' . ($e['slug'] ?: $e['id'])) ?>"
                            class="btn btn-primary btn-sm flex-grow-1 fw-semibold" style="border-radius:.5rem">

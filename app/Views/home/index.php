@@ -489,7 +489,6 @@
                             </span>
                             <?php
                             switch ($ev['fase']) {
-                                case 'pendaftaran': $badgeClass = 'bg-info'; $badgeText = 'Pendaftaran Dibuka'; break;
                                 case 'pelaksanaan': $badgeClass = 'bg-success'; $badgeText = 'Berlangsung'; break;
                                 default: $badgeClass = 'bg-secondary'; $badgeText = 'Segera'; break;
                             }
@@ -501,7 +500,7 @@
                         </div>
                         <a href="<?= base_url('login?redirect_url=' . urlencode('user/tryout-event/' . ($ev['slug'] ?? $ev['id']))) ?>"
                            class="btn btn-warning btn-sm w-100 fw-semibold" style="border-radius:.5rem">
-                            <i class="bi bi-person-plus me-1"></i>Daftar & Ikuti Gratis
+                            <i class="bi bi-play-circle me-1"></i>Lihat Event Gratis
                         </a>
                     </div>
                 </div>

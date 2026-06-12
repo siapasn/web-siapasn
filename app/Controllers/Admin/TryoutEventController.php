@@ -64,8 +64,6 @@ class TryoutEventController extends BaseController
         $rules = [
             'nama'               => 'required|min_length[3]|max_length[255]',
             'tryout_id'          => 'required|is_natural_no_zero',
-            'mulai_pendaftaran'  => 'required|valid_date[Y-m-d\TH:i]',
-            'tutup_pendaftaran'  => 'required|valid_date[Y-m-d\TH:i]',
             'mulai_pelaksanaan'  => 'required|valid_date[Y-m-d\TH:i]',
             'tutup_pelaksanaan'  => 'required|valid_date[Y-m-d\TH:i]',
             'max_percobaan'      => 'required|integer|greater_than[0]|less_than[10]',
@@ -85,16 +83,19 @@ class TryoutEventController extends BaseController
         }
 
         helper('slug');
+        $mulaiPelaksanaan = date('Y-m-d H:i:s', strtotime($this->request->getPost('mulai_pelaksanaan')));
+        $tutupPelaksanaan = date('Y-m-d H:i:s', strtotime($this->request->getPost('tutup_pelaksanaan')));
+
         $eventId = $this->eventModel->insert([
             'nama'               => $this->request->getPost('nama'),
             'slug'               => make_unique_slug('tryout_event', $this->request->getPost('nama')),
             'tryout_id'          => (int) $this->request->getPost('tryout_id'),
             'deskripsi'          => $this->request->getPost('deskripsi') ?: null,
             'banner_url'         => $bannerUrl,
-            'mulai_pendaftaran'  => date('Y-m-d H:i:s', strtotime($this->request->getPost('mulai_pendaftaran'))),
-            'tutup_pendaftaran'  => date('Y-m-d H:i:s', strtotime($this->request->getPost('tutup_pendaftaran'))),
-            'mulai_pelaksanaan'  => date('Y-m-d H:i:s', strtotime($this->request->getPost('mulai_pelaksanaan'))),
-            'tutup_pelaksanaan'  => date('Y-m-d H:i:s', strtotime($this->request->getPost('tutup_pelaksanaan'))),
+            'mulai_pendaftaran'  => $mulaiPelaksanaan,
+            'tutup_pendaftaran'  => $tutupPelaksanaan,
+            'mulai_pelaksanaan'  => $mulaiPelaksanaan,
+            'tutup_pelaksanaan'  => $tutupPelaksanaan,
             'max_percobaan'      => (int) $this->request->getPost('max_percobaan'),
             'is_active'          => $this->request->getPost('is_active') ? 1 : 0,
         ]);
@@ -115,7 +116,7 @@ class TryoutEventController extends BaseController
                 'user_id'    => $u['id'],
                 'tipe'       => 'event',
                 'judul'      => 'Event Tryout Baru!',
-                'pesan'      => $namaEvent . ' — Daftar sekarang, gratis!',
+                'pesan'      => $namaEvent . ' tersedia. Ikuti langsung saat periode pelaksanaan dimulai.',
                 'url'        => 'user/tryout-event',
                 'is_read'    => 0,
                 'created_at' => $now2,
@@ -165,8 +166,6 @@ class TryoutEventController extends BaseController
         $rules = [
             'nama'               => 'required|min_length[3]|max_length[255]',
             'tryout_id'          => 'required|is_natural_no_zero',
-            'mulai_pendaftaran'  => 'required|valid_date[Y-m-d\TH:i]',
-            'tutup_pendaftaran'  => 'required|valid_date[Y-m-d\TH:i]',
             'mulai_pelaksanaan'  => 'required|valid_date[Y-m-d\TH:i]',
             'tutup_pelaksanaan'  => 'required|valid_date[Y-m-d\TH:i]',
             'max_percobaan'      => 'required|integer|greater_than[0]|less_than[10]',
@@ -196,16 +195,19 @@ class TryoutEventController extends BaseController
         }
 
         helper('slug');
+        $mulaiPelaksanaan = date('Y-m-d H:i:s', strtotime($this->request->getPost('mulai_pelaksanaan')));
+        $tutupPelaksanaan = date('Y-m-d H:i:s', strtotime($this->request->getPost('tutup_pelaksanaan')));
+
         $this->eventModel->update($id, [
             'nama'               => $this->request->getPost('nama'),
             'slug'               => make_unique_slug('tryout_event', $this->request->getPost('nama'), $id),
             'tryout_id'          => (int) $this->request->getPost('tryout_id'),
             'deskripsi'          => $this->request->getPost('deskripsi') ?: null,
             'banner_url'         => $bannerUrl,
-            'mulai_pendaftaran'  => date('Y-m-d H:i:s', strtotime($this->request->getPost('mulai_pendaftaran'))),
-            'tutup_pendaftaran'  => date('Y-m-d H:i:s', strtotime($this->request->getPost('tutup_pendaftaran'))),
-            'mulai_pelaksanaan'  => date('Y-m-d H:i:s', strtotime($this->request->getPost('mulai_pelaksanaan'))),
-            'tutup_pelaksanaan'  => date('Y-m-d H:i:s', strtotime($this->request->getPost('tutup_pelaksanaan'))),
+            'mulai_pendaftaran'  => $mulaiPelaksanaan,
+            'tutup_pendaftaran'  => $tutupPelaksanaan,
+            'mulai_pelaksanaan'  => $mulaiPelaksanaan,
+            'tutup_pelaksanaan'  => $tutupPelaksanaan,
             'max_percobaan'      => (int) $this->request->getPost('max_percobaan'),
             'is_active'          => $this->request->getPost('is_active') ? 1 : 0,
         ]);

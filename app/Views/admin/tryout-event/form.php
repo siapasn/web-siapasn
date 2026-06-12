@@ -72,18 +72,6 @@
                 </div>
 
                 <div class="col-12 col-md-6">
-                    <label for="mulai_pendaftaran" class="form-label">Mulai Pendaftaran <span class="text-danger">*</span></label>
-                    <input type="datetime-local" id="mulai_pendaftaran" name="mulai_pendaftaran" class="form-control"
-                           value="<?= esc(old('mulai_pendaftaran', isset($event['mulai_pendaftaran']) ? date('Y-m-d\TH:i', strtotime($event['mulai_pendaftaran'])) : '')) ?>" required>
-                </div>
-
-                <div class="col-12 col-md-6">
-                    <label for="tutup_pendaftaran" class="form-label">Tutup Pendaftaran <span class="text-danger">*</span></label>
-                    <input type="datetime-local" id="tutup_pendaftaran" name="tutup_pendaftaran" class="form-control"
-                           value="<?= esc(old('tutup_pendaftaran', isset($event['tutup_pendaftaran']) ? date('Y-m-d\TH:i', strtotime($event['tutup_pendaftaran'])) : '')) ?>" required>
-                </div>
-
-                <div class="col-12 col-md-6">
                     <label for="mulai_pelaksanaan" class="form-label">Mulai Pelaksanaan <span class="text-danger">*</span></label>
                     <input type="datetime-local" id="mulai_pelaksanaan" name="mulai_pelaksanaan" class="form-control"
                            value="<?= esc(old('mulai_pelaksanaan', isset($event['mulai_pelaksanaan']) ? date('Y-m-d\TH:i', strtotime($event['mulai_pelaksanaan'])) : '')) ?>" required>

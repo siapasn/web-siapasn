@@ -84,7 +84,6 @@
                             <h6 class="fw-bold mb-0" style="font-size:.85rem;color:#1a3a5c"><?= esc($ev['nama']) ?></h6>
                             <?php
                             switch ($ev['fase']) {
-                                case 'pendaftaran': $badgeClass = 'bg-info'; $badgeText = 'Pendaftaran'; break;
                                 case 'pelaksanaan': $badgeClass = 'bg-success'; $badgeText = 'Berlangsung'; break;
                                 case 'menunggu': $badgeClass = 'bg-warning text-dark'; $badgeText = 'Segera'; break;
                                 default: $badgeClass = 'bg-secondary'; $badgeText = 'Segera'; break;
@@ -99,20 +98,13 @@
                             <span class="badge bg-warning bg-opacity-10 text-warning border border-warning-subtle" style="font-size:.6rem">
                                 <i class="bi bi-clock me-1"></i><?= (int) $ev['durasi'] ?> menit
                             </span>
-                            <?php if ($ev['user_registered']): ?>
-                            <span class="badge bg-success bg-opacity-10 text-success border border-success-subtle" style="font-size:.6rem">
-                                <i class="bi bi-check me-1"></i>Terdaftar
-                            </span>
-                            <?php endif; ?>
                         </div>
                         <div class="text-muted mb-2" style="font-size:.7rem">
                             <i class="bi bi-calendar3 me-1"></i><?= date('d M Y H:i', strtotime($ev['mulai_pelaksanaan'])) ?>
                         </div>
                         <a href="<?= base_url('user/tryout-event/' . ($ev['slug'] ?? $ev['id'])) ?>"
                            class="btn btn-warning btn-sm w-100 fw-semibold" style="font-size:.78rem;border-radius:.5rem">
-                            <?php if ($ev['fase'] === 'pendaftaran' && ! $ev['user_registered']): ?>
-                                <i class="bi bi-person-plus me-1"></i>Daftar Gratis
-                            <?php elseif ($ev['fase'] === 'pelaksanaan' && $ev['user_registered']): ?>
+                            <?php if ($ev['fase'] === 'pelaksanaan'): ?>
                                 <i class="bi bi-play-fill me-1"></i>Kerjakan Sekarang
                             <?php else: ?>
                                 <i class="bi bi-arrow-right me-1"></i>Lihat Detail

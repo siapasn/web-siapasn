@@ -105,7 +105,7 @@ class DashboardController extends BaseController
         $katalogBukuModel = new \App\Models\KatalogBukuModel();
         $bukuHighlight    = $katalogBukuModel->getHighlighted();
 
-        // Event tryout aktif (sedang pendaftaran atau pelaksanaan)
+        // Event tryout aktif (akan datang atau sedang pelaksanaan)
         $eventAktif = $db->table('tryout_event te')
             ->select('te.*, t.nama AS tryout_nama, t.durasi, COUNT(tep.id) AS total_peserta')
             ->join('tryout t', 't.id = te.tryout_id')
@@ -117,7 +117,7 @@ class DashboardController extends BaseController
             ->limit(3)
             ->get()->getResultArray();
 
-        // Enrich event: cek status pendaftaran user
+        // Enrich event: cek status user pada event
         foreach ($eventAktif as &$ev) {
             $peserta = $db->table('tryout_event_peserta')
                 ->where('event_id', $ev['id'])
@@ -125,9 +125,7 @@ class DashboardController extends BaseController
                 ->get()->getRowArray();
             $ev['user_registered'] = ! empty($peserta);
 
-            if ($now < $ev['mulai_pendaftaran']) $ev['fase'] = 'belum_buka';
-            elseif ($now <= $ev['tutup_pendaftaran']) $ev['fase'] = 'pendaftaran';
-            elseif ($now < $ev['mulai_pelaksanaan']) $ev['fase'] = 'menunggu';
+            if ($now < $ev['mulai_pelaksanaan']) $ev['fase'] = 'menunggu';
             elseif ($now <= $ev['tutup_pelaksanaan']) $ev['fase'] = 'pelaksanaan';
             else $ev['fase'] = 'selesai';
         }

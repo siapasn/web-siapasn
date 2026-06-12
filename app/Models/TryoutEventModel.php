@@ -56,7 +56,7 @@ class TryoutEventModel extends Model
     }
 
     /**
-     * Ambil event aktif yang sedang buka pendaftaran atau pelaksanaan.
+     * Ambil event aktif yang akan datang atau sedang pelaksanaan.
      */
     public function getActiveForUser(): array
     {

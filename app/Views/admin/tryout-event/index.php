@@ -39,9 +39,7 @@
                     <?php $now = date('Y-m-d H:i:s'); ?>
                     <?php foreach ($events as $i => $e): ?>
                     <?php
-                        if ($now < $e['mulai_pendaftaran']) $status = ['Belum Buka', 'bg-secondary'];
-                        elseif ($now <= $e['tutup_pendaftaran']) $status = ['Pendaftaran', 'bg-info'];
-                        elseif ($now < $e['mulai_pelaksanaan']) $status = ['Menunggu', 'bg-warning text-dark'];
+                        if ($now < $e['mulai_pelaksanaan']) $status = ['Menunggu', 'bg-warning text-dark'];
                         elseif ($now <= $e['tutup_pelaksanaan']) $status = ['Berlangsung', 'bg-success'];
                         else $status = ['Selesai', 'bg-secondary'];
                     ?>

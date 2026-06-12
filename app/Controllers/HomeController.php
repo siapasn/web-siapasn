@@ -54,9 +54,7 @@ class HomeController extends BaseController
             ->get()->getResultArray();
 
         foreach ($eventAktif as &$ev) {
-            if ($now < $ev['mulai_pendaftaran']) $ev['fase'] = 'belum_buka';
-            elseif ($now <= $ev['tutup_pendaftaran']) $ev['fase'] = 'pendaftaran';
-            elseif ($now < $ev['mulai_pelaksanaan']) $ev['fase'] = 'menunggu';
+            if ($now < $ev['mulai_pelaksanaan']) $ev['fase'] = 'menunggu';
             elseif ($now <= $ev['tutup_pelaksanaan']) $ev['fase'] = 'pelaksanaan';
             else $ev['fase'] = 'selesai';
         }

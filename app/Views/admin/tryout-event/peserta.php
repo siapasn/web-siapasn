@@ -40,7 +40,7 @@
                         <th class="text-center">Total Nilai</th>
                         <th class="text-center">Detail Per Kategori</th>
                         <th class="text-center">Status</th>
-                        <th class="pe-3">Terdaftar</th>
+                        <th class="pe-3">Mulai Ikut</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -85,7 +85,7 @@
                                 <?php elseif ($p['status'] === 'started'): ?>
                                     <span class="badge bg-warning text-dark rounded-pill">Mengerjakan</span>
                                 <?php else: ?>
-                                    <span class="badge bg-secondary rounded-pill">Terdaftar</span>
+                                    <span class="badge bg-secondary rounded-pill">Belum Mulai</span>
                                 <?php endif; ?>
                             </td>
                             <td class="pe-3 small text-muted"><?= date('d M Y H:i', strtotime($p['registered_at'])) ?></td>
@@ -100,7 +100,7 @@
 <div class="card border-0 shadow-sm">
     <div class="card-body text-center py-5 text-muted">
         <i class="bi bi-people fs-2 d-block mb-2"></i>
-        Belum ada peserta terdaftar.
+        Belum ada peserta yang mengikuti event ini.
     </div>
 </div>
 <?php endif; ?>

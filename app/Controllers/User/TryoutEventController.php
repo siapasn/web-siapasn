@@ -29,6 +29,19 @@ class TryoutEventController extends BaseController
             ->get()->getResultArray();
     }
 
+    private function getEventPhase(array $event, string $now): string
+    {
+        if ($now < $event['mulai_pelaksanaan']) {
+            return 'menunggu';
+        }
+
+        if ($now <= $event['tutup_pelaksanaan']) {
+            return 'pelaksanaan';
+        }
+
+        return 'selesai';
+    }
+
     /**
      * Daftar event tryout yang tersedia untuk user.
      */
@@ -41,7 +54,7 @@ class TryoutEventController extends BaseController
         // Event aktif (belum tutup pelaksanaan)
         $events = $this->eventModel->getActiveForUser();
 
-        // Enrich: cek status pendaftaran user per event
+        // Enrich: cek status partisipasi user per event
         foreach ($events as &$e) {
             $peserta = $db->table('tryout_event_peserta')
                 ->where('event_id', $e['id'])
@@ -52,28 +65,14 @@ class TryoutEventController extends BaseController
             $e['user_status']     = $peserta['status'] ?? null;
             $e['sesi_tryout_id']  = $peserta['sesi_tryout_id'] ?? null;
 
-            // Tentukan fase event
-            if ($now < $e['mulai_pendaftaran']) {
-                $e['fase'] = 'belum_buka';
-            } elseif ($now >= $e['mulai_pendaftaran'] && $now <= $e['tutup_pendaftaran']) {
-                $e['fase'] = 'pendaftaran';
-            } elseif ($now > $e['tutup_pendaftaran'] && $now < $e['mulai_pelaksanaan']) {
-                $e['fase'] = 'menunggu';
-            } elseif ($now >= $e['mulai_pelaksanaan'] && $now <= $e['tutup_pelaksanaan']) {
-                $e['fase'] = 'pelaksanaan';
-            } else {
-                $e['fase'] = 'selesai';
-            }
+            $e['fase'] = $this->getEventPhase($e, $now);
 
             // Hitung percobaan user
-            $e['user_percobaan'] = 0;
-            if ($e['user_registered']) {
-                $e['user_percobaan'] = $db->table('sesi_tryout')
-                    ->where('user_id', $userId)
-                    ->where('tryout_id', $e['tryout_id'])
-                    ->whereIn('status', ['selesai', 'timeout', 'berlangsung'])
-                    ->countAllResults();
-            }
+            $e['user_percobaan'] = $db->table('sesi_tryout')
+                ->where('user_id', $userId)
+                ->where('tryout_id', $e['tryout_id'])
+                ->whereIn('status', ['selesai', 'timeout', 'berlangsung'])
+                ->countAllResults();
         }
         unset($e);
 
@@ -152,28 +151,14 @@ class TryoutEventController extends BaseController
             ->where('event_id', $eventId)
             ->countAllResults();
 
-        // Fase
-        if ($now < $event['mulai_pendaftaran']) {
-            $fase = 'belum_buka';
-        } elseif ($now >= $event['mulai_pendaftaran'] && $now <= $event['tutup_pendaftaran']) {
-            $fase = 'pendaftaran';
-        } elseif ($now > $event['tutup_pendaftaran'] && $now < $event['mulai_pelaksanaan']) {
-            $fase = 'menunggu';
-        } elseif ($now >= $event['mulai_pelaksanaan'] && $now <= $event['tutup_pelaksanaan']) {
-            $fase = 'pelaksanaan';
-        } else {
-            $fase = 'selesai';
-        }
+        $fase = $this->getEventPhase($event, $now);
 
         // Hitung percobaan user
-        $userPercobaan = 0;
-        if ($peserta) {
-            $userPercobaan = $db->table('sesi_tryout')
-                ->where('user_id', $userId)
-                ->where('tryout_id', $event['tryout_id'])
-                ->whereIn('status', ['selesai', 'timeout', 'berlangsung'])
-                ->countAllResults();
-        }
+        $userPercobaan = $db->table('sesi_tryout')
+            ->where('user_id', $userId)
+            ->where('tryout_id', $event['tryout_id'])
+            ->whereIn('status', ['selesai', 'timeout', 'berlangsung'])
+            ->countAllResults();
 
         // Sesi aktif
         $sesiAktif = $this->sesiModel->getAktif($userId, (int) $event['tryout_id']);
@@ -212,14 +197,10 @@ class TryoutEventController extends BaseController
     }
 
     /**
-     * Daftar ke event (POST dengan event ID).
+     * Backward-compatible route. Event tidak lagi memakai pendaftaran manual.
      */
     public function daftar(int $eventId)
     {
-        $userId = (int) session()->get('user_id');
-        $db     = \Config\Database::connect();
-        $now    = date('Y-m-d H:i:s');
-
         $event = $this->eventModel->find($eventId);
         if (! $event || ! $event['is_active']) {
             return redirect()->to(base_url('user/tryout-event'))
@@ -228,37 +209,8 @@ class TryoutEventController extends BaseController
 
         $eventSlug = $event['slug'] ?: $eventId;
 
-        // Cek periode pendaftaran
-        if ($now < $event['mulai_pendaftaran'] || $now > $event['tutup_pendaftaran']) {
-            return redirect()->to(base_url("user/tryout-event/{$eventSlug}"))
-                ->with('error', 'Pendaftaran belum dibuka atau sudah ditutup.');
-        }
-
-        // Cek sudah terdaftar
-        $exists = $db->table('tryout_event_peserta')
-            ->where('event_id', $eventId)
-            ->where('user_id', $userId)
-            ->countAllResults();
-
-        if ($exists > 0) {
-            return redirect()->to(base_url("user/tryout-event/{$eventSlug}"))
-                ->with('error', 'Anda sudah terdaftar di event ini.');
-        }
-
-        $db->table('tryout_event_peserta')->insert([
-            'event_id'      => $eventId,
-            'user_id'       => $userId,
-            'registered_at' => $now,
-            'status'        => 'registered',
-        ]);
-
-        // Notifikasi ke admin: peserta baru
-        $userName = session()->get('nama') ?? 'User';
-        \App\Models\NotifikasiModel::kirimKeRole('admin', 'event', 'Peserta Event Baru', $userName . ' mendaftar event: ' . $event['nama'], 'admin/tryout-event/' . $eventId . '/peserta');
-        \App\Models\NotifikasiModel::kirimKeRole('super_admin', 'event', 'Peserta Event Baru', $userName . ' mendaftar event: ' . $event['nama'], 'admin/tryout-event/' . $eventId . '/peserta');
-
         return redirect()->to(base_url("user/tryout-event/{$eventSlug}"))
-            ->with('success', 'Berhasil mendaftar! Anda dapat mengerjakan tryout saat periode pelaksanaan dimulai.');
+            ->with('success', 'Event tidak memerlukan pendaftaran. Anda bisa langsung mulai saat periode pelaksanaan berlangsung.');
     }
 
     /**
@@ -284,15 +236,19 @@ class TryoutEventController extends BaseController
                 ->with('error', 'Periode pelaksanaan belum dimulai atau sudah berakhir.');
         }
 
-        // Cek sudah terdaftar
+        // Buat catatan peserta otomatis saat user pertama kali mulai event.
         $peserta = $db->table('tryout_event_peserta')
             ->where('event_id', $eventId)
             ->where('user_id', $userId)
             ->get()->getRowArray();
 
         if (! $peserta) {
-            return redirect()->to(base_url("user/tryout-event/{$eventSlug}"))
-                ->with('error', 'Anda belum terdaftar di event ini.');
+            $db->table('tryout_event_peserta')->insert([
+                'event_id'      => $eventId,
+                'user_id'       => $userId,
+                'registered_at' => $now,
+                'status'        => 'registered',
+            ]);
         }
 
         // Cek max percobaan
@@ -350,20 +306,6 @@ class TryoutEventController extends BaseController
         $calendarEvents = [];
         foreach ($events as $ev) {
             $detailUrl = base_url('user/tryout-event/' . ($ev['slug'] ?: $ev['id']));
-
-            // Event pendaftaran (biru)
-            $calendarEvents[] = [
-                'id'    => 'reg-' . $ev['id'],
-                'title' => '📝 ' . $ev['nama'],
-                'start' => date('Y-m-d', strtotime($ev['mulai_pendaftaran'])),
-                'end'   => date('Y-m-d', strtotime($ev['tutup_pendaftaran'] . ' +1 day')),
-                'color' => '#0dcaf0',
-                'textColor' => '#000',
-                'url'   => $detailUrl,
-                'extendedProps' => [
-                    'desc' => 'Periode Pendaftaran',
-                ],
-            ];
 
             // Event pelaksanaan (hijau)
             $calendarEvents[] = [
