@@ -145,16 +145,19 @@ $_seoImage = ! empty($event['banner_url'])
 
                 <hr>
                 <?php if ($fase === 'pelaksanaan'): ?>
-                    <?php if ($userPercobaan >= (int) $event['max_percobaan']): ?>
-                        <div class="alert alert-warning py-2 text-center small">
-                            <i class="bi bi-exclamation-triangle me-1"></i>
-                            Anda sudah menggunakan semua percobaan (<?= $event['max_percobaan'] ?>x).
-                        </div>
-                    <?php elseif ($sesiAktif): ?>
+                    <?php if ($sesiAktif): ?>
                         <a href="<?= base_url('user/tryout/jawab/' . $sesiAktif['id'] . '?soal_index=1') ?>"
                            class="btn btn-warning w-100 fw-semibold">
                             <i class="bi bi-play-circle me-1"></i>Lanjutkan Tryout
                         </a>
+                        <div class="text-muted small text-center mt-2">
+                            Percobaan sedang berjalan. Selesaikan untuk membuka leaderboard.
+                        </div>
+                    <?php elseif ($userPercobaan >= (int) $event['max_percobaan']): ?>
+                        <div class="alert alert-warning py-2 text-center small">
+                            <i class="bi bi-exclamation-triangle me-1"></i>
+                            Anda sudah menggunakan semua percobaan (<?= $event['max_percobaan'] ?>x).
+                        </div>
                     <?php else: ?>
                         <form method="post" action="<?= base_url("user/tryout-event/{$event['id']}/mulai") ?>">
                             <?= csrf_field() ?>

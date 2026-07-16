@@ -278,6 +278,7 @@ $routes->group('admin', ['filter' => ['auth', 'admin_only']], function ($routes)
     $routes->post('tryout-event/(:num)/update', 'Admin\TryoutEventController::update/$1');
     $routes->post('tryout-event/(:num)/delete', 'Admin\TryoutEventController::delete/$1');
     $routes->get('tryout-event/(:num)/peserta', 'Admin\TryoutEventController::peserta/$1');
+    $routes->post('tryout-event/(:num)/peserta/(:num)/reset', 'Admin\TryoutEventController::resetPeserta/$1/$2');
 
     // Request Formasi
     $routes->get('request-formasi', 'Admin\RequestFormasiController::index');

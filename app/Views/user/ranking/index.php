@@ -40,6 +40,23 @@
         <div class="card-body text-center py-5 text-muted">
             <i class="bi bi-trophy fs-1 d-block mb-3"></i>
             <p class="mb-2">Belum ada data perangkingan yang dapat ditampilkan.</p>
+            <?php if (! empty($activeSesi)): ?>
+                <p class="small mb-3">
+                    Anda masih memiliki sesi tryout yang belum selesai:
+                    <strong><?= esc($activeSesi['event_nama'] ?: $activeSesi['tryout_nama']) ?></strong>.
+                    Selesaikan sesi ini untuk membuka perangkingan.
+                </p>
+                <div class="d-flex justify-content-center gap-2">
+                    <a href="<?= base_url('user/tryout/jawab/' . $activeSesi['sesi_id'] . '?soal_index=1') ?>" class="btn btn-sm btn-warning">
+                        <i class="bi bi-play-circle me-1"></i>Lanjutkan Tryout
+                    </a>
+                    <?php if (! empty($activeSesi['event_id'])): ?>
+                        <a href="<?= base_url('user/tryout-event/' . ($activeSesi['event_slug'] ?: $activeSesi['event_id'])) ?>" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-calendar-event me-1"></i>Lihat Event
+                        </a>
+                    <?php endif; ?>
+                </div>
+            <?php else: ?>
             <p class="small mb-3">Perangkingan hanya tersedia untuk tryout yang sudah Anda kerjakan. Selesaikan tryout terlebih dahulu.</p>
             <div class="d-flex justify-content-center gap-2">
                 <a href="<?= base_url('user/tryout') ?>" class="btn btn-sm btn-success">
@@ -52,6 +69,7 @@
                     <i class="bi bi-calendar-event me-1"></i>Lihat Event
                 </a>
             </div>
+            <?php endif; ?>
         </div>
     </div>
 <?php else: ?>

@@ -241,6 +241,75 @@ class TryoutEventController extends BaseController
     }
 
     /**
+     * Reset percobaan peserta event agar user bisa mengikuti tes ulang.
+     */
+    public function resetPeserta(int $eventId, int $pesertaId)
+    {
+        $event = $this->eventModel->find($eventId);
+        if (! $event) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Event tidak ditemukan.');
+        }
+
+        $db = \Config\Database::connect();
+        $peserta = $db->table('tryout_event_peserta')
+            ->where('id', $pesertaId)
+            ->where('event_id', $eventId)
+            ->get()
+            ->getRowArray();
+
+        if (! $peserta) {
+            return redirect()->to(base_url("admin/tryout-event/{$eventId}/peserta"))
+                ->with('error', 'Peserta event tidak ditemukan.');
+        }
+
+        $sesiId = (int) ($peserta['sesi_tryout_id'] ?? 0);
+
+        $db->transStart();
+
+        if ($sesiId > 0) {
+            $db->table('hasil_tryout')
+                ->where('sesi_tryout_id', $sesiId)
+                ->delete();
+
+            $db->table('jawaban_user')
+                ->where('sesi_tryout_id', $sesiId)
+                ->delete();
+
+            $db->table('tryout_event_peserta')
+                ->where('id', $pesertaId)
+                ->where('event_id', $eventId)
+                ->update([
+                    'status'         => 'registered',
+                    'sesi_tryout_id' => null,
+                ]);
+
+            $db->table('sesi_tryout')
+                ->where('id', $sesiId)
+                ->where('user_id', $peserta['user_id'])
+                ->where('tryout_id', $event['tryout_id'])
+                ->delete();
+        } else {
+            $db->table('tryout_event_peserta')
+                ->where('id', $pesertaId)
+                ->where('event_id', $eventId)
+                ->update([
+                    'status'         => 'registered',
+                    'sesi_tryout_id' => null,
+                ]);
+        }
+
+        $db->transComplete();
+
+        if (! $db->transStatus()) {
+            return redirect()->to(base_url("admin/tryout-event/{$eventId}/peserta"))
+                ->with('error', 'Gagal reset data peserta. Silakan coba lagi.');
+        }
+
+        return redirect()->to(base_url("admin/tryout-event/{$eventId}/peserta"))
+            ->with('success', 'Data jawaban dan penilaian peserta berhasil direset. User dapat melakukan tes ulang.');
+    }
+
+    /**
      * Lihat peserta event.
      */
     public function peserta(int $id)

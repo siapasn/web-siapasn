@@ -18,6 +18,20 @@
 
 <?= $this->section('content') ?>
 
+<?php if (session()->getFlashdata('success')): ?>
+<div class="alert alert-success alert-dismissible fade show mb-3" role="alert">
+    <i class="bi bi-check-circle me-2"></i><?= esc(session()->getFlashdata('success')) ?>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
+</div>
+<?php endif; ?>
+
+<?php if (session()->getFlashdata('error')): ?>
+<div class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
+    <i class="bi bi-exclamation-triangle me-2"></i><?= esc(session()->getFlashdata('error')) ?>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
+</div>
+<?php endif; ?>
+
 <?php if (! empty($peserta)): ?>
 <div class="card border-0 shadow-sm">
     <div class="card-header bg-white border-bottom py-3">
@@ -40,7 +54,8 @@
                         <th class="text-center">Total Nilai</th>
                         <th class="text-center">Detail Per Kategori</th>
                         <th class="text-center">Status</th>
-                        <th class="pe-3">Mulai Ikut</th>
+                        <th>Mulai Ikut</th>
+                        <th class="text-center pe-3">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -88,7 +103,19 @@
                                     <span class="badge bg-secondary rounded-pill">Belum Mulai</span>
                                 <?php endif; ?>
                             </td>
-                            <td class="pe-3 small text-muted"><?= date('d M Y H:i', strtotime($p['registered_at'])) ?></td>
+                            <td class="small text-muted"><?= date('d M Y H:i', strtotime($p['registered_at'])) ?></td>
+                            <td class="text-center pe-3">
+                                <?php if (! empty($p['sesi_tryout_id'])): ?>
+                                    <form method="post" action="<?= base_url('admin/tryout-event/' . $event['id'] . '/peserta/' . $p['id'] . '/reset') ?>" class="d-inline" onsubmit="return confirm('Reset jawaban dan penilaian peserta ini? Data hasil akan dihapus dan user dapat tes ulang.');">
+                                        <?= csrf_field() ?>
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                            <i class="bi bi-arrow-counterclockwise me-1"></i>Reset
+                                        </button>
+                                    </form>
+                                <?php else: ?>
+                                    <span class="text-muted small">-</span>
+                                <?php endif; ?>
+                            </td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>

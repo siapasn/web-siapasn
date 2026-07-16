@@ -411,10 +411,22 @@ class TryoutController extends BaseController
                 ->with('error', 'Data tryout tidak ditemukan.');
         }
 
-        // Cek apakah hasil sudah ada; hitung ulang jika belum ada atau masih 0
-        // (bisa terjadi jika scoring sebelumnya gagal / race condition)
+        // Cek apakah hasil sudah ada; hitung ulang jika belum ada, masih 0,
+        // atau detail lama belum mencakup semua soal dalam tryout.
         $hasil = $this->hasilModel->getBySesi($sesiId);
+        $jumlahSoalTryout = (int) $db->table('mapping_soal')
+            ->where('tryout_id', $sesi['tryout_id'])
+            ->countAllResults();
+        $jumlahSoalDiHasil = 0;
+        if (! empty($hasil['detail_kategori'])) {
+            $detailLama = json_decode($hasil['detail_kategori'], true);
+            if (is_array($detailLama)) {
+                $jumlahSoalDiHasil = array_sum(array_map(static fn($kat) => (int)($kat['total'] ?? 0), $detailLama));
+            }
+        }
+
         $perluHitung = ! $hasil
+            || $jumlahSoalDiHasil < $jumlahSoalTryout
             || ((int)($hasil['jumlah_benar'] ?? 0) === 0
                 && (int)($hasil['jumlah_salah'] ?? 0) === 0
                 && (int)($hasil['jumlah_kosong'] ?? 0) === 0
@@ -476,9 +488,21 @@ class TryoutController extends BaseController
         }
 
         // Pastikan scoring sudah dijalankan agar is_benar di jawaban_user terisi benar.
-        // Jika hasil belum ada atau semua 0, hitung sekarang.
+        // Hitung ulang juga jika hasil lama belum mencakup semua soal dalam tryout.
         $hasil = $this->hasilModel->getBySesi($sesiId);
+        $jumlahSoalTryout = (int) $db->table('mapping_soal')
+            ->where('tryout_id', $sesi['tryout_id'])
+            ->countAllResults();
+        $jumlahSoalDiHasil = 0;
+        if (! empty($hasil['detail_kategori'])) {
+            $detailLama = json_decode($hasil['detail_kategori'], true);
+            if (is_array($detailLama)) {
+                $jumlahSoalDiHasil = array_sum(array_map(static fn($kat) => (int)($kat['total'] ?? 0), $detailLama));
+            }
+        }
+
         $perluHitung = ! $hasil
+            || $jumlahSoalDiHasil < $jumlahSoalTryout
             || ((int)($hasil['jumlah_benar'] ?? 0) === 0
                 && (int)($hasil['jumlah_salah'] ?? 0) === 0
                 && (int)($hasil['jumlah_kosong'] ?? 0) === 0

@@ -40,27 +40,30 @@ class TryoutScoringService
 
         $db = \Config\Database::connect();
 
-        // Ambil semua jawaban beserta data soal dan kategori.
-        // Gunakan raw query untuk menghindari kolom collision saat JOIN dua kali ke tabel kategori.
+        // Ambil semua soal pada tryout, lalu LEFT JOIN jawaban user.
+        // Soal yang belum dijawab tetap dihitung sebagai kosong agar passing grade akurat.
         $sql = "
             SELECT
-                ju.soal_id,
+                s.id AS soal_id,
                 ju.jawaban,
                 s.kunci_jawaban,
                 s.nilai_a, s.nilai_b, s.nilai_c, s.nilai_d, s.nilai_e,
                 s.kategori_id,
                 k.nama        AS kategori_nama,
                 k.tipe_soal   AS kategori_tipe
-            FROM jawaban_user ju
-            INNER JOIN soal s  ON s.id  = ju.soal_id
-            LEFT  JOIN kategori k  ON k.id  = s.kategori_id
-            WHERE ju.sesi_tryout_id = ?
+            FROM mapping_soal ms
+            INNER JOIN soal s ON s.id = ms.soal_id
+            LEFT JOIN jawaban_user ju
+                ON ju.soal_id = ms.soal_id
+                AND ju.sesi_tryout_id = ?
+            LEFT JOIN kategori k ON k.id = s.kategori_id
+            WHERE ms.tryout_id = ?
+            ORDER BY ms.urutan ASC
         ";
-        $jawaban = $db->query($sql, [$sesiId])->getResultArray();
+        $jawaban = $db->query($sql, [$sesiId, $sesi['tryout_id']])->getResultArray();
 
-        // Jika tidak ada jawaban sama sekali, lempar exception agar tidak menyimpan hasil 0
         if (empty($jawaban)) {
-            throw new \RuntimeException("Tidak ada jawaban ditemukan untuk sesi: {$sesiId}");
+            throw new \RuntimeException("Tryout ini belum memiliki soal: {$sesi['tryout_id']}");
         }
 
         $jumlahBenar    = 0;

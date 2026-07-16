@@ -251,7 +251,21 @@ class TryoutEventController extends BaseController
             ]);
         }
 
-        // Cek max percobaan
+        // Cek sesi aktif lebih dulu agar percobaan yang belum selesai bisa dilanjutkan.
+        $sesiAktif = $this->sesiModel->getAktif($userId, (int) $event['tryout_id']);
+        if ($sesiAktif) {
+            $db->table('tryout_event_peserta')
+                ->where('event_id', $eventId)
+                ->where('user_id', $userId)
+                ->update([
+                    'status'         => 'started',
+                    'sesi_tryout_id' => $sesiAktif['id'],
+                ]);
+
+            return redirect()->to(base_url('user/tryout/jawab/' . $sesiAktif['id'] . '?soal_index=1'));
+        }
+
+        // Cek max percobaan untuk sesi baru.
         $percobaan = $db->table('sesi_tryout')
             ->where('user_id', $userId)
             ->where('tryout_id', $event['tryout_id'])
@@ -261,12 +275,6 @@ class TryoutEventController extends BaseController
         if ($percobaan >= (int) $event['max_percobaan']) {
             return redirect()->to(base_url("user/tryout-event/{$eventSlug}"))
                 ->with('error', 'Anda sudah mencapai batas maksimal percobaan (' . $event['max_percobaan'] . 'x).');
-        }
-
-        // Cek sesi aktif
-        $sesiAktif = $this->sesiModel->getAktif($userId, (int) $event['tryout_id']);
-        if ($sesiAktif) {
-            return redirect()->to(base_url('user/tryout/jawab/' . $sesiAktif['id'] . '?soal_index=1'));
         }
 
         // Buat sesi baru

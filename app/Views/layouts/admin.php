@@ -214,10 +214,28 @@
             padding: 1.5rem;
         }
 
+        .notif-menu {
+            width: 340px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
         /* Mobile Version */
         @media (max-width: 768px) {
             .content-area {
                 padding: 0.5rem;
+            }
+
+            .notif-menu.show {
+                position: fixed !important;
+                top: 64px !important;
+                left: 50% !important;
+                right: auto !important;
+                transform: translateX(-50%) !important;
+                width: min(340px, calc(100vw - 32px)) !important;
+                max-height: min(420px, calc(100vh - 96px));
+                border-radius: .75rem;
+                overflow-y: auto;
             }
         }
         
@@ -441,7 +459,7 @@
                               class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
                               style="font-size:.6rem;display:none">0</span>
                     </button>
-                    <div class="dropdown-menu dropdown-menu-end shadow-sm p-0" style="width:340px;max-height:400px;overflow-y:auto" aria-labelledby="notifDropdown">
+                    <div class="dropdown-menu dropdown-menu-end shadow-sm p-0 notif-menu" aria-labelledby="notifDropdown">
                         <div class="d-flex align-items-center justify-content-between px-3 py-2 border-bottom">
                             <span class="fw-semibold small">Notifikasi</span>
                             <button type="button" class="btn btn-link btn-sm text-decoration-none p-0" id="markAllReadBtn" style="font-size:.75rem">

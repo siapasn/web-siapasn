@@ -25,6 +25,7 @@ class RankingController extends BaseController
     {
         $db     = \Config\Database::connect();
         $userId = (int) session()->get('user_id');
+        $activeSesi = $this->getActiveSesi($userId);
 
         // Ambil semua kategori level 1
         $kategoris = $db->table('kategori')
@@ -67,6 +68,7 @@ class RankingController extends BaseController
         if (empty($accessibleTryoutIds)) {
             return view('user/ranking/index', [
                 'tryoutByKategori' => [],
+                'activeSesi'       => $activeSesi,
                 'menus'            => $this->getMenus(),
             ]);
         }
@@ -83,17 +85,19 @@ class RankingController extends BaseController
         if (empty($completedTryoutIds)) {
             return view('user/ranking/index', [
                 'tryoutByKategori' => [],
+                'activeSesi'       => $activeSesi,
                 'menus'            => $this->getMenus(),
             ]);
         }
 
-        // Ambil tryout yang user sudah kerjakan DAN sudah punya minimal 1 hasil (dari peserta lain juga)
+        // Ambil tryout yang user sudah kerjakan. LEFT JOIN menjaga event gratis
+        // yang tidak terhubung ke produk agar tetap muncul di perangkingan.
         $tryouts = $db->table('tryout t')
-            ->select('t.id, t.nama, t.slug, t.durasi, p.kategori_id,
+            ->select('t.id, t.nama, t.slug, t.durasi, COALESCE(MIN(p.kategori_id), 0) AS kategori_id,
                       COUNT(DISTINCT ht.user_id) AS total_peserta,
                       MAX(ht.total_nilai) AS skor_tertinggi')
-            ->join('mapping_tryout mt', 'mt.tryout_id = t.id')
-            ->join('produk p', 'p.id = mt.produk_id')
+            ->join('mapping_tryout mt', 'mt.tryout_id = t.id', 'left')
+            ->join('produk p', 'p.id = mt.produk_id', 'left')
             ->join('hasil_tryout ht', 'ht.tryout_id = t.id', 'left')
             ->where('t.is_active', 1)
             ->whereIn('t.id', $completedTryoutIds)
@@ -115,10 +119,37 @@ class RankingController extends BaseController
             }
         }
 
+        $eventItems = array_values(array_filter($tryouts, fn($t) => (int)($t['kategori_id'] ?? 0) === 0));
+        if (! empty($eventItems)) {
+            $tryoutByKategori[] = [
+                'kat_id'   => 0,
+                'kat_nama' => 'Event Tryout',
+                'tryouts'  => $eventItems,
+            ];
+        }
+
         return view('user/ranking/index', [
             'tryoutByKategori' => $tryoutByKategori,
+            'activeSesi'       => $activeSesi,
             'menus'            => $this->getMenus(),
         ]);
+    }
+
+    private function getActiveSesi(int $userId): ?array
+    {
+        $db = \Config\Database::connect();
+
+        return $db->table('sesi_tryout st')
+            ->select('st.id AS sesi_id, st.mulai_at, t.id AS tryout_id, t.nama AS tryout_nama,
+                      te.id AS event_id, te.slug AS event_slug, te.nama AS event_nama')
+            ->join('tryout t', 't.id = st.tryout_id')
+            ->join('tryout_event_peserta tep', 'tep.sesi_tryout_id = st.id AND tep.user_id = st.user_id', 'left')
+            ->join('tryout_event te', 'te.id = tep.event_id', 'left')
+            ->where('st.user_id', $userId)
+            ->where('st.status', 'berlangsung')
+            ->orderBy('st.mulai_at', 'DESC')
+            ->get()
+            ->getRowArray();
     }
 
     /**
