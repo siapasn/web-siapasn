@@ -129,7 +129,6 @@
                         <th class="text-center">Benar</th>
                         <th class="text-center">Percobaan</th>
                         <th class="text-center">Status</th>
-                        <th class="text-end pe-3">Terakhir</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -169,9 +168,6 @@
                                 <?php else: ?>
                                     <span class="text-muted">—</span>
                                 <?php endif; ?>
-                            </td>
-                            <td class="text-end pe-3 text-muted small">
-                                <?= date('d M Y', strtotime($r['last_attempt'])) ?>
                             </td>
                         </tr>
                     <?php endforeach; ?>
