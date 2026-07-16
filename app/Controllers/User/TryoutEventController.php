@@ -192,8 +192,50 @@ class TryoutEventController extends BaseController
             'sesiAktif'     => $sesiAktif,
             'hasilUser'     => $hasilUser,
             'semuaHasil'    => $semuaHasil,
+            'ulasanContext' => $this->getUlasanContext($userId, (int) $event['tryout_id']),
             'menus'         => $this->getMenus(),
         ]);
+    }
+
+    private function getUlasanContext(int $userId, int $tryoutId): array
+    {
+        $db = \Config\Database::connect();
+
+        $produk = $db->table('mapping_tryout mt')
+            ->select('p.id, p.nama, p.slug')
+            ->join('produk p', 'p.id = mt.produk_id')
+            ->where('mt.tryout_id', $tryoutId)
+            ->where('p.is_active', 1)
+            ->orderBy('p.id', 'ASC')
+            ->get()
+            ->getRowArray();
+
+        if (! $produk) {
+            return [
+                'produk'       => null,
+                'can_review'   => false,
+                'has_reviewed' => false,
+                'has_attempt'  => false,
+            ];
+        }
+
+        $hasAttempt = $db->table('sesi_tryout')
+            ->where('user_id', $userId)
+            ->where('tryout_id', $tryoutId)
+            ->whereIn('status', ['selesai', 'timeout'])
+            ->countAllResults() > 0;
+
+        $hasReviewed = $db->table('ulasan')
+            ->where('user_id', $userId)
+            ->where('produk_id', $produk['id'])
+            ->countAllResults() > 0;
+
+        return [
+            'produk'       => $produk,
+            'can_review'   => $hasAttempt && ! $hasReviewed,
+            'has_reviewed' => $hasReviewed,
+            'has_attempt'  => $hasAttempt,
+        ];
     }
 
     /**
@@ -430,6 +472,7 @@ class TryoutEventController extends BaseController
             'myData'       => $myData,
             'totalPeserta' => $totalPeserta,
             'userId'       => $userId,
+            'ulasanContext' => $this->getUlasanContext($userId, (int) $event['tryout_id']),
             'menus'        => $this->getMenus(),
         ]);
     }

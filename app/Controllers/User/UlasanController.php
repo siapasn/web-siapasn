@@ -29,15 +29,10 @@ class UlasanController extends BaseController
             return redirect()->back()->with('error', 'Data tidak valid.');
         }
 
-        // Cek apakah user memiliki produk ini
         $db = \Config\Database::connect();
-        $hasProduk = $db->table('user_produk')
-            ->where('user_id', $userId)
-            ->where('produk_id', $produkId)
-            ->countAllResults() > 0;
-
-        if (! $hasProduk) {
-            return redirect()->back()->with('error', 'Anda belum memiliki produk ini.');
+        $produk = $db->table('produk')->where('id', $produkId)->get()->getRowArray();
+        if (! $produk) {
+            return redirect()->back()->with('error', 'Produk tidak ditemukan.');
         }
 
         // Cek apakah sudah pernah review
@@ -45,7 +40,8 @@ class UlasanController extends BaseController
             return redirect()->back()->with('error', 'Anda sudah pernah memberikan ulasan untuk produk ini.');
         }
 
-        // Cek apakah sudah pernah mengerjakan tryout di produk ini
+        // Cek apakah sudah pernah mengerjakan tryout di produk ini.
+        // Ini juga mengizinkan peserta event gratis yang menyelesaikan tryout terkait produk.
         $hasAttempt = $db->table('sesi_tryout st')
             ->join('mapping_tryout mt', 'mt.tryout_id = st.tryout_id')
             ->where('st.user_id', $userId)
@@ -54,7 +50,7 @@ class UlasanController extends BaseController
             ->countAllResults() > 0;
 
         if (! $hasAttempt) {
-            return redirect()->back()->with('error', 'Anda harus mengerjakan minimal 1 tryout sebelum memberikan ulasan.');
+            return redirect()->back()->with('error', 'Anda harus menyelesaikan minimal 1 tryout sebelum memberikan ulasan.');
         }
 
         $this->ulasanModel->insert([

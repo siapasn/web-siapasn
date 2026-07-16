@@ -32,6 +32,15 @@
     $shareText  = 'Lihat peringkat saya di tryout CPNS: ' . $tryout['nama'];
     echo view('partials/share-button', compact('shareTitle', 'shareUrl', 'shareText'));
     ?>
+    <?php if (! empty($ulasanContext['can_review'])): ?>
+        <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#modalUlasan">
+            <i class="bi bi-star-half me-1"></i>Beri Ulasan
+        </button>
+    <?php elseif (! empty($ulasanContext['has_reviewed'])): ?>
+        <button type="button" class="btn btn-sm btn-outline-success" disabled>
+            <i class="bi bi-check-circle me-1"></i>Sudah Ulasan
+        </button>
+    <?php endif; ?>
 </div>
 
 <!-- Statistik -->
@@ -172,5 +181,13 @@
     </div>
     <?php endif; ?>
 </div>
+
+<?= view('partials/ulasan-modal', [
+    'ulasanContext' => $ulasanContext ?? [],
+    'modalId'       => 'modalUlasan',
+    'ratingId'      => 'ratingInputUlasanRanking',
+    'starsId'       => 'ratingStarsUlasanRanking',
+    'submitId'      => 'btnSubmitUlasanRanking',
+]) ?>
 
 <?= $this->endSection() ?>
