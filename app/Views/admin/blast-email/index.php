@@ -74,6 +74,13 @@
                                 <i class="bi bi-person me-1"></i>User Tertentu
                             </label>
                         </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="tipe" id="tipeManual" value="manual"
+                                   <?= old('tipe') === 'manual' ? 'checked' : '' ?>>
+                            <label class="form-check-label" for="tipeManual">
+                                <i class="bi bi-keyboard me-1"></i>Email Manual
+                            </label>
+                        </div>
                     </div>
                 </div>
 
@@ -103,6 +110,16 @@
                             </option>
                         <?php endforeach; ?>
                     </select>
+                </div>
+
+                <!-- Email Manual -->
+                <div class="col-12" id="wrapperManualEmails" style="<?= old('tipe') === 'manual' ? '' : 'display:none' ?>">
+                    <label for="manual_emails" class="form-label">Alamat Email Manual <span class="text-danger">*</span></label>
+                    <textarea id="manual_emails" name="manual_emails" class="form-control" rows="4"
+                              placeholder="contoh@email.com
+user2@email.com
+user3@email.com"><?= esc(old('manual_emails', '')) ?></textarea>
+                    <div class="form-text">Masukkan satu atau banyak email. Pisahkan dengan baris baru, koma, titik koma, atau spasi.</div>
                 </div>
 
                 <!-- Subject -->
@@ -258,6 +275,19 @@ $('#formBlastEmail').on('submit', function (e) {
             e.preventDefault();
             return false;
         }
+    } else if (tipe === 'manual') {
+        const raw = document.getElementById('manual_emails').value || '';
+        const emails = raw.split(/[\s,;]+/).map(v => v.trim()).filter(Boolean);
+        const uniqueEmails = Array.from(new Set(emails.map(v => v.toLowerCase())));
+        if (uniqueEmails.length === 0) {
+            alert('Masukkan minimal satu alamat email manual.');
+            e.preventDefault();
+            return false;
+        }
+        if (!confirm('Anda yakin ingin mengirim email ke ' + uniqueEmails.length + ' alamat email manual?')) {
+            e.preventDefault();
+            return false;
+        }
     }
 });
 
@@ -284,12 +314,14 @@ $('#target_subscriber_ids').select2({
 // Toggle penerima
 (function () {
     const wrapperTarget = document.getElementById('wrapperTargetUser');
+    const wrapperManual = document.getElementById('wrapperManualEmails');
     const infoTarget    = document.getElementById('infoTarget');
     const radios        = document.querySelectorAll('input[name="tipe"]');
 
     function toggle() {
         const val = document.querySelector('input[name="tipe"]:checked').value;
         wrapperTarget.style.display = 'none';
+        wrapperManual.style.display = 'none';
         document.getElementById('wrapperTargetSubscriber').style.display = 'none';
 
         if (val === 'single') {
@@ -302,6 +334,11 @@ $('#target_subscriber_ids').select2({
             document.getElementById('wrapperTargetSubscriber').style.display = '';
             infoTarget.innerHTML = '<i class="bi bi-envelope-plus me-1 text-success"></i>Email akan dikirim ke <strong>subscriber yang dipilih</strong>.';
             $('#target_user_id').val('').trigger('change');
+        } else if (val === 'manual') {
+            wrapperManual.style.display = '';
+            infoTarget.innerHTML = '<i class="bi bi-keyboard me-1 text-primary"></i>Email akan dikirim ke <strong>alamat email manual</strong> yang diinput.';
+            $('#target_user_id').val('').trigger('change');
+            $('#target_subscriber_ids').val(null).trigger('change');
         } else {
             infoTarget.innerHTML = '<i class="bi bi-info-circle me-1"></i>Email akan dikirim ke <strong>semua user</strong> terdaftar (<?= count($users) ?> user).';
             $('#target_user_id').val('').trigger('change');

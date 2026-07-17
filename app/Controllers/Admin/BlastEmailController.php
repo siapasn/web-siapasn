@@ -69,11 +69,15 @@ class BlastEmailController extends BaseController
         $rules = [
             'subject' => 'required|min_length[3]|max_length[255]',
             'body'    => 'required',
-            'tipe'    => 'required|in_list[all,single,subscribe,subscribe_single]',
+            'tipe'    => 'required|in_list[all,single,subscribe,subscribe_single,manual]',
         ];
 
         if ($this->request->getPost('tipe') === 'single') {
             $rules['target_user_id'] = 'required|is_natural_no_zero';
+        }
+
+        if ($this->request->getPost('tipe') === 'manual') {
+            $rules['manual_emails'] = 'required';
         }
 
         if (! $this->validate($rules)) {
@@ -130,6 +134,30 @@ class BlastEmailController extends BaseController
                     'nama'    => $s['name'] ?: 'Subscriber',
                     'user_id' => null,
                 ];
+            }
+
+        } elseif ($tipe === 'manual') {
+            $manualEmailsRaw = (string) $this->request->getPost('manual_emails');
+            $manualEmails = preg_split('/[\s,;]+/', $manualEmailsRaw, -1, PREG_SPLIT_NO_EMPTY);
+            $manualEmails = array_values(array_unique(array_map('strtolower', array_map('trim', $manualEmails))));
+
+            $invalidEmails = [];
+            foreach ($manualEmails as $email) {
+                if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                    $invalidEmails[] = $email;
+                    continue;
+                }
+
+                $recipients[] = [
+                    'email'   => $email,
+                    'nama'    => 'Penerima Manual',
+                    'user_id' => null,
+                ];
+            }
+
+            if (! empty($invalidEmails)) {
+                return redirect()->back()->withInput()
+                    ->with('error', 'Format email manual tidak valid: ' . implode(', ', $invalidEmails));
             }
 
         } else {
