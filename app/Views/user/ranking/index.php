@@ -13,13 +13,6 @@
 
 <?= $this->section('content') ?>
 
-<?php if (session()->getFlashdata('error')): ?>
-<div class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
-    <i class="bi bi-exclamation-triangle me-2"></i><?= esc(session()->getFlashdata('error')) ?>
-    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
-</div>
-<?php endif; ?>
-
 <style>
 .ranking-tryout-card {
     transition: transform .18s ease, box-shadow .18s ease;

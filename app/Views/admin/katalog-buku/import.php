@@ -18,13 +18,6 @@
 
 <?= $this->section('content') ?>
 
-<?php if (session()->getFlashdata('error')): ?>
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        <i class="bi bi-exclamation-triangle-fill me-1"></i> <?= esc(session()->getFlashdata('error')) ?>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-<?php endif; ?>
-
 <?php
 $totalImported = session()->getFlashdata('total_imported');
 $importErrors  = session()->getFlashdata('import_errors') ?? [];

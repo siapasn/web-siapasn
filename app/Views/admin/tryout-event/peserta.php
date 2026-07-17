@@ -18,20 +18,6 @@
 
 <?= $this->section('content') ?>
 
-<?php if (session()->getFlashdata('success')): ?>
-<div class="alert alert-success alert-dismissible fade show mb-3" role="alert">
-    <i class="bi bi-check-circle me-2"></i><?= esc(session()->getFlashdata('success')) ?>
-    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
-</div>
-<?php endif; ?>
-
-<?php if (session()->getFlashdata('error')): ?>
-<div class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
-    <i class="bi bi-exclamation-triangle me-2"></i><?= esc(session()->getFlashdata('error')) ?>
-    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
-</div>
-<?php endif; ?>
-
 <?php if (! empty($peserta)): ?>
 <div class="card border-0 shadow-sm">
     <div class="card-header bg-white border-bottom py-3">

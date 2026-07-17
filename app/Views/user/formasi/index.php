@@ -13,19 +13,6 @@
 
 <?= $this->section('content') ?>
 
-<?php if (session()->getFlashdata('success')): ?>
-<div class="alert alert-success alert-dismissible fade show mb-3" role="alert">
-    <i class="bi bi-check-circle me-2"></i><?= esc(session()->getFlashdata('success')) ?>
-    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-</div>
-<?php endif; ?>
-<?php if (session()->getFlashdata('error')): ?>
-<div class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
-    <i class="bi bi-exclamation-triangle me-2"></i><?= esc(session()->getFlashdata('error')) ?>
-    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-</div>
-<?php endif; ?>
-
 <!-- Statistik -->
 <div class="row g-3 mb-4">
     <div class="col-6 col-md-4">

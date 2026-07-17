@@ -18,20 +18,6 @@
 
 <?= $this->section('content') ?>
 
-<!-- Flash Messages -->
-<?php if (session()->getFlashdata('success')): ?>
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        <i class="bi bi-check-circle-fill me-1"></i> <?= esc(session()->getFlashdata('success')) ?>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
-    </div>
-<?php endif; ?>
-<?php if (session()->getFlashdata('error')): ?>
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        <i class="bi bi-exclamation-triangle-fill me-1"></i> <?= esc(session()->getFlashdata('error')) ?>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
-    </div>
-<?php endif; ?>
-
 <!-- Info -->
 <div class="alert alert-info border-0 d-flex align-items-start gap-2 mb-3" style="background:#e8f4fd;">
     <i class="bi bi-info-circle-fill mt-1" style="color:#0d6efd; flex-shrink:0;"></i>

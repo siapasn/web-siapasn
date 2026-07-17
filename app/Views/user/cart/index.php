@@ -19,12 +19,6 @@
     </a>
 </div>
 
-<?php if (session()->getFlashdata('error')): ?>
-    <div class="alert alert-danger alert-dismissible fade show">
-        <?= esc(session()->getFlashdata('error')) ?>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-<?php endif; ?>
 <?php if (session()->getFlashdata('info')): ?>
     <div class="alert alert-info alert-dismissible fade show">
         <?= esc(session()->getFlashdata('info')) ?>
