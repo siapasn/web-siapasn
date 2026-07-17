@@ -98,6 +98,27 @@
             scrollbar-width: thin;
             scrollbar-color: rgba(255,255,255,.15) transparent;
         }
+        #sidebar .sidebar-close-btn {
+            display: none;
+            position: absolute;
+            top: .65rem;
+            right: .65rem;
+            width: 34px;
+            height: 34px;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(15, 39, 68, .12);
+            border-radius: .45rem;
+            background: rgba(255, 255, 255, .92);
+            color: var(--sa-primary-dk);
+            box-shadow: 0 2px 8px rgba(15, 39, 68, .16);
+            z-index: 2;
+        }
+        #sidebar .sidebar-close-btn:hover,
+        #sidebar .sidebar-close-btn:focus {
+            background: #fff;
+            color: var(--sa-accent-dk);
+        }
         #sidebar::-webkit-scrollbar {
             width: 4px;
         }
@@ -346,6 +367,7 @@
         @media (max-width: 768px) {
             #sidebar { transform: translateX(-100%); }
             #sidebar.show { transform: translateX(0); }
+            #sidebar .sidebar-close-btn { display: inline-flex; }
             #main-content { margin-left: 0; }
         }
     </style>
@@ -354,6 +376,10 @@
 
 <!-- Sidebar -->
 <nav id="sidebar">
+    <button class="sidebar-close-btn d-md-none" id="sidebarClose" type="button" aria-label="Tutup sidebar">
+        <i class="bi bi-x-lg"></i>
+    </button>
+
     <a href="<?= base_url('/admin/dashboard') ?>" class="sidebar-brand">
         <img src="<?= base_url('assets/images/SiapASN.png') ?>"
              alt="Logo"
@@ -574,11 +600,18 @@
 <script>
     // Mobile sidebar toggle
     const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebarClose = document.getElementById('sidebarClose');
     const sidebar = document.getElementById('sidebar');
 
     if (sidebarToggle && sidebar) {
         sidebarToggle.addEventListener('click', function () {
             sidebar.classList.toggle('show');
+        });
+    }
+
+    if (sidebarClose && sidebar) {
+        sidebarClose.addEventListener('click', function () {
+            sidebar.classList.remove('show');
         });
     }
 </script>
