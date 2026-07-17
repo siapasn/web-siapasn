@@ -52,7 +52,6 @@
                         <th>Nama</th>
                         <th>Email</th>
                         <th class="text-center">Total Nilai</th>
-                        <th class="text-center">Detail Per Kategori</th>
                         <th class="text-center">Status</th>
                         <th>Mulai Ikut</th>
                         <th class="text-center pe-3">Aksi</th>
@@ -73,20 +72,6 @@
                             <td class="small text-muted"><?= esc($p['email']) ?></td>
                             <td class="text-center fw-bold">
                                 <?= $p['total_nilai'] ? (int) $p['total_nilai'] : ($p['skor_total'] ? number_format($p['skor_total'], 1) : '—') ?>
-                            </td>
-                            <td class="text-center">
-                                <?php if (! empty($detailPg)): ?>
-                                    <div class="d-flex flex-wrap gap-1 justify-content-center">
-                                        <?php foreach ($detailPg as $pg): ?>
-                                            <span class="badge <?= $pg['lulus'] ? 'bg-success' : 'bg-danger' ?> bg-opacity-10 <?= $pg['lulus'] ? 'text-success border-success-subtle' : 'text-danger border-danger-subtle' ?> border" style="font-size:.62rem">
-                                                <?= esc($pg['label']) ?>: <?= (int) $pg['total_nilai'] ?>/<?= (int) $pg['nilai_minimum'] ?>
-                                                <?= $pg['lulus'] ? '✓' : '✗' ?>
-                                            </span>
-                                        <?php endforeach; ?>
-                                    </div>
-                                <?php else: ?>
-                                    <span class="text-muted small">—</span>
-                                <?php endif; ?>
                             </td>
                             <td class="text-center">
                                 <?php if ($p['status_lulus'] === 'lulus'): ?>
