@@ -23,7 +23,10 @@
                 <h1><?= esc($subject) ?></h1>
             </div>
             <div class="content">
-                <div class="greeting">Halo, <?= esc($nama) ?>!</div>
+                <?php $displayNama = trim((string)($nama ?? '')); ?>
+                <?php if ($displayNama !== '' && strtolower($displayNama) !== 'penerima manual'): ?>
+                    <div class="greeting">Halo, <?= esc($displayNama) ?>!</div>
+                <?php endif; ?>
                 <?= $body ?>
             </div>
             <div class="footer">

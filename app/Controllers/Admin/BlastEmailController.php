@@ -150,7 +150,7 @@ class BlastEmailController extends BaseController
 
                 $recipients[] = [
                     'email'   => $email,
-                    'nama'    => 'Penerima Manual',
+                    'nama'    => '',
                     'user_id' => null,
                 ];
             }
