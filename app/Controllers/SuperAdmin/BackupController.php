@@ -130,6 +130,10 @@ class BackupController extends BaseController
      */
     private function findMysqldump(): ?string
     {
+        if (! function_exists('exec')) {
+            return null;
+        }
+
         $candidates = [
             'mysqldump',
             '/usr/bin/mysqldump',
@@ -140,7 +144,7 @@ class BackupController extends BaseController
         foreach ($candidates as $cmd) {
             $output = [];
             $code   = 0;
-            exec(escapeshellcmd($cmd) . ' --version 2>&1', $output, $code);
+            \exec(escapeshellcmd($cmd) . ' --version 2>&1', $output, $code);
             if ($code === 0) {
                 return $cmd;
             }
@@ -161,6 +165,10 @@ class BackupController extends BaseController
         string $password,
         string $outputPath
     ): bool {
+        if (! function_exists('exec')) {
+            return false;
+        }
+
         $passArg = $password !== '' ? '-p' . escapeshellarg($password) : '';
 
         $cmd = sprintf(
@@ -174,7 +182,7 @@ class BackupController extends BaseController
             escapeshellarg($outputPath)
         );
 
-        exec($cmd, $output, $returnCode);
+        \exec($cmd, $output, $returnCode);
 
         return $returnCode === 0 && file_exists($outputPath) && filesize($outputPath) > 0;
     }
