@@ -47,6 +47,12 @@ class CartController extends BaseController
                 $p = $this->produkModel->find($produkId);
                 if (! $p || ! $p['is_active']) continue;
 
+                // Otomatis hapus dari keranjang jika user sudah memiliki produk ini
+                if ($this->userProdukModel->hasAccess($userId, $produkId)) {
+                    $this->cartService->removeItem($userId, $produkId);
+                    continue;
+                }
+
                 // Promosi aktif
                 $promosi = $db->table('promosi')
                     ->where('produk_id', $produkId)
@@ -68,7 +74,7 @@ class CartController extends BaseController
                     $p['harga_promo'] = max(0, $p['harga'] - $diskonTerbesar);
                 }
 
-                $p['sudah_beli'] = $this->userProdukModel->hasAccess($userId, $produkId);
+                $p['sudah_beli'] = false;
                 $produkList[]    = $p;
             }
         }

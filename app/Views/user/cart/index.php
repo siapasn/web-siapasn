@@ -48,7 +48,8 @@
                     : base_url('assets/images/thumbnail/product-default.png');
                 $hargaTampil = $p['harga_promo'] ?? $p['harga'];
                 ?>
-                <div class="card border-0 shadow-sm mb-3" id="cart-item-<?= $p['id'] ?>">
+                <div class="card border-0 shadow-sm mb-3" id="cart-item-<?= $p['id'] ?>"
+                     data-harga="<?= (int)($p['harga_promo'] ?? $p['harga']) ?>">
                     <div class="card-body">
                         <div class="d-flex gap-3 align-items-center">
                             <!-- Thumbnail -->
@@ -106,9 +107,9 @@
                 <div class="card-header bg-white border-bottom fw-semibold">
                     <i class="bi bi-receipt me-1"></i>Ringkasan Pesanan
                 </div>
-                <div class="card-body">
+                <div class="card-body" id="ringkasan-body">
                     <?php foreach ($produkList as $p): ?>
-                        <div class="d-flex justify-content-between small mb-2">
+                        <div class="d-flex justify-content-between small mb-2 ringkasan-item" data-produk-id="<?= $p['id'] ?>">
                             <span class="text-truncate me-2" style="max-width:160px"><?= esc($p['nama']) ?></span>
                             <span class="fw-semibold text-nowrap">
                                 Rp <?= number_format($p['harga_promo'] ?? $p['harga'], 0, ',', '.') ?>
@@ -119,7 +120,7 @@
                     <hr>
                     <div class="d-flex justify-content-between fw-bold mb-4">
                         <span>Total</span>
-                        <span class="text-primary fs-5">Rp <?= number_format($total, 0, ',', '.') ?></span>
+                        <span class="text-primary fs-5" id="ringkasan-total">Rp <?= number_format($total, 0, ',', '.') ?></span>
                     </div>
 
                     <div class="alert alert-info py-2 small mb-3">
@@ -158,6 +159,27 @@
     const csrfHash  = '<?= csrf_hash() ?>';
     const removeUrl = '<?= base_url('user/cart/remove') ?>';
 
+    function formatRupiah(angka) {
+        return 'Rp ' + angka.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    }
+
+    function updateRingkasan(removedProdukId) {
+        // Hapus baris item di ringkasan
+        const ringkasanItem = document.querySelector('.ringkasan-item[data-produk-id="' + removedProdukId + '"]');
+        if (ringkasanItem) ringkasanItem.remove();
+
+        // Hitung ulang total dari card items yang masih ada
+        let newTotal = 0;
+        document.querySelectorAll('[id^="cart-item-"]').forEach(function (card) {
+            const harga = parseInt(card.dataset.harga) || 0;
+            newTotal += harga;
+        });
+
+        // Update total di ringkasan
+        const totalEl = document.getElementById('ringkasan-total');
+        if (totalEl) totalEl.textContent = formatRupiah(newTotal);
+    }
+
     document.querySelectorAll('.btn-remove-cart').forEach(function (btn) {
         btn.addEventListener('click', function () {
             const produkId = this.dataset.produkId;
@@ -172,6 +194,7 @@
             .then(data => {
                 if (data.status) {
                     if (card) card.remove();
+                    updateRingkasan(produkId);
                     // Update badge keranjang di navbar
                     const badge = document.getElementById('cart-badge');
                     if (badge) badge.textContent = data.count;
