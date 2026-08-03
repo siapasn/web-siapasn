@@ -147,7 +147,7 @@ class CartController extends BaseController
 
     /**
      * POST: Checkout — arahkan ke halaman pilih metode pembayaran
-     * untuk item pertama yang belum dibeli.
+     * untuk semua item keranjang yang belum dibeli.
      */
     public function checkout()
     {
@@ -158,13 +158,20 @@ class CartController extends BaseController
             return redirect()->to(base_url('user/cart'))->with('error', 'Keranjang kosong.');
         }
 
-        // Cari item pertama yang belum dibeli → arahkan ke pilih metode pembayaran
+        // Cek apakah ada item yang belum dibeli
+        $adaYangBelumBeli = false;
         foreach ($items as $produkId) {
             if (! $this->userProdukModel->hasAccess($userId, $produkId)) {
-                return redirect()->to(base_url('user/transaksi/pilih-metode/' . $produkId));
+                $adaYangBelumBeli = true;
+                break;
             }
         }
 
-        return redirect()->to(base_url('user/cart'))->with('info', 'Semua produk di keranjang sudah Anda miliki.');
+        if (! $adaYangBelumBeli) {
+            return redirect()->to(base_url('user/cart'))->with('info', 'Semua produk di keranjang sudah Anda miliki.');
+        }
+
+        // Arahkan ke halaman pilih metode untuk semua item keranjang
+        return redirect()->to(base_url('user/transaksi/pilih-metode-cart'));
     }
 }

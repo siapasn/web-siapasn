@@ -108,7 +108,89 @@ class TransaksiController extends BaseController
 
         return view('user/transaksi/pilih-metode', [
             'produk'         => $produk,
+            'produkList'     => null,
             'hargaPromo'     => $hargaPromo,
+            'paymentMethods' => MidtransService::PAYMENT_METHODS,
+            'menus'          => $this->getMenus(),
+        ]);
+    }
+
+    /**
+     * Halaman pilih metode pembayaran untuk semua item di keranjang.
+     * GET user/transaksi/pilih-metode-cart
+     */
+    public function pilihMetodeCart()
+    {
+        $userId      = session()->get('user_id');
+        $cartService = new \App\Services\CartService();
+        $items       = $cartService->getItems((int) $userId);
+
+        if (empty($items)) {
+            return redirect()->to(base_url('user/cart'))->with('error', 'Keranjang kosong.');
+        }
+
+        $db  = \Config\Database::connect();
+        $now = date('Y-m-d H:i:s');
+
+        $produkList  = [];
+        $totalHarga  = 0;
+        $totalDiskon = 0;
+
+        foreach ($items as $produkId) {
+            $produk = $this->produkModel->find($produkId);
+            if (! $produk || ! $produk['is_active']) continue;
+            if ($this->userProdukModel->hasAccess($userId, $produkId)) continue;
+
+            // Hitung harga promo
+            $promosi = $db->table('promosi')
+                ->where('produk_id', $produkId)
+                ->where('is_active', 1)
+                ->where('mulai_at <=', $now)
+                ->where('berakhir_at >=', $now)
+                ->get()->getResultArray();
+
+            $hargaPromo = null;
+            $diskon     = 0;
+            if (! empty($promosi)) {
+                $diskonTerbesar = 0;
+                foreach ($promosi as $pr) {
+                    $d = $pr['jenis_diskon'] === 'persentase'
+                        ? $produk['harga'] * ($pr['nilai_diskon'] / 100)
+                        : min((float)$pr['nilai_diskon'], $produk['harga']);
+                    if ($d > $diskonTerbesar) $diskonTerbesar = $d;
+                }
+                $hargaPromo = max(0, $produk['harga'] - $diskonTerbesar);
+                $diskon     = $diskonTerbesar;
+            }
+
+            $produk['harga_promo'] = $hargaPromo;
+            $produk['diskon']      = $diskon;
+
+            // Hitung jumlah sesi tryout
+            $jml = $db->table('mapping_tryout')->where('produk_id', $produk['id'])->countAllResults();
+            $produk['jumlah_tryout'] = $jml;
+
+            $produkList[] = $produk;
+            $totalHarga  += (float) $produk['harga'];
+            $totalDiskon += $diskon;
+        }
+
+        if (empty($produkList)) {
+            return redirect()->to(base_url('user/cart'))->with('info', 'Tidak ada produk yang bisa dibeli.');
+        }
+
+        // Jika hanya 1 item, redirect ke halaman pilih-metode single
+        if (count($produkList) === 1) {
+            return redirect()->to(base_url('user/transaksi/pilih-metode/' . $produkList[0]['id']));
+        }
+
+        return view('user/transaksi/pilih-metode', [
+            'produk'         => null,
+            'produkList'     => $produkList,
+            'totalHarga'     => $totalHarga,
+            'totalDiskon'    => $totalDiskon,
+            'totalBayar'     => max(0, $totalHarga - $totalDiskon),
+            'hargaPromo'     => null,
             'paymentMethods' => MidtransService::PAYMENT_METHODS,
             'menus'          => $this->getMenus(),
         ]);
@@ -230,6 +312,133 @@ class TransaksiController extends BaseController
         );
 
         return redirect()->to(base_url('user/transaksi/' . $transaksiId));
+    }
+
+    /**
+     * Proses pembelian multi-produk dari keranjang.
+     * Setiap produk akan diproses sebagai transaksi terpisah.
+     * POST user/transaksi/beli-cart
+     */
+    public function beliCart()
+    {
+        $userId        = session()->get('user_id');
+        $db            = \Config\Database::connect();
+        $paymentMethod = $this->request->getPost('payment_method') ?? '';
+        $kodeVoucher   = $this->request->getPost('voucher_code');
+
+        // Validasi metode pembayaran
+        if ($paymentMethod !== '' && ! isset(MidtransService::PAYMENT_METHODS[$paymentMethod])) {
+            return redirect()->back()->with('error', 'Metode pembayaran tidak valid.');
+        }
+
+        $cartService = new \App\Services\CartService();
+        $items       = $cartService->getItems((int) $userId);
+
+        if (empty($items)) {
+            return redirect()->to(base_url('user/cart'))->with('error', 'Keranjang kosong.');
+        }
+
+        $now            = date('Y-m-d H:i:s');
+        $user           = $db->table('users')->where('id', $userId)->get()->getRowArray();
+        $firstTransaksiId = null;
+
+        foreach ($items as $produkId) {
+            $produk = $this->produkModel->find($produkId);
+            if (! $produk || ! $produk['is_active']) continue;
+            if ($this->userProdukModel->hasAccess($userId, $produkId)) continue;
+
+            $hargaAsli = (float) $produk['harga'];
+            $diskon    = 0.0;
+            $voucherId = null;
+
+            // Hitung diskon dari promosi aktif
+            $promosiAktif = $db->table('promosi')
+                ->where('produk_id', $produkId)
+                ->where('is_active', 1)
+                ->where('mulai_at <=', $now)
+                ->where('berakhir_at >=', $now)
+                ->get()->getResultArray();
+
+            if (! empty($promosiAktif)) {
+                $diskonPromoTerbesar = 0;
+                foreach ($promosiAktif as $pr) {
+                    $d = $pr['jenis_diskon'] === 'persentase'
+                        ? $hargaAsli * ($pr['nilai_diskon'] / 100)
+                        : min((float)$pr['nilai_diskon'], $hargaAsli);
+                    if ($d > $diskonPromoTerbesar) $diskonPromoTerbesar = $d;
+                }
+                $diskon = $diskonPromoTerbesar;
+            }
+
+            // Voucher — hanya apply ke item pertama
+            if (! empty($kodeVoucher) && $firstTransaksiId === null) {
+                $voucherService = new VoucherService();
+                $voucher        = $voucherService->validate($kodeVoucher, $userId);
+                if ($voucher) {
+                    $diskonVoucher = $voucherService->hitungDiskon($hargaAsli, $voucher);
+                    if ($diskonVoucher > $diskon) {
+                        $diskon    = $diskonVoucher;
+                        $voucherId = $voucher['id'];
+                    }
+                }
+            }
+
+            $hargaBayar    = max(0, $hargaAsli - $diskon);
+            $kodeTransaksi = $this->transaksiModel->generateKode();
+
+            $transaksiData = [
+                'user_id'           => $userId,
+                'produk_id'         => $produkId,
+                'voucher_id'        => $voucherId,
+                'kode_transaksi'    => $kodeTransaksi,
+                'midtrans_order_id' => $kodeTransaksi,
+                'harga_asli'        => $hargaAsli,
+                'diskon'            => $diskon,
+                'harga_bayar'       => $hargaBayar,
+                'status'            => 'pending',
+                'payment_method'    => $paymentMethod ?: null,
+            ];
+
+            $transaksiId = $this->transaksiModel->insert($transaksiData);
+            if (! $transaksiId) continue;
+
+            $transaksiData['id'] = $transaksiId;
+
+            if ($firstTransaksiId === null) {
+                $firstTransaksiId = $transaksiId;
+            }
+
+            if ($voucherId) {
+                (new VoucherService())->apply($voucherId);
+                // Reset voucher code so it's not reused for next items
+                $kodeVoucher = '';
+            }
+
+            // Buat Snap token
+            try {
+                $midtransService = new MidtransService();
+                $snapToken       = $midtransService->createSnapToken($transaksiData, $user, $produk, $paymentMethod);
+                $this->transaksiModel->update($transaksiId, ['snap_token' => $snapToken]);
+            } catch (\RuntimeException $e) {
+                log_message('error', 'Midtrans createSnapToken error (cart): ' . $e->getMessage());
+            }
+
+            // Notifikasi
+            \App\Models\NotifikasiModel::kirim(
+                $userId,
+                'transaksi',
+                'Menunggu Pembayaran',
+                'Segera selesaikan pembayaran untuk ' . $produk['nama'],
+                'user/transaksi/' . $transaksiId
+            );
+        }
+
+        if ($firstTransaksiId === null) {
+            return redirect()->to(base_url('user/cart'))->with('error', 'Gagal membuat transaksi.');
+        }
+
+        // Redirect ke transaksi pertama
+        return redirect()->to(base_url('user/transaksi/' . $firstTransaksiId));
     }
 
     /**

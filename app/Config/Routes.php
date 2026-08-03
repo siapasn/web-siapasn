@@ -41,6 +41,8 @@ $routes->group('user', ['filter' => 'auth'], function ($routes) {
     // Transaksi
     $routes->post('transaksi/beli/(:num)', 'User\TransaksiController::beli/$1');
     $routes->get('transaksi/pilih-metode/(:num)', 'User\TransaksiController::pilihMetode/$1');
+    $routes->get('transaksi/pilih-metode-cart', 'User\TransaksiController::pilihMetodeCart');
+    $routes->post('transaksi/beli-cart', 'User\TransaksiController::beliCart');
     $routes->get('transaksi', 'User\TransaksiController::index');
     $routes->get('transaksi/riwayat', 'User\TransaksiController::riwayat');
     $routes->get('transaksi/(:num)', 'User\TransaksiController::show/$1');
