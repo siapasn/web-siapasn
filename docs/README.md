@@ -77,6 +77,7 @@ Dokumentasi teknis untuk project **bimbel-cpns** (SiapASN Simulation Center), pl
 | [passing-grade-per-sub-kategori.md](./features/passing-grade-per-sub-kategori.md) | Passing grade per sub kategori + scoring TKP (SCORE) berdasarkan nilai 1-5 |
 | [midtrans-payment-methods.md](./features/midtrans-payment-methods.md) | Halaman pilih metode pembayaran (QRIS, GoPay, ShopeePay, Mandiri, BNI, BRI, Permata) sebelum checkout via Midtrans Snap |
 | [cart-checkout-multi-produk.md](./features/cart-checkout-multi-produk.md) | Checkout keranjang multi-paket — halaman pilih metode menampilkan semua item dengan harga & diskon masing-masing |
+| [transaksi-batalkan.md](./features/transaksi-batalkan.md) | Fitur pembatalan transaksi pending oleh user + cancel ke Midtrans API |
 
 ---
 
@@ -85,6 +86,7 @@ Dokumentasi teknis untuk project **bimbel-cpns** (SiapASN Simulation Center), pl
 | Tanggal | Kategori | Deskripsi |
 |---|---|---|
 | 2026-08-03 | Fix | Cart checkout multi-produk — pilih metode menampilkan semua item keranjang + UI responsive mobile (fixed bottom bar, order summary first) |
+| 2026-08-04 | Feature | Pembatalan transaksi pending — tombol batalkan + modal konfirmasi + cancel Midtrans API |
 | 2026-06-07 | Fix | CSRF regenerate=true menyebabkan tombol aksi tabel kedua gagal diam-diam — fix regenerate=false |
 | 2026-06-07 | Feature | Email verification required — user nonaktif saat register, aktif setelah klik link verifikasi |
 | 2026-06-07 | Feature | Halaman daftar formasi SKB — 258 formasi per kategori, status tersedia/request tryout, live search |

@@ -47,7 +47,7 @@ class TransaksiController extends BaseController
             ->where('t.user_id', $userId)
             ->orderBy('t.created_at', 'DESC');
 
-        $validStatuses = ['pending', 'success', 'failed', 'expired'];
+        $validStatuses = ['pending', 'success', 'failed', 'expired', 'cancelled'];
         if ($statusFilter && in_array($statusFilter, $validStatuses)) {
             $builder->where('t.status', $statusFilter);
         }
@@ -461,7 +461,7 @@ class TransaksiController extends BaseController
         }
 
         // Jika sudah final, tidak perlu cek ke Midtrans
-        if (in_array($transaksi['status'], ['success', 'failed', 'expired'])) {
+        if (in_array($transaksi['status'], ['success', 'failed', 'expired', 'cancelled'])) {
             return $this->response->setJSON([
                 'status'           => true,
                 'transaction_status' => $transaksi['status'],
@@ -532,6 +532,58 @@ class TransaksiController extends BaseController
             'redirect'           => ($newStatus === 'success') ? base_url('user/dashboard') : null,
         ]);
     }
+
+    /**
+     * POST: Batalkan transaksi yang masih pending.
+     * URL: user/transaksi/{id}/batalkan
+     */
+    public function batalkan(int $id)
+    {
+        $userId = session()->get('user_id');
+        $db     = \Config\Database::connect();
+
+        $transaksi = $db->table('transaksi')
+            ->where('id', $id)
+            ->where('user_id', $userId)
+            ->get()->getRowArray();
+
+        if (! $transaksi) {
+            return redirect()->to(base_url('user/transaksi'))->with('error', 'Transaksi tidak ditemukan.');
+        }
+
+        if ($transaksi['status'] !== 'pending') {
+            return redirect()->to(base_url('user/transaksi/' . $id))
+                ->with('error', 'Hanya transaksi dengan status pending yang dapat dibatalkan.');
+        }
+
+        // Update status ke cancelled
+        $this->transaksiModel->updateStatus($id, 'cancelled');
+
+        // Cancel di Midtrans jika ada order_id
+        if (! empty($transaksi['midtrans_order_id'])) {
+            try {
+                $midtransService = new MidtransService();
+                $midtransService->cancelTransaction($transaksi['midtrans_order_id']);
+            } catch (\Exception $e) {
+                log_message('error', 'Midtrans cancelTransaction error: ' . $e->getMessage());
+                // Tetap lanjut meskipun gagal cancel di Midtrans
+            }
+        }
+
+        // Kirim notifikasi
+        $produk = $this->produkModel->find($transaksi['produk_id']);
+        \App\Models\NotifikasiModel::kirim(
+            $userId,
+            'transaksi',
+            'Transaksi Dibatalkan',
+            'Transaksi untuk ' . ($produk['nama'] ?? 'produk') . ' telah dibatalkan.',
+            'user/transaksi/' . $id
+        );
+
+        return redirect()->to(base_url('user/transaksi/' . $id))
+            ->with('success', 'Transaksi berhasil dibatalkan.');
+    }
+
     public function show(int $id)
     {
         $userId = session()->get('user_id');

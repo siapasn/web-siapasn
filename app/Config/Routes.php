@@ -47,6 +47,7 @@ $routes->group('user', ['filter' => 'auth'], function ($routes) {
     $routes->get('transaksi/riwayat', 'User\TransaksiController::riwayat');
     $routes->get('transaksi/(:num)', 'User\TransaksiController::show/$1');
     $routes->get('transaksi/(:num)/cek-status', 'User\TransaksiController::cekStatus/$1');
+    $routes->post('transaksi/(:num)/batalkan', 'User\TransaksiController::batalkan/$1');
 
     // Tryout
     $routes->get('tryout', 'User\TryoutController::index');

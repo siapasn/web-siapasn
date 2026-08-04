@@ -28,7 +28,7 @@
                class="btn btn-sm <?= empty($statusFilter) ? 'btn-primary' : 'btn-outline-secondary' ?>">
                 Semua
             </a>
-            <?php foreach (['pending' => 'warning', 'success' => 'success', 'failed' => 'danger', 'expired' => 'secondary'] as $status => $color): ?>
+            <?php foreach (['pending' => 'warning', 'success' => 'success', 'failed' => 'danger', 'expired' => 'secondary', 'cancelled' => 'dark'] as $status => $color): ?>
                 <a href="<?= base_url('user/transaksi?status=' . $status) ?>"
                    class="btn btn-sm <?= $statusFilter === $status ? 'btn-' . $color : 'btn-outline-' . $color ?>">
                     <?= ucfirst($status) ?>
@@ -80,10 +80,11 @@
                                 <td class="text-center">
                                     <?php
                                         $badgeMap = [
-                                            'pending' => 'warning',
-                                            'success' => 'success',
-                                            'failed'  => 'danger',
-                                            'expired' => 'secondary',
+                                            'pending'   => 'warning',
+                                            'success'   => 'success',
+                                            'failed'    => 'danger',
+                                            'expired'   => 'secondary',
+                                            'cancelled' => 'dark',
                                         ];
                                         $badgeColor = $badgeMap[$t['status']] ?? 'secondary';
                                     ?>

@@ -195,6 +195,43 @@ class MidtransService
     }
 
     /**
+     * Cancel transaksi di Midtrans.
+     * Hanya bisa dilakukan untuk transaksi yang masih pending.
+     */
+    public function cancelTransaction(string $orderId): array
+    {
+        $baseUrl = $this->isProduction
+            ? 'https://api.midtrans.com/v2/'
+            : 'https://api.sandbox.midtrans.com/v2/';
+
+        $url = $baseUrl . urlencode($orderId) . '/cancel';
+
+        $ch = curl_init();
+        curl_setopt_array($ch, [
+            CURLOPT_URL            => $url,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST           => true,
+            CURLOPT_POSTFIELDS     => '',
+            CURLOPT_HTTPHEADER     => [
+                'Accept: application/json',
+                'Content-Type: application/json',
+                'Authorization: Basic ' . base64_encode($this->serverKey . ':'),
+            ],
+            CURLOPT_TIMEOUT        => 15,
+        ]);
+
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($httpCode !== 200) {
+            throw new \RuntimeException('Midtrans Cancel API error (' . $httpCode . '): ' . $response);
+        }
+
+        return json_decode($response, true) ?? [];
+    }
+
+    /**
      * Verifikasi signature webhook Midtrans.
      * Signature = SHA512(order_id + status_code + gross_amount + server_key)
      */

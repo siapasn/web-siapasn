@@ -24,10 +24,11 @@
         <!-- Status Banner -->
         <?php
             $statusConfig = [
-                'pending'  => ['color' => 'warning',   'icon' => 'bi-hourglass-split',    'label' => 'Menunggu Pembayaran'],
-                'success'  => ['color' => 'success',   'icon' => 'bi-check-circle-fill',  'label' => 'Pembayaran Berhasil'],
-                'failed'   => ['color' => 'danger',    'icon' => 'bi-x-circle-fill',      'label' => 'Pembayaran Gagal'],
-                'expired'  => ['color' => 'secondary', 'icon' => 'bi-clock-history',      'label' => 'Transaksi Kedaluwarsa'],
+                'pending'    => ['color' => 'warning',   'icon' => 'bi-hourglass-split',    'label' => 'Menunggu Pembayaran'],
+                'success'    => ['color' => 'success',   'icon' => 'bi-check-circle-fill',  'label' => 'Pembayaran Berhasil'],
+                'failed'     => ['color' => 'danger',    'icon' => 'bi-x-circle-fill',      'label' => 'Pembayaran Gagal'],
+                'expired'    => ['color' => 'secondary', 'icon' => 'bi-clock-history',      'label' => 'Transaksi Kedaluwarsa'],
+                'cancelled'  => ['color' => 'dark',      'icon' => 'bi-slash-circle',       'label' => 'Transaksi Dibatalkan'],
             ];
             $sc = $statusConfig[$transaksi['status']] ?? $statusConfig['pending'];
         ?>
@@ -101,7 +102,7 @@
 
         <!-- Tombol Lanjut Bayar (hanya jika pending dan ada snap_token) -->
         <?php if ($transaksi['status'] === 'pending' && !empty($transaksi['snap_token'])): ?>
-            <div class="card border-0 shadow-sm border-warning">
+            <div class="card border-0 shadow-sm border-warning mb-3">
                 <div class="card-body text-center py-4">
                     <?php if (! empty($transaksi['payment_method'])): ?>
                         <?php
@@ -119,6 +120,40 @@
                     <button id="pay-button" class="btn btn-warning btn-lg px-5 fw-bold">
                         <i class="bi bi-credit-card me-2"></i>Bayar Sekarang
                     </button>
+                </div>
+            </div>
+
+            <!-- Tombol Batalkan Transaksi -->
+            <div class="text-center">
+                <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modalBatalkan">
+                    <i class="bi bi-x-circle me-1"></i>Batalkan Transaksi
+                </button>
+            </div>
+
+            <!-- Modal Konfirmasi Batalkan -->
+            <div class="modal fade" id="modalBatalkan" tabindex="-1" aria-labelledby="modalBatalkanLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-sm">
+                    <div class="modal-content">
+                        <div class="modal-header border-0 pb-0">
+                            <h6 class="modal-title fw-bold" id="modalBatalkanLabel">Batalkan Transaksi?</h6>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body text-center">
+                            <i class="bi bi-exclamation-triangle text-warning" style="font-size:2.5rem"></i>
+                            <p class="mt-2 mb-0 small text-muted">
+                                Transaksi yang dibatalkan tidak dapat dikembalikan. Anda perlu membuat transaksi baru jika ingin membeli paket ini.
+                            </p>
+                        </div>
+                        <div class="modal-footer border-0 justify-content-center gap-2 pt-0">
+                            <button type="button" class="btn btn-sm btn-secondary px-3" data-bs-dismiss="modal">Tidak</button>
+                            <form method="post" action="<?= base_url('user/transaksi/' . $transaksi['id'] . '/batalkan') ?>" class="d-inline">
+                                <?= csrf_field() ?>
+                                <button type="submit" class="btn btn-sm btn-danger px-3">
+                                    <i class="bi bi-x-circle me-1"></i>Ya, Batalkan
+                                </button>
+                            </form>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -164,7 +199,7 @@
                     <i class="bi bi-play-circle me-2"></i>Mulai Tryout
                 </a>
             </div>
-        <?php elseif (in_array($transaksi['status'], ['failed', 'expired'])): ?>
+        <?php elseif (in_array($transaksi['status'], ['failed', 'expired', 'cancelled'])): ?>
             <div class="text-center">
                 <a href="<?= base_url('user/transaksi/pilih-metode/' . $transaksi['produk_id']) ?>"
                    class="btn btn-primary btn-lg px-5">
