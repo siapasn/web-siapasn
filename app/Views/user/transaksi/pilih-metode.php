@@ -247,8 +247,8 @@ $isCart = ! empty($produkList);
 
                     <?php
                     $groups = [
-                        'QRIS & E-Wallet' => ['qris', 'gopay', 'shopeepay', 'dana'],
-                        'Transfer Bank'   => ['mandiri', 'bni', 'bri', 'permata'],
+                        // 'QRIS & E-Wallet' => ['qris', 'gopay', 'shopeepay', 'dana'],
+                        'Transfer Bank'   => ['mandiri', 'bni', 'bri'],
                     ];
                     $bgColors = [
                         'qris'      => '#e31e24',

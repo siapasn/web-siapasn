@@ -132,7 +132,7 @@
             padding: 0.5rem 1.5rem;
             position: sticky;
             top: 0;
-            z-index: 999;
+            z-index: 1030;
             box-shadow: 0 1px 4px rgba(0,0,0,0.06);
         }
 
@@ -146,6 +146,7 @@
             width: 340px;
             max-height: 400px;
             overflow-y: auto;
+            z-index: 1050;
         }
 
         /* Mobile Version */

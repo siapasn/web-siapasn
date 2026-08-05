@@ -54,6 +54,7 @@ Dokumentasi teknis untuk project **bimbel-cpns** (SiapASN Simulation Center), pl
 | [csp-midtrans-snap-blocked.md](./troubleshooting/csp-midtrans-snap-blocked.md) | CSP memblokir Midtrans Snap — fix header di BaseController dan .htaccess |
 | [midtrans-status-not-updating-localhost.md](./troubleshooting/midtrans-status-not-updating-localhost.md) | Status transaksi tidak berubah di localhost — pull-based fallback via Midtrans Status API |
 | [cart-checkout-404-route-mismatch.md](./troubleshooting/cart-checkout-404-route-mismatch.md) | Fix 404 saat checkout dari keranjang — redirect ke POST-only route |
+| [notif-popup-hidden-and-cart-not-cleared.md](./troubleshooting/notif-popup-hidden-and-cart-not-cleared.md) | Popup notifikasi tertutup konten (z-index) & keranjang tidak dikosongkan setelah pilih metode pembayaran |
 
 ---
 
@@ -85,6 +86,7 @@ Dokumentasi teknis untuk project **bimbel-cpns** (SiapASN Simulation Center), pl
 
 | Tanggal | Kategori | Deskripsi |
 |---|---|---|
+| 2026-08-05 | Fix | Popup notifikasi tertutup konten (z-index topbar) & keranjang tidak dikosongkan setelah pilih metode pembayaran |
 | 2026-08-03 | Fix | Cart checkout multi-produk — pilih metode menampilkan semua item keranjang + UI responsive mobile (fixed bottom bar, order summary first) |
 | 2026-08-04 | Feature | Pembatalan transaksi pending — tombol batalkan + modal konfirmasi + cancel Midtrans API |
 | 2026-06-07 | Fix | CSRF regenerate=true menyebabkan tombol aksi tabel kedua gagal diam-diam — fix regenerate=false |

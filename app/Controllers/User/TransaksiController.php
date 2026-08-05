@@ -437,6 +437,9 @@ class TransaksiController extends BaseController
             return redirect()->to(base_url('user/cart'))->with('error', 'Gagal membuat transaksi.');
         }
 
+        // Kosongkan keranjang setelah semua transaksi berhasil dibuat
+        $cartService->clear((int) $userId);
+
         // Redirect ke transaksi pertama
         return redirect()->to(base_url('user/transaksi/' . $firstTransaksiId));
     }
