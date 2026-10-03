@@ -23,16 +23,16 @@ class MidtransService
             'color'    => '#e31e24',
         ],
         'gopay' => [
-            'label'    => 'QRIS GoPay',
+            'label'    => 'GoPay',
             'icon'     => 'gopay',
             'desc'     => 'Bayar dengan scan QR via GoPay',
             'enabled'  => ['gopay'],
             'color'    => '#00aed6',
         ],
         'shopeepay' => [
-            'label'    => 'QRIS ShopeePay',
+            'label'    => 'ShopeePay',
             'icon'     => 'shopeepay',
-            'desc'     => 'Bayar dengan scan QR via ShopeePay',
+            'desc'     => 'Bayar dengan ShopeePay (Aggregator)',
             'enabled'  => ['shopeepay'],
             'color'    => '#ee4d2d',
         ],
@@ -64,6 +64,13 @@ class MidtransService
             'enabled'  => ['bri_va'],
             'color'    => '#005baa',
         ],
+        'bsi' => [
+            'label'    => 'Bank Transfer BSI',
+            'icon'     => 'bsi',
+            'desc'     => 'Transfer via BYOND by BSI mobile app',
+            'enabled'  => ['bsi_va'],
+            'color'    => '#c3ad04',
+        ],
         'permata' => [
             'label'    => 'Bank Transfer Permata',
             'icon'     => 'permata',
@@ -82,12 +89,42 @@ class MidtransService
 
         $configMap = array_column($configs, 'config_value', 'config_key');
 
-        $this->serverKey    = $configMap['midtrans_server_key'] ?? env('MIDTRANS_SERVER_KEY', '');
-        $this->clientKey    = $configMap['midtrans_client_key'] ?? env('MIDTRANS_CLIENT_KEY', '');
-        $this->isProduction = ($configMap['midtrans_environment'] ?? 'sandbox') === 'production';
-        $this->snapUrl      = $this->isProduction
+        $this->serverKey = trim($configMap['midtrans_server_key'] ?? env('MIDTRANS_SERVER_KEY', ''));
+        $this->clientKey = trim($configMap['midtrans_client_key'] ?? env('MIDTRANS_CLIENT_KEY', ''));
+
+        // Environment ditentukan oleh config 'midtrans_environment'
+        // ('sandbox' atau 'production'). Snap token creation DAN status check
+        // harus memakai environment yang sama agar transaksi bisa ditemukan.
+        $envConfig          = strtolower(trim($configMap['midtrans_environment'] ?? 'sandbox'));
+        $this->isProduction = $envConfig === 'production';
+
+        $this->snapUrl = $this->isProduction
             ? 'https://app.midtrans.com/snap/v1/transactions'
             : 'https://app.sandbox.midtrans.com/snap/v1/transactions';
+    }
+
+    /**
+     * Validasi dasar konfigurasi Midtrans.
+     *
+     * Catatan: format prefix server key TIDAK dipakai untuk menentukan environment.
+     * Beberapa akun sandbox Midtrans memiliki server key tanpa prefix "SB-"
+     * (contoh: "Mid-server-..."), sehingga environment ditentukan sepenuhnya oleh
+     * setting 'midtrans_environment', bukan dari bentuk key.
+     *
+     * @return string[] Daftar pesan masalah konfigurasi (kosong = valid).
+     */
+    public function validateConfig(): array
+    {
+        $issues = [];
+
+        if ($this->serverKey === '') {
+            $issues[] = 'Server key Midtrans belum diisi.';
+        }
+        if ($this->clientKey === '') {
+            $issues[] = 'Client key Midtrans belum diisi.';
+        }
+
+        return $issues;
     }
 
     /**
@@ -191,7 +228,24 @@ class MidtransService
             throw new \RuntimeException('Midtrans Status API error (' . $httpCode . '): ' . $response);
         }
 
-        return json_decode($response, true) ?? [];
+        $data = json_decode($response, true) ?? [];
+
+        // Midtrans Status API mengembalikan HTTP 200 walau transaksi tidak ditemukan
+        // atau kredensial salah. Status sebenarnya ada di body "status_code".
+        // Perlakukan 401 (merchant/key salah), 404 (transaksi tidak ada), dan 5xx
+        // sebagai error agar tidak gagal diam-diam (silent failure) di cron.
+        $apiStatusCode = (int) ($data['status_code'] ?? 0);
+        if ($apiStatusCode === 401 || $apiStatusCode === 404 || $apiStatusCode >= 500) {
+            throw new \RuntimeException(sprintf(
+                'Midtrans Status API error (status_code %d): %s [env=%s, order_id=%s]',
+                $apiStatusCode,
+                $data['status_message'] ?? 'Unknown error',
+                $this->isProduction ? 'production' : 'sandbox',
+                $orderId
+            ));
+        }
+
+        return $data;
     }
 
     /**
@@ -288,6 +342,10 @@ class MidtransService
             case 'bri_va':
                 $method  = 'bri';
                 $channel = 'bri';
+                break;
+            case 'bsi_va':
+                $method  = 'bsi';
+                $channel = 'bsi';
                 break;
             case 'permata_va':
                 $method  = 'permata';

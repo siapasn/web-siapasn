@@ -86,6 +86,20 @@ class CronController extends BaseController
                 ->setJSON(['success' => false, 'message' => 'MidtransService error: ' . $e->getMessage()]);
         }
 
+        // Validasi konsistensi key vs environment. Jika mismatch, hentikan lebih awal
+        // dengan pesan jelas — tanpa ini, semua transaksi akan gagal dicek (404/401)
+        // dan status pembayaran tidak akan pernah terupdate.
+        $configIssues = $midtransService->validateConfig();
+        if (! empty($configIssues)) {
+            return $this->response
+                ->setStatusCode(500)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'Konfigurasi Midtrans tidak valid.',
+                    'issues'  => $configIssues,
+                ]);
+        }
+
         // Ambil semua transaksi pending yang dibuat lebih dari 1 menit lalu
         // (hindari race condition dengan transaksi yang baru saja dibuat)
         $pendingTransaksi = $db->table('transaksi')

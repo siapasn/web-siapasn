@@ -311,6 +311,15 @@ class TransaksiController extends BaseController
             'user/transaksi/' . $transaksiId
         );
 
+        // Hapus produk ini dari keranjang (jika ada) karena pembayarannya
+        // sudah diproses dan user diarahkan ke halaman transaksi.
+        try {
+            $cartService = new \App\Services\CartService();
+            $cartService->removeItem((int) $userId, (int) $produkId);
+        } catch (\Exception $e) {
+            log_message('error', 'beli: gagal hapus item keranjang: ' . $e->getMessage());
+        }
+
         return redirect()->to(base_url('user/transaksi/' . $transaksiId));
     }
 

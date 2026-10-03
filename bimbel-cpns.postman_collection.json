@@ -1,0 +1,363 @@
+{
+  "info": {
+    "name": "Bimbel CPNS (SiapASN Simulation Center)",
+    "_postman_id": "b1mb3lcp-0000-4000-8000-000000000001",
+    "description": "Auto-generated Postman collection for the bimbel-cpns CodeIgniter 4 project.\n\n## Catatan Penting\n\n1. **Autentikasi**: Aplikasi memakai session cookie (bukan token). Jalankan request **Login** terlebih dahulu agar cookie `ci_session` tersimpan di Postman. Semua request `user/*`, `admin/*`, dan `superadmin/*` membutuhkan session yang valid.\n\n2. **CSRF**: Request POST dilindungi CSRF. Nama field default CodeIgniter adalah `csrf_test_name` dengan nilai dari cookie `csrf_cookie_name`. Isi variabel koleksi `csrf_token` setelah membuka halaman form terkait, atau sesuaikan `Config/Security.php`.\n\n3. **Variabel koleksi**:\n   - `base_url` = http://localhost:8081\n   - `id` = contoh ID numerik untuk endpoint ber-parameter\n   - `slug` = contoh slug/segment\n   - `token` = contoh token alphanum (verifikasi email / reset password / share)\n   - `cron_key` = API key untuk endpoint cron\n   - `csrf_token` = nilai CSRF untuk request POST",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8081", "type": "string" },
+    { "key": "id", "value": "1", "type": "string" },
+    { "key": "id2", "value": "1", "type": "string" },
+    { "key": "slug", "value": "contoh-slug", "type": "string" },
+    { "key": "token", "value": "abc123token", "type": "string" },
+    { "key": "cron_key", "value": "your-cron-key", "type": "string" },
+    { "key": "csrf_token", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Publik",
+      "item": [
+        { "name": "Landing Page", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/", "host": ["{{base_url}}"], "path": [""] } } },
+        { "name": "Syarat & Ketentuan", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/syarat-ketentuan", "host": ["{{base_url}}"], "path": ["syarat-ketentuan"] } } },
+        { "name": "Kebijakan Privasi", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/kebijakan-privasi", "host": ["{{base_url}}"], "path": ["kebijakan-privasi"] } } },
+        { "name": "Hubungi Kami", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/hubungi-kami", "host": ["{{base_url}}"], "path": ["hubungi-kami"] } } },
+        { "name": "Sitemap XML", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/sitemap.xml", "host": ["{{base_url}}"], "path": ["sitemap.xml"] } } },
+        { "name": "Serve File Publik", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/file/{{id}}", "host": ["{{base_url}}"], "path": ["file", "{{id}}"] } } },
+        { "name": "Share Hasil Tryout (Publik)", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/share/hasil/{{token}}", "host": ["{{base_url}}"], "path": ["share", "hasil", "{{token}}"] } } }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        { "name": "Login (Form)", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/login", "host": ["{{base_url}}"], "path": ["login"] } } },
+        { "name": "Login (Process)", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "email", "value": "[email protected]", "type": "text" }, { "key": "password", "value": "password", "type": "text" }, { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/login", "host": ["{{base_url}}"], "path": ["login"] } } },
+        { "name": "Register (Form)", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/register", "host": ["{{base_url}}"], "path": ["register"] } } },
+        { "name": "Register (Process)", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "nama", "value": "User Baru", "type": "text" }, { "key": "email", "value": "[email protected]", "type": "text" }, { "key": "password", "value": "password", "type": "text" }, { "key": "password_confirm", "value": "password", "type": "text" }, { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/register", "host": ["{{base_url}}"], "path": ["register"] } } },
+        { "name": "Logout", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/logout", "host": ["{{base_url}}"], "path": ["logout"] } } },
+        { "name": "Reset Password (Form)", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/reset-password", "host": ["{{base_url}}"], "path": ["reset-password"] } } },
+        { "name": "Reset Password (Request)", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "email", "value": "[email protected]", "type": "text" }, { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/reset-password", "host": ["{{base_url}}"], "path": ["reset-password"] } } },
+        { "name": "Reset Password Form (by token)", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/reset-password/{{token}}", "host": ["{{base_url}}"], "path": ["reset-password", "{{token}}"] } } },
+        { "name": "Reset Password Update", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "token", "value": "{{token}}", "type": "text" }, { "key": "password", "value": "newpassword", "type": "text" }, { "key": "password_confirm", "value": "newpassword", "type": "text" }, { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/reset-password/update", "host": ["{{base_url}}"], "path": ["reset-password", "update"] } } },
+        { "name": "Verify Email (by token)", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/verify-email/{{token}}", "host": ["{{base_url}}"], "path": ["verify-email", "{{token}}"] } } },
+        { "name": "Resend Verification", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "email", "value": "[email protected]", "type": "text" }, { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/resend-verification", "host": ["{{base_url}}"], "path": ["resend-verification"] } } }
+      ]
+    },
+    {
+      "name": "User",
+      "item": [
+        { "name": "Dashboard", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/user/dashboard", "host": ["{{base_url}}"], "path": ["user", "dashboard"] } } },
+        { "name": "Produk - List", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/user/produk", "host": ["{{base_url}}"], "path": ["user", "produk"] } } },
+        { "name": "Produk - Detail", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/user/produk/{{slug}}", "host": ["{{base_url}}"], "path": ["user", "produk", "{{slug}}"] } } },
+        { "name": "Transaksi - Pilih Metode", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/user/transaksi/pilih-metode/{{id}}", "host": ["{{base_url}}"], "path": ["user", "transaksi", "pilih-metode", "{{id}}"] } } },
+        { "name": "Transaksi - Pilih Metode Cart", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/user/transaksi/pilih-metode-cart", "host": ["{{base_url}}"], "path": ["user", "transaksi", "pilih-metode-cart"] } } },
+        { "name": "Transaksi - Beli", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "payment_method", "value": "bsi", "type": "text" }, { "key": "voucher_code", "value": "", "type": "text" }, { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/user/transaksi/beli/{{id}}", "host": ["{{base_url}}"], "path": ["user", "transaksi", "beli", "{{id}}"] } } },
+        { "name": "Transaksi - Beli Cart", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "payment_method", "value": "gopay", "type": "text" }, { "key": "voucher_code", "value": "", "type": "text" }, { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/user/transaksi/beli-cart", "host": ["{{base_url}}"], "path": ["user", "transaksi", "beli-cart"] } } },
+        { "name": "Transaksi - List", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/user/transaksi", "host": ["{{base_url}}"], "path": ["user", "transaksi"] } } },
+        { "name": "Transaksi - Riwayat", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/user/transaksi/riwayat", "host": ["{{base_url}}"], "path": ["user", "transaksi", "riwayat"] } } },
+        { "name": "Transaksi - Detail", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/user/transaksi/{{id}}", "host": ["{{base_url}}"], "path": ["user", "transaksi", "{{id}}"] } } },
+        { "name": "Transaksi - Cek Status", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/user/transaksi/{{id}}/cek-status", "host": ["{{base_url}}"], "path": ["user", "transaksi", "{{id}}", "cek-status"] } } },
+        { "name": "Transaksi - Batalkan", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/user/transaksi/{{id}}/batalkan", "host": ["{{base_url}}"], "path": ["user", "transaksi", "{{id}}", "batalkan"] } } },
+        { "name": "Tryout - List", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/user/tryout", "host": ["{{base_url}}"], "path": ["user", "tryout"] } } },
+        { "name": "Tryout - Mulai (Halaman)", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/user/tryout/{{id}}/mulai", "host": ["{{base_url}}"], "path": ["user", "tryout", "{{id}}", "mulai"] } } },
+        { "name": "Tryout - Start", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/user/tryout/{{id}}/start", "host": ["{{base_url}}"], "path": ["user", "tryout", "{{id}}", "start"] } } },
+        { "name": "Tryout - Jawab (Halaman)", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/user/tryout/jawab/{{id}}", "host": ["{{base_url}}"], "path": ["user", "tryout", "jawab", "{{id}}"] } } },
+        { "name": "Tryout - Simpan Jawaban", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "sesi_id", "value": "{{id}}", "type": "text" }, { "key": "soal_id", "value": "1", "type": "text" }, { "key": "jawaban", "value": "A", "type": "text" }, { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/user/tryout/simpan-jawaban", "host": ["{{base_url}}"], "path": ["user", "tryout", "simpan-jawaban"] } } },
+        { "name": "Tryout - Selesai", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/user/tryout/selesai/{{id}}", "host": ["{{base_url}}"], "path": ["user", "tryout", "selesai", "{{id}}"] } } },
+        { "name": "Tryout - Hasil", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/user/tryout/hasil/{{id}}", "host": ["{{base_url}}"], "path": ["user", "tryout", "hasil", "{{id}}"] } } },
+        { "name": "Tryout - Pembahasan", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/user/tryout/pembahasan/{{id}}", "host": ["{{base_url}}"], "path": ["user", "tryout", "pembahasan", "{{id}}"] } } },
+        { "name": "Tryout - Soal (alias)", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/user/tryout/sesi/{{id}}/soal/{{id2}}", "host": ["{{base_url}}"], "path": ["user", "tryout", "sesi", "{{id}}", "soal", "{{id2}}"] } } },
+        { "name": "Tryout - Detail Sesi", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/user/tryout/{{id}}/sesi", "host": ["{{base_url}}"], "path": ["user", "tryout", "{{id}}", "sesi"] } } },
+        { "name": "Profil - Index", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/user/profil", "host": ["{{base_url}}"], "path": ["user", "profil"] } } },
+        { "name": "Profil - Update", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "nama", "value": "Nama Baru", "type": "text" }, { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/user/profil/update", "host": ["{{base_url}}"], "path": ["user", "profil", "update"] } } },
+        { "name": "Profil - Update Password", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "password_lama", "value": "oldpass", "type": "text" }, { "key": "password_baru", "value": "newpass", "type": "text" }, { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/user/profil/update-password", "host": ["{{base_url}}"], "path": ["user", "profil", "update-password"] } } },
+        { "name": "Cart - Index", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/user/cart", "host": ["{{base_url}}"], "path": ["user", "cart"] } } },
+        { "name": "Cart - Add", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "produk_id", "value": "{{id}}", "type": "text" }, { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/user/cart/add", "host": ["{{base_url}}"], "path": ["user", "cart", "add"] } } },
+        { "name": "Cart - Remove", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "produk_id", "value": "{{id}}", "type": "text" }, { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/user/cart/remove", "host": ["{{base_url}}"], "path": ["user", "cart", "remove"] } } },
+        { "name": "Cart - Checkout", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/user/cart/checkout", "host": ["{{base_url}}"], "path": ["user", "cart", "checkout"] } } },
+        { "name": "Ranking - Index", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/user/ranking", "host": ["{{base_url}}"], "path": ["user", "ranking"] } } },
+        { "name": "Ranking - Leaderboard", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/user/ranking/{{slug}}", "host": ["{{base_url}}"], "path": ["user", "ranking", "{{slug}}"] } } },
+        { "name": "Formasi - Index", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/user/formasi", "host": ["{{base_url}}"], "path": ["user", "formasi"] } } },
+        { "name": "Request Formasi - Store", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "nama_formasi", "value": "Analis Kebijakan", "type": "text" }, { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/user/request-formasi", "host": ["{{base_url}}"], "path": ["user", "request-formasi"] } } },
+        { "name": "Ulasan - Store", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "produk_id", "value": "{{id}}", "type": "text" }, { "key": "rating", "value": "5", "type": "text" }, { "key": "komentar", "value": "Mantap", "type": "text" }, { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/user/ulasan", "host": ["{{base_url}}"], "path": ["user", "ulasan"] } } },
+        { "name": "Share - Generate Token", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/user/share/generate/{{id}}", "host": ["{{base_url}}"], "path": ["user", "share", "generate", "{{id}}"] } } },
+        { "name": "Notifikasi - Get", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/user/notifikasi", "host": ["{{base_url}}"], "path": ["user", "notifikasi"] } } },
+        { "name": "Notifikasi - Mark All Read", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/user/notifikasi/mark-all-read", "host": ["{{base_url}}"], "path": ["user", "notifikasi", "mark-all-read"] } } },
+        { "name": "Notifikasi - Read", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/user/notifikasi/{{id}}/read", "host": ["{{base_url}}"], "path": ["user", "notifikasi", "{{id}}", "read"] } } },
+        { "name": "Tryout Event - Index", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/user/tryout-event", "host": ["{{base_url}}"], "path": ["user", "tryout-event"] } } },
+        { "name": "Tryout Event - Kalender", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/user/tryout-event/kalender", "host": ["{{base_url}}"], "path": ["user", "tryout-event", "kalender"] } } },
+        { "name": "Tryout Event - Detail", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/user/tryout-event/{{slug}}", "host": ["{{base_url}}"], "path": ["user", "tryout-event", "{{slug}}"] } } },
+        { "name": "Tryout Event - Daftar", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/user/tryout-event/{{id}}/daftar", "host": ["{{base_url}}"], "path": ["user", "tryout-event", "{{id}}", "daftar"] } } },
+        { "name": "Tryout Event - Mulai", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/user/tryout-event/{{id}}/mulai", "host": ["{{base_url}}"], "path": ["user", "tryout-event", "{{id}}", "mulai"] } } },
+        { "name": "Tryout Event - Leaderboard", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/user/tryout-event/{{slug}}/leaderboard", "host": ["{{base_url}}"], "path": ["user", "tryout-event", "{{slug}}", "leaderboard"] } } },
+        { "name": "Materi - Serve File", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/user/materi/{{id}}/file", "host": ["{{base_url}}"], "path": ["user", "materi", "{{id}}", "file"] } } },
+        { "name": "Payment Status", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/user/payment/status", "host": ["{{base_url}}"], "path": ["user", "payment", "status"] } } },
+        { "name": "Katalog Buku", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/user/katalog-buku", "host": ["{{base_url}}"], "path": ["user", "katalog-buku"] } } }
+      ]
+    },
+    {
+      "name": "Webhook & Cron",
+      "item": [
+        { "name": "Webhook Midtrans", "request": { "method": "POST", "header": [ { "key": "Content-Type", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{\n  \"order_id\": \"ORDER-123\",\n  \"status_code\": \"200\",\n  \"gross_amount\": \"50000.00\",\n  \"payment_type\": \"bank_transfer\",\n  \"transaction_status\": \"settlement\",\n  \"fraud_status\": \"accept\",\n  \"signature_key\": \"\",\n  \"va_numbers\": [ { \"bank\": \"bsi\", \"va_number\": \"1234567890\" } ]\n}" }, "url": { "raw": "{{base_url}}/webhook/midtrans", "host": ["{{base_url}}"], "path": ["webhook", "midtrans"] } } },
+        { "name": "Cron - Sync Payment Status", "request": { "method": "GET", "header": [ { "key": "X-Cron-Key", "value": "{{cron_key}}" } ], "url": { "raw": "{{base_url}}/cron/sync-payment-status?key={{cron_key}}", "host": ["{{base_url}}"], "path": ["cron", "sync-payment-status"], "query": [ { "key": "key", "value": "{{cron_key}}" } ] } } },
+        { "name": "Cron - Process Blast Email", "request": { "method": "GET", "header": [ { "key": "X-Cron-Key", "value": "{{cron_key}}" } ], "url": { "raw": "{{base_url}}/cron/process-blast-email?key={{cron_key}}", "host": ["{{base_url}}"], "path": ["cron", "process-blast-email"], "query": [ { "key": "key", "value": "{{cron_key}}" } ] } } }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        { "name": "Dashboard", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/admin/dashboard", "host": ["{{base_url}}"], "path": ["admin", "dashboard"] } } },
+        {
+          "name": "Master User",
+          "item": [
+            { "name": "Index", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/admin/master/user", "host": ["{{base_url}}"], "path": ["admin", "master", "user"] } } },
+            { "name": "Create (Form)", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/admin/master/user/create", "host": ["{{base_url}}"], "path": ["admin", "master", "user", "create"] } } },
+            { "name": "Store", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "nama", "value": "User", "type": "text" }, { "key": "email", "value": "[email protected]", "type": "text" }, { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/admin/master/user/store", "host": ["{{base_url}}"], "path": ["admin", "master", "user", "store"] } } },
+            { "name": "Toggle Status", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "id", "value": "{{id}}", "type": "text" }, { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/admin/master/user/toggle-status", "host": ["{{base_url}}"], "path": ["admin", "master", "user", "toggle-status"] } } },
+            { "name": "Edit (Form)", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/admin/master/user/{{id}}/edit", "host": ["{{base_url}}"], "path": ["admin", "master", "user", "{{id}}", "edit"] } } },
+            { "name": "Update", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "nama", "value": "User Updated", "type": "text" }, { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/admin/master/user/{{id}}/update", "host": ["{{base_url}}"], "path": ["admin", "master", "user", "{{id}}", "update"] } } },
+            { "name": "Delete", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/admin/master/user/{{id}}/delete", "host": ["{{base_url}}"], "path": ["admin", "master", "user", "{{id}}", "delete"] } } }
+          ]
+        },
+        {
+          "name": "Master Kategori",
+          "item": [
+            { "name": "Index", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/admin/master/kategori", "host": ["{{base_url}}"], "path": ["admin", "master", "kategori"] } } },
+            { "name": "Create (Form)", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/admin/master/kategori/create", "host": ["{{base_url}}"], "path": ["admin", "master", "kategori", "create"] } } },
+            { "name": "Store", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "nama", "value": "Kategori", "type": "text" }, { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/admin/master/kategori/store", "host": ["{{base_url}}"], "path": ["admin", "master", "kategori", "store"] } } },
+            { "name": "Edit (Form)", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/admin/master/kategori/{{id}}/edit", "host": ["{{base_url}}"], "path": ["admin", "master", "kategori", "{{id}}", "edit"] } } },
+            { "name": "Update", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "nama", "value": "Kategori Updated", "type": "text" }, { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/admin/master/kategori/{{id}}/update", "host": ["{{base_url}}"], "path": ["admin", "master", "kategori", "{{id}}", "update"] } } },
+            { "name": "Delete", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/admin/master/kategori/{{id}}/delete", "host": ["{{base_url}}"], "path": ["admin", "master", "kategori", "{{id}}", "delete"] } } }
+          ]
+        },
+        {
+          "name": "Master Data File",
+          "item": [
+            { "name": "Index", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/admin/master/datafile", "host": ["{{base_url}}"], "path": ["admin", "master", "datafile"] } } },
+            { "name": "Upload", "request": { "method": "POST", "header": [], "body": { "mode": "formdata", "formdata": [ { "key": "file", "type": "file", "src": [] }, { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/admin/master/datafile/upload", "host": ["{{base_url}}"], "path": ["admin", "master", "datafile", "upload"] } } },
+            { "name": "Delete", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/admin/master/datafile/{{id}}/delete", "host": ["{{base_url}}"], "path": ["admin", "master", "datafile", "{{id}}", "delete"] } } },
+            { "name": "Serve", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/admin/master/datafile/{{id}}/serve", "host": ["{{base_url}}"], "path": ["admin", "master", "datafile", "{{id}}", "serve"] } } }
+          ]
+        },
+        {
+          "name": "Master Soal",
+          "item": [
+            { "name": "Index", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/admin/master/soal", "host": ["{{base_url}}"], "path": ["admin", "master", "soal"] } } },
+            { "name": "Create (Form)", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/admin/master/soal/create", "host": ["{{base_url}}"], "path": ["admin", "master", "soal", "create"] } } },
+            { "name": "Store", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "pertanyaan", "value": "Soal?", "type": "text" }, { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/admin/master/soal/store", "host": ["{{base_url}}"], "path": ["admin", "master", "soal", "store"] } } },
+            { "name": "Import (Form)", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/admin/master/soal/import", "host": ["{{base_url}}"], "path": ["admin", "master", "soal", "import"] } } },
+            { "name": "Import (Process)", "request": { "method": "POST", "header": [], "body": { "mode": "formdata", "formdata": [ { "key": "file", "type": "file", "src": [] }, { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/admin/master/soal/import", "host": ["{{base_url}}"], "path": ["admin", "master", "soal", "import"] } } },
+            { "name": "Template Download", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/admin/master/soal/template", "host": ["{{base_url}}"], "path": ["admin", "master", "soal", "template"] } } },
+            { "name": "Salin (Form)", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/admin/master/soal/salin", "host": ["{{base_url}}"], "path": ["admin", "master", "soal", "salin"] } } },
+            { "name": "Salin (Process)", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/admin/master/soal/salin", "host": ["{{base_url}}"], "path": ["admin", "master", "soal", "salin"] } } },
+            { "name": "Get Tipe Soal", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/admin/master/soal/tipe-soal/{{id}}", "host": ["{{base_url}}"], "path": ["admin", "master", "soal", "tipe-soal", "{{id}}"] } } },
+            { "name": "Get Sub Kategori", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/admin/master/soal/sub-kategori/{{id}}", "host": ["{{base_url}}"], "path": ["admin", "master", "soal", "sub-kategori", "{{id}}"] } } },
+            { "name": "Edit (Form)", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/admin/master/soal/{{id}}/edit", "host": ["{{base_url}}"], "path": ["admin", "master", "soal", "{{id}}", "edit"] } } },
+            { "name": "Update", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/admin/master/soal/{{id}}/update", "host": ["{{base_url}}"], "path": ["admin", "master", "soal", "{{id}}", "update"] } } },
+            { "name": "Delete", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/admin/master/soal/{{id}}/delete", "host": ["{{base_url}}"], "path": ["admin", "master", "soal", "{{id}}", "delete"] } } }
+          ]
+        },
+        {
+          "name": "Master Tryout",
+          "item": [
+            { "name": "Index", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/admin/master/tryout", "host": ["{{base_url}}"], "path": ["admin", "master", "tryout"] } } },
+            { "name": "Create (Form)", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/admin/master/tryout/create", "host": ["{{base_url}}"], "path": ["admin", "master", "tryout", "create"] } } },
+            { "name": "Store", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "nama", "value": "Tryout", "type": "text" }, { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/admin/master/tryout/store", "host": ["{{base_url}}"], "path": ["admin", "master", "tryout", "store"] } } },
+            { "name": "Edit (Form)", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/admin/master/tryout/{{id}}/edit", "host": ["{{base_url}}"], "path": ["admin", "master", "tryout", "{{id}}", "edit"] } } },
+            { "name": "Update", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/admin/master/tryout/{{id}}/update", "host": ["{{base_url}}"], "path": ["admin", "master", "tryout", "{{id}}", "update"] } } },
+            { "name": "Delete", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/admin/master/tryout/{{id}}/delete", "host": ["{{base_url}}"], "path": ["admin", "master", "tryout", "{{id}}", "delete"] } } },
+            { "name": "Preview Soal", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/admin/master/tryout/{{id}}/preview-soal", "host": ["{{base_url}}"], "path": ["admin", "master", "tryout", "{{id}}", "preview-soal"] } } }
+          ]
+        },
+        {
+          "name": "Master Produk",
+          "item": [
+            { "name": "Index", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/admin/master/produk", "host": ["{{base_url}}"], "path": ["admin", "master", "produk"] } } },
+            { "name": "Create (Form)", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/admin/master/produk/create", "host": ["{{base_url}}"], "path": ["admin", "master", "produk", "create"] } } },
+            { "name": "Store", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "nama", "value": "Produk", "type": "text" }, { "key": "harga", "value": "50000", "type": "text" }, { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/admin/master/produk/store", "host": ["{{base_url}}"], "path": ["admin", "master", "produk", "store"] } } },
+            { "name": "Edit (Form)", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/admin/master/produk/{{id}}/edit", "host": ["{{base_url}}"], "path": ["admin", "master", "produk", "{{id}}", "edit"] } } },
+            { "name": "Update", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/admin/master/produk/{{id}}/update", "host": ["{{base_url}}"], "path": ["admin", "master", "produk", "{{id}}", "update"] } } },
+            { "name": "Delete", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/admin/master/produk/{{id}}/delete", "host": ["{{base_url}}"], "path": ["admin", "master", "produk", "{{id}}", "delete"] } } },
+            { "name": "Toggle", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "id", "value": "{{id}}", "type": "text" }, { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/admin/master/produk/toggle", "host": ["{{base_url}}"], "path": ["admin", "master", "produk", "toggle"] } } }
+          ]
+        },
+        {
+          "name": "Mapping Soal",
+          "item": [
+            { "name": "Index", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/admin/mapping/soal", "host": ["{{base_url}}"], "path": ["admin", "mapping", "soal"] } } },
+            { "name": "Index (by Tryout)", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/admin/mapping/soal/{{id}}", "host": ["{{base_url}}"], "path": ["admin", "mapping", "soal", "{{id}}"] } } },
+            { "name": "Store", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/admin/mapping/soal/store", "host": ["{{base_url}}"], "path": ["admin", "mapping", "soal", "store"] } } },
+            { "name": "Delete", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/admin/mapping/soal/{{id}}/delete", "host": ["{{base_url}}"], "path": ["admin", "mapping", "soal", "{{id}}", "delete"] } } },
+            { "name": "Update Urutan", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/admin/mapping/soal/urutan", "host": ["{{base_url}}"], "path": ["admin", "mapping", "soal", "urutan"] } } }
+          ]
+        },
+        {
+          "name": "Mapping Tryout",
+          "item": [
+            { "name": "Index", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/admin/mapping/tryout", "host": ["{{base_url}}"], "path": ["admin", "mapping", "tryout"] } } },
+            { "name": "Index (by Produk)", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/admin/mapping/tryout/{{id}}", "host": ["{{base_url}}"], "path": ["admin", "mapping", "tryout", "{{id}}"] } } },
+            { "name": "Store", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/admin/mapping/tryout/store", "host": ["{{base_url}}"], "path": ["admin", "mapping", "tryout", "store"] } } },
+            { "name": "Delete", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/admin/mapping/tryout/{{id}}/delete", "host": ["{{base_url}}"], "path": ["admin", "mapping", "tryout", "{{id}}", "delete"] } } },
+            { "name": "Update Urutan", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/admin/mapping/tryout/urutan", "host": ["{{base_url}}"], "path": ["admin", "mapping", "tryout", "urutan"] } } }
+          ]
+        },
+        {
+          "name": "Master Kategori Formasi",
+          "item": [
+            { "name": "Index", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/admin/master/kategori-formasi", "host": ["{{base_url}}"], "path": ["admin", "master", "kategori-formasi"] } } },
+            { "name": "Create (Form)", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/admin/master/kategori-formasi/create", "host": ["{{base_url}}"], "path": ["admin", "master", "kategori-formasi", "create"] } } },
+            { "name": "Store", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/admin/master/kategori-formasi/store", "host": ["{{base_url}}"], "path": ["admin", "master", "kategori-formasi", "store"] } } },
+            { "name": "Edit (Form)", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/admin/master/kategori-formasi/{{id}}/edit", "host": ["{{base_url}}"], "path": ["admin", "master", "kategori-formasi", "{{id}}", "edit"] } } },
+            { "name": "Update", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/admin/master/kategori-formasi/{{id}}/update", "host": ["{{base_url}}"], "path": ["admin", "master", "kategori-formasi", "{{id}}", "update"] } } },
+            { "name": "Delete", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/admin/master/kategori-formasi/{{id}}/delete", "host": ["{{base_url}}"], "path": ["admin", "master", "kategori-formasi", "{{id}}", "delete"] } } },
+            { "name": "Detail", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/admin/master/kategori-formasi/{{id}}/detail", "host": ["{{base_url}}"], "path": ["admin", "master", "kategori-formasi", "{{id}}", "detail"] } } },
+            { "name": "Store Formasi", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/admin/master/kategori-formasi/{{id}}/formasi/store", "host": ["{{base_url}}"], "path": ["admin", "master", "kategori-formasi", "{{id}}", "formasi", "store"] } } },
+            { "name": "Update Formasi", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/admin/master/kategori-formasi/{{id}}/formasi/{{id2}}/update", "host": ["{{base_url}}"], "path": ["admin", "master", "kategori-formasi", "{{id}}", "formasi", "{{id2}}", "update"] } } },
+            { "name": "Delete Formasi", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/admin/master/kategori-formasi/{{id}}/formasi/{{id2}}/delete", "host": ["{{base_url}}"], "path": ["admin", "master", "kategori-formasi", "{{id}}", "formasi", "{{id2}}", "delete"] } } }
+          ]
+        },
+        {
+          "name": "Master Passing Grade",
+          "item": [
+            { "name": "Index", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/admin/master/passing-grade", "host": ["{{base_url}}"], "path": ["admin", "master", "passing-grade"] } } },
+            { "name": "Create (Form)", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/admin/master/passing-grade/create", "host": ["{{base_url}}"], "path": ["admin", "master", "passing-grade", "create"] } } },
+            { "name": "Store", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/admin/master/passing-grade/store", "host": ["{{base_url}}"], "path": ["admin", "master", "passing-grade", "store"] } } },
+            { "name": "Check Duplicate", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/admin/master/passing-grade/check-duplicate", "host": ["{{base_url}}"], "path": ["admin", "master", "passing-grade", "check-duplicate"] } } },
+            { "name": "Edit (Form)", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/admin/master/passing-grade/{{id}}/edit", "host": ["{{base_url}}"], "path": ["admin", "master", "passing-grade", "{{id}}", "edit"] } } },
+            { "name": "Update", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/admin/master/passing-grade/{{id}}/update", "host": ["{{base_url}}"], "path": ["admin", "master", "passing-grade", "{{id}}", "update"] } } },
+            { "name": "Delete", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/admin/master/passing-grade/{{id}}/delete", "host": ["{{base_url}}"], "path": ["admin", "master", "passing-grade", "{{id}}", "delete"] } } }
+          ]
+        },
+        {
+          "name": "Promosi",
+          "item": [
+            { "name": "Index", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/admin/promosi", "host": ["{{base_url}}"], "path": ["admin", "promosi"] } } },
+            { "name": "Create (Form)", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/admin/promosi/create", "host": ["{{base_url}}"], "path": ["admin", "promosi", "create"] } } },
+            { "name": "Store", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/admin/promosi/store", "host": ["{{base_url}}"], "path": ["admin", "promosi", "store"] } } },
+            { "name": "Edit (Form)", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/admin/promosi/{{id}}/edit", "host": ["{{base_url}}"], "path": ["admin", "promosi", "{{id}}", "edit"] } } },
+            { "name": "Update", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/admin/promosi/{{id}}/update", "host": ["{{base_url}}"], "path": ["admin", "promosi", "{{id}}", "update"] } } },
+            { "name": "Delete", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/admin/promosi/{{id}}/delete", "host": ["{{base_url}}"], "path": ["admin", "promosi", "{{id}}", "delete"] } } }
+          ]
+        },
+        {
+          "name": "Voucher",
+          "item": [
+            { "name": "Index", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/admin/voucher", "host": ["{{base_url}}"], "path": ["admin", "voucher"] } } },
+            { "name": "Create (Form)", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/admin/voucher/create", "host": ["{{base_url}}"], "path": ["admin", "voucher", "create"] } } },
+            { "name": "Store", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/admin/voucher/store", "host": ["{{base_url}}"], "path": ["admin", "voucher", "store"] } } },
+            { "name": "Edit (Form)", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/admin/voucher/{{id}}/edit", "host": ["{{base_url}}"], "path": ["admin", "voucher", "{{id}}", "edit"] } } },
+            { "name": "Update", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/admin/voucher/{{id}}/update", "host": ["{{base_url}}"], "path": ["admin", "voucher", "{{id}}", "update"] } } },
+            { "name": "Delete", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/admin/voucher/{{id}}/delete", "host": ["{{base_url}}"], "path": ["admin", "voucher", "{{id}}", "delete"] } } }
+          ]
+        },
+        {
+          "name": "Laporan",
+          "item": [
+            { "name": "Transaksi", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/admin/laporan/transaksi", "host": ["{{base_url}}"], "path": ["admin", "laporan", "transaksi"] } } },
+            { "name": "Tryout", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/admin/laporan/tryout", "host": ["{{base_url}}"], "path": ["admin", "laporan", "tryout"] } } },
+            { "name": "Export Transaksi Excel", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/admin/laporan/transaksi/export-excel", "host": ["{{base_url}}"], "path": ["admin", "laporan", "transaksi", "export-excel"] } } },
+            { "name": "Export Transaksi PDF", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/admin/laporan/transaksi/export-pdf", "host": ["{{base_url}}"], "path": ["admin", "laporan", "transaksi", "export-pdf"] } } }
+          ]
+        },
+        {
+          "name": "Menu Mapping",
+          "item": [
+            { "name": "Index", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/admin/menu-mapping", "host": ["{{base_url}}"], "path": ["admin", "menu-mapping"] } } },
+            { "name": "Save", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/admin/menu-mapping/save", "host": ["{{base_url}}"], "path": ["admin", "menu-mapping", "save"] } } },
+            { "name": "Preview", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/admin/menu-mapping/preview", "host": ["{{base_url}}"], "path": ["admin", "menu-mapping", "preview"] } } }
+          ]
+        },
+        {
+          "name": "Konten",
+          "item": [
+            { "name": "Index", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/admin/konten", "host": ["{{base_url}}"], "path": ["admin", "konten"] } } },
+            { "name": "Create (Form)", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/admin/konten/create", "host": ["{{base_url}}"], "path": ["admin", "konten", "create"] } } },
+            { "name": "Store", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/admin/konten/store", "host": ["{{base_url}}"], "path": ["admin", "konten", "store"] } } },
+            { "name": "Edit (Form)", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/admin/konten/{{id}}/edit", "host": ["{{base_url}}"], "path": ["admin", "konten", "{{id}}", "edit"] } } },
+            { "name": "Update", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/admin/konten/{{id}}/update", "host": ["{{base_url}}"], "path": ["admin", "konten", "{{id}}", "update"] } } },
+            { "name": "Delete", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/admin/konten/{{id}}/delete", "host": ["{{base_url}}"], "path": ["admin", "konten", "{{id}}", "delete"] } } }
+          ]
+        },
+        {
+          "name": "Katalog Buku",
+          "item": [
+            { "name": "Index", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/admin/katalog-buku", "host": ["{{base_url}}"], "path": ["admin", "katalog-buku"] } } },
+            { "name": "Create (Form)", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/admin/katalog-buku/create", "host": ["{{base_url}}"], "path": ["admin", "katalog-buku", "create"] } } },
+            { "name": "Store", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/admin/katalog-buku/store", "host": ["{{base_url}}"], "path": ["admin", "katalog-buku", "store"] } } },
+            { "name": "Import (Form)", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/admin/katalog-buku/import", "host": ["{{base_url}}"], "path": ["admin", "katalog-buku", "import"] } } },
+            { "name": "Import (Process)", "request": { "method": "POST", "header": [], "body": { "mode": "formdata", "formdata": [ { "key": "file", "type": "file", "src": [] }, { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/admin/katalog-buku/import", "host": ["{{base_url}}"], "path": ["admin", "katalog-buku", "import"] } } },
+            { "name": "Edit (Form)", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/admin/katalog-buku/{{id}}/edit", "host": ["{{base_url}}"], "path": ["admin", "katalog-buku", "{{id}}", "edit"] } } },
+            { "name": "Update", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/admin/katalog-buku/{{id}}/update", "host": ["{{base_url}}"], "path": ["admin", "katalog-buku", "{{id}}", "update"] } } },
+            { "name": "Delete", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/admin/katalog-buku/{{id}}/delete", "host": ["{{base_url}}"], "path": ["admin", "katalog-buku", "{{id}}", "delete"] } } },
+            { "name": "Toggle", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "id", "value": "{{id}}", "type": "text" }, { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/admin/katalog-buku/toggle", "host": ["{{base_url}}"], "path": ["admin", "katalog-buku", "toggle"] } } }
+          ]
+        },
+        {
+          "name": "Blast Email",
+          "item": [
+            { "name": "Index", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/admin/blast-email", "host": ["{{base_url}}"], "path": ["admin", "blast-email"] } } },
+            { "name": "Send", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "subjek", "value": "Pengumuman", "type": "text" }, { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/admin/blast-email/send", "host": ["{{base_url}}"], "path": ["admin", "blast-email", "send"] } } },
+            { "name": "Preview", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/admin/blast-email/{{id}}/preview", "host": ["{{base_url}}"], "path": ["admin", "blast-email", "{{id}}", "preview"] } } }
+          ]
+        },
+        {
+          "name": "Tryout Event",
+          "item": [
+            { "name": "Index", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/admin/tryout-event", "host": ["{{base_url}}"], "path": ["admin", "tryout-event"] } } },
+            { "name": "Create (Form)", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/admin/tryout-event/create", "host": ["{{base_url}}"], "path": ["admin", "tryout-event", "create"] } } },
+            { "name": "Store", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/admin/tryout-event/store", "host": ["{{base_url}}"], "path": ["admin", "tryout-event", "store"] } } },
+            { "name": "Edit (Form)", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/admin/tryout-event/{{id}}/edit", "host": ["{{base_url}}"], "path": ["admin", "tryout-event", "{{id}}", "edit"] } } },
+            { "name": "Update", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/admin/tryout-event/{{id}}/update", "host": ["{{base_url}}"], "path": ["admin", "tryout-event", "{{id}}", "update"] } } },
+            { "name": "Delete", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/admin/tryout-event/{{id}}/delete", "host": ["{{base_url}}"], "path": ["admin", "tryout-event", "{{id}}", "delete"] } } },
+            { "name": "Peserta", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/admin/tryout-event/{{id}}/peserta", "host": ["{{base_url}}"], "path": ["admin", "tryout-event", "{{id}}", "peserta"] } } },
+            { "name": "Reset Peserta", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/admin/tryout-event/{{id}}/peserta/{{id2}}/reset", "host": ["{{base_url}}"], "path": ["admin", "tryout-event", "{{id}}", "peserta", "{{id2}}", "reset"] } } }
+          ]
+        },
+        {
+          "name": "Request Formasi",
+          "item": [
+            { "name": "Index", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/admin/request-formasi", "host": ["{{base_url}}"], "path": ["admin", "request-formasi"] } } },
+            { "name": "Approve", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/admin/request-formasi/{{id}}/approve", "host": ["{{base_url}}"], "path": ["admin", "request-formasi", "{{id}}", "approve"] } } },
+            { "name": "Reject", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/admin/request-formasi/{{id}}/reject", "host": ["{{base_url}}"], "path": ["admin", "request-formasi", "{{id}}", "reject"] } } }
+          ]
+        },
+        {
+          "name": "Ulasan",
+          "item": [
+            { "name": "Index", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/admin/ulasan", "host": ["{{base_url}}"], "path": ["admin", "ulasan"] } } },
+            { "name": "Toggle", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/admin/ulasan/{{id}}/toggle", "host": ["{{base_url}}"], "path": ["admin", "ulasan", "{{id}}", "toggle"] } } },
+            { "name": "Delete", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/admin/ulasan/{{id}}/delete", "host": ["{{base_url}}"], "path": ["admin", "ulasan", "{{id}}", "delete"] } } }
+          ]
+        },
+        {
+          "name": "Notifikasi (Admin)",
+          "item": [
+            { "name": "Get", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/admin/notifikasi", "host": ["{{base_url}}"], "path": ["admin", "notifikasi"] } } },
+            { "name": "Mark All Read", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/admin/notifikasi/mark-all-read", "host": ["{{base_url}}"], "path": ["admin", "notifikasi", "mark-all-read"] } } },
+            { "name": "Read", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/admin/notifikasi/{{id}}/read", "host": ["{{base_url}}"], "path": ["admin", "notifikasi", "{{id}}", "read"] } } }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Super Admin",
+      "item": [
+        { "name": "Master Aplikasi - Index", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/superadmin/master-aplikasi", "host": ["{{base_url}}"], "path": ["superadmin", "master-aplikasi"] } } },
+        { "name": "Master Aplikasi - Save", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/superadmin/master-aplikasi/save", "host": ["{{base_url}}"], "path": ["superadmin", "master-aplikasi", "save"] } } },
+        { "name": "Akun - Index", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/superadmin/akun", "host": ["{{base_url}}"], "path": ["superadmin", "akun"] } } },
+        { "name": "Akun - Create (Form)", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/superadmin/akun/create", "host": ["{{base_url}}"], "path": ["superadmin", "akun", "create"] } } },
+        { "name": "Akun - Store", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/superadmin/akun/store", "host": ["{{base_url}}"], "path": ["superadmin", "akun", "store"] } } },
+        { "name": "Akun - Toggle Status", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "id", "value": "{{id}}", "type": "text" }, { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/superadmin/akun/toggle-status", "host": ["{{base_url}}"], "path": ["superadmin", "akun", "toggle-status"] } } },
+        { "name": "Akun - Edit (Form)", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/superadmin/akun/{{id}}/edit", "host": ["{{base_url}}"], "path": ["superadmin", "akun", "{{id}}", "edit"] } } },
+        { "name": "Akun - Update", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/superadmin/akun/{{id}}/update", "host": ["{{base_url}}"], "path": ["superadmin", "akun", "{{id}}", "update"] } } },
+        { "name": "Akun - Nonaktifkan", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/superadmin/akun/{{id}}/nonaktifkan", "host": ["{{base_url}}"], "path": ["superadmin", "akun", "{{id}}", "nonaktifkan"] } } },
+        { "name": "Akun - Aktifkan", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/superadmin/akun/{{id}}/aktifkan", "host": ["{{base_url}}"], "path": ["superadmin", "akun", "{{id}}", "aktifkan"] } } },
+        { "name": "Akun - Delete", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/superadmin/akun/{{id}}/delete", "host": ["{{base_url}}"], "path": ["superadmin", "akun", "{{id}}", "delete"] } } },
+        { "name": "Audit Log - Index", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/superadmin/audit-log", "host": ["{{base_url}}"], "path": ["superadmin", "audit-log"] } } },
+        { "name": "Backup - Index", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/superadmin/backup", "host": ["{{base_url}}"], "path": ["superadmin", "backup"] } } },
+        { "name": "Backup - Create", "request": { "method": "POST", "header": [], "body": { "mode": "urlencoded", "urlencoded": [ { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/superadmin/backup/create", "host": ["{{base_url}}"], "path": ["superadmin", "backup", "create"] } } },
+        { "name": "Backup - Restore", "request": { "method": "POST", "header": [], "body": { "mode": "formdata", "formdata": [ { "key": "file", "type": "file", "src": [] }, { "key": "csrf_test_name", "value": "{{csrf_token}}", "type": "text" } ] }, "url": { "raw": "{{base_url}}/superadmin/backup/restore", "host": ["{{base_url}}"], "path": ["superadmin", "backup", "restore"] } } }
+      ]
+    }
+  ]
+}

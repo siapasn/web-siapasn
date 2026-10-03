@@ -247,8 +247,8 @@ $isCart = ! empty($produkList);
 
                     <?php
                     $groups = [
-                        // 'QRIS & E-Wallet' => ['qris', 'gopay', 'shopeepay', 'dana'],
-                        'Transfer Bank'   => ['mandiri', 'bni', 'bri'],
+                        'QRIS & E-Wallet' => ['gopay', 'shopeepay'],
+                        'Transfer Bank'   => ['mandiri', 'bni', 'bri', 'bsi'],
                     ];
                     $bgColors = [
                         'qris'      => '#e31e24',
@@ -258,6 +258,7 @@ $isCart = ! empty($produkList);
                         'mandiri'   => '#003d79',
                         'bni'       => '#f68b1e',
                         'bri'       => '#005baa',
+                        'bsi'       => '#c3ad04',
                         'permata'   => '#e31e24',
                     ];
                     $initials = [
@@ -268,6 +269,7 @@ $isCart = ! empty($produkList);
                         'mandiri'   => 'MDR',
                         'bni'       => 'BNI',
                         'bri'       => 'BRI',
+                        'bsi'       => 'BSI',
                         'permata'   => 'PMT',
                     ];
                     ?>
@@ -278,6 +280,7 @@ $isCart = ! empty($produkList);
                         </p>
                         <div class="d-flex flex-column gap-2">
                             <?php foreach ($keys as $key):
+                                if (! isset($paymentMethods[$key])) continue;
                                 $pm = $paymentMethods[$key];
                             ?>
                                 <div class="payment-method-card card border-0 p-2 p-sm-3"
