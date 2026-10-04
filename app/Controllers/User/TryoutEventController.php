@@ -43,6 +43,62 @@ class TryoutEventController extends BaseController
     }
 
     /**
+     * Finalisasi otomatis sesi tryout yang menggantung (status 'berlangsung')
+     * milik user untuk tryout tertentu, jika durasi pengerjaan sudah habis
+     * atau periode pelaksanaan event sudah tutup.
+     *
+     * Kasus yang ditangani: user mulai mengerjakan lalu menutup browser tanpa
+     * submit. Tanpa ini, sesi menggantung selamanya — percobaan terpakai tapi
+     * hasil tidak pernah tercatat sehingga leaderboard & riwayat terblokir.
+     *
+     * Sesi akan ditandai 'timeout', lalu di-scoring dengan jawaban apa adanya
+     * (soal yang belum dijawab dihitung kosong/0 oleh TryoutScoringService).
+     *
+     * @return bool true jika ada sesi yang difinalisasi.
+     */
+    private function finalisasiSesiKedaluwarsa(int $userId, array $event): bool
+    {
+        $db        = \Config\Database::connect();
+        $tryoutId  = (int) $event['tryout_id'];
+        $now       = date('Y-m-d H:i:s');
+
+        $sesiAktif = $this->sesiModel->getAktif($userId, $tryoutId);
+        if (! $sesiAktif) {
+            return false;
+        }
+
+        // Durasi tryout (menit) → batas waktu sesi.
+        $tryout = $db->table('tryout')->select('durasi')->where('id', $tryoutId)->get()->getRowArray();
+        $durasiMenit = (int) ($tryout['durasi'] ?? 0);
+
+        $durasiHabis = false;
+        if ($durasiMenit > 0 && ! empty($sesiAktif['mulai_at'])) {
+            $batasWaktu  = strtotime($sesiAktif['mulai_at']) + ($durasiMenit * 60);
+            $durasiHabis = time() >= $batasWaktu;
+        }
+
+        // Periode pelaksanaan event sudah tutup.
+        $eventTutup = $now > $event['tutup_pelaksanaan'];
+
+        if (! $durasiHabis && ! $eventTutup) {
+            // Sesi masih valid untuk dilanjutkan — jangan difinalisasi.
+            return false;
+        }
+
+        // Finalisasi: tandai timeout (otomatis set peserta 'completed') lalu scoring.
+        $sesiId = (int) $sesiAktif['id'];
+        $this->sesiModel->selesaikan($sesiId, 'timeout');
+
+        try {
+            (new TryoutScoringService())->hitung($sesiId);
+        } catch (\Throwable $e) {
+            log_message('error', 'finalisasiSesiKedaluwarsa: gagal scoring sesi #' . $sesiId . ': ' . $e->getMessage());
+        }
+
+        return true;
+    }
+
+    /**
      * Daftar event tryout yang tersedia untuk user.
      */
     public function index()
@@ -133,6 +189,10 @@ class TryoutEventController extends BaseController
         }
 
         $eventId = (int) $event['id'];
+
+        // Auto-finalisasi sesi menggantung yang sudah kedaluwarsa agar hasil
+        // tercatat dan leaderboard/riwayat bisa diakses.
+        $this->finalisasiSesiKedaluwarsa($userId, $event);
 
         // Info tryout
         $tryout = $db->table('tryout')->where('id', $event['tryout_id'])->get()->getRowArray();
@@ -293,6 +353,10 @@ class TryoutEventController extends BaseController
             ]);
         }
 
+        // Finalisasi sesi menggantung yang sudah kedaluwarsa agar tidak
+        // "dilanjutkan" ke halaman jawab yang waktunya sudah habis.
+        $this->finalisasiSesiKedaluwarsa($userId, $event);
+
         // Cek sesi aktif lebih dulu agar percobaan yang belum selesai bisa dilanjutkan.
         $sesiAktif = $this->sesiModel->getAktif($userId, (int) $event['tryout_id']);
         if ($sesiAktif) {
@@ -405,6 +469,10 @@ class TryoutEventController extends BaseController
 
         $eventId   = (int) $event['id'];
         $eventSlug = $event['slug'] ?: $eventId;
+
+        // Auto-finalisasi sesi menggantung yang sudah kedaluwarsa sebelum
+        // mengecek kelayakan akses leaderboard.
+        $this->finalisasiSesiKedaluwarsa($userId, $event);
 
         // Validasi: user harus sudah pernah mengerjakan tryout ini
         $hasCompleted = $db->table('hasil_tryout')
